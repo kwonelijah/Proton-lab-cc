@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Playfair_Display, Inter } from 'next/font/google'
+import { Playfair_Display, Montserrat } from 'next/font/google'
 import '@/styles/globals.css'
 
 const playfair = Playfair_Display({
@@ -8,7 +8,7 @@ const playfair = Playfair_Display({
   display: 'swap',
 })
 
-const inter = Inter({
+const inter = Montserrat({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',

@@ -6,6 +6,8 @@ interface HeroSectionProps {
   subheadline?: string
   ctaText: string
   ctaHref: string
+  secondaryCtaText?: string
+  secondaryCtaHref?: string
   imageSrc: string
   imageAlt?: string
   eyebrow?: string
@@ -16,6 +18,8 @@ export default function HeroSection({
   subheadline,
   ctaText,
   ctaHref,
+  secondaryCtaText,
+  secondaryCtaHref,
   imageSrc,
   imageAlt = '',
   eyebrow,
@@ -50,7 +54,7 @@ export default function HeroSection({
             {subheadline}
           </p>
         )}
-        <div className="mt-8 md:mt-10">
+        <div className="mt-8 md:mt-10 flex flex-wrap gap-3">
           <Button
             href={ctaHref}
             variant="secondary"
@@ -59,6 +63,16 @@ export default function HeroSection({
           >
             {ctaText}
           </Button>
+          {secondaryCtaText && secondaryCtaHref && (
+            <Button
+              href={secondaryCtaHref}
+              variant="ghost"
+              size="lg"
+              className="text-proton-white/80 hover:text-proton-white"
+            >
+              {secondaryCtaText} →
+            </Button>
+          )}
         </div>
       </div>
 

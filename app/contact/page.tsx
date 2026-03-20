@@ -29,27 +29,9 @@ export default function ContactPage() {
           <div className="space-y-10">
             <div>
               <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">
-                General Enquiries
+                Email
               </p>
-              <p className="text-sm text-proton-black">hello@protonlabcc.com</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">
-                Team Store Enquiries
-              </p>
-              <p className="text-sm text-proton-black">teams@protonlabcc.com</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">
-                Press & Media
-              </p>
-              <p className="text-sm text-proton-black">press@protonlabcc.com</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">
-                Based In
-              </p>
-              <p className="text-sm text-proton-black">United Kingdom</p>
+              <p className="text-sm text-proton-black">info@protonlab.cc</p>
             </div>
           </div>
         </div>

@@ -1,13 +1,10 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import HeroSection from '@/components/sections/HeroSection'
+import VideoHero from '@/components/sections/VideoHero'
 import CTABanner from '@/components/sections/CTABanner'
-import EditorialGrid from '@/components/sections/EditorialGrid'
-import CollectionCard from '@/components/ui/CollectionCard'
-import JournalCard from '@/components/ui/JournalCard'
-import { getCollections, getJournalPosts } from '@/lib/api'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Proton Lab CC — Premium Cycling Apparel',
@@ -15,168 +12,68 @@ export const metadata: Metadata = {
     'Precision-engineered cycling apparel for those who train and race without compromise.',
 }
 
-const editorialImages = [
-  {
-    imageSrc: 'https://picsum.photos/seed/home-ed-1/900/1200',
-    imageAlt: 'Proton Lab CC apparel detail',
-  },
-  {
-    imageSrc: 'https://picsum.photos/seed/home-ed-2/600/600',
-    imageAlt: 'Fabric construction detail',
-  },
-  {
-    imageSrc: 'https://picsum.photos/seed/home-ed-3/600/600',
-    imageAlt: 'Athlete wearing Proton Lab CC',
-  },
-]
-
 export default async function HomePage() {
-  const [collections, posts] = await Promise.all([
-    getCollections(),
-    getJournalPosts(),
-  ])
-
   return (
     <>
       <Navbar />
 
       {/* 1. Hero */}
-      <HeroSection
-        eyebrow="Proton Lab CC — SS26"
+      <VideoHero
+        videoSrc="/videos/PLHomepageClip.mov"
+        eyebrow="Proton Lab CC"
         headline="No Compromise."
-        subheadline="Premium cycling apparel precision-engineered for those who train and race without limits."
-        ctaText="Explore Collections"
-        ctaHref="/collections"
-        imageSrc="https://picsum.photos/seed/hero-main/1600/1000"
-        imageAlt="Cyclist in Proton Lab CC apparel"
+        subheadline="Premium cycling apparel precision-engineered for those who train and race."
+        ctaText="Shop Collection"
+        ctaHref="/shop"
+        secondaryCtaText="Custom Kit"
+        secondaryCtaHref="/custom"
       />
 
-      {/* 2. Brand statement */}
-      <section className="py-20 md:py-28 px-6 md:px-12 border-b border-proton-light">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
-          <p className="font-playfair text-3xl md:text-4xl max-w-xl leading-snug">
-            Engineered in the wind tunnel.<br />Refined on the road.
-          </p>
-          <div className="max-w-sm">
-            <p className="text-sm text-proton-grey leading-relaxed">
-              Every Proton Lab CC garment is the result of months of development with athletes
-              who race at the highest level. No colour for its own sake. No feature without
-              a reason. Just the pursuit of the perfect garment.
-            </p>
-            <Link
-              href="/about"
-              className="inline-block mt-6 text-[10px] uppercase tracking-widest text-proton-black border-b border-proton-black pb-0.5 hover:opacity-60 transition-opacity duration-200"
-            >
-              About Proton Lab
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Collections */}
+      {/* 2. Two-path CTA */}
       <section className="py-24 md:py-32 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">
-                Current Season
-              </p>
-              <h2 className="font-playfair text-4xl md:text-5xl leading-none">
-                Collections
-              </h2>
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link href="/shop" className="group relative overflow-hidden aspect-[4/3] bg-proton-light flex items-end">
+            <Image
+              src="/images/homepage/homepagecollection.JPG"
+              alt="Shop Collection"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
+            <div className="relative z-10 p-8 md:p-10">
+              <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-2">Ready to Ship</p>
+              <h2 className="font-playfair text-4xl text-proton-white leading-none">Shop Collection</h2>
+              <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
+                Shop Now
+              </span>
             </div>
-            <Link
-              href="/collections"
-              className="hidden md:inline-block text-[10px] uppercase tracking-widest text-proton-grey border-b border-proton-grey pb-0.5 hover:text-proton-black hover:border-proton-black transition-colors duration-200"
-            >
-              View All
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
-            {collections.map((collection, i) => (
-              <CollectionCard
-                key={collection.id}
-                collection={collection}
-                priority={i < 3}
-              />
-            ))}
-          </div>
-
-          <div className="mt-10 md:hidden text-center">
-            <Link
-              href="/collections"
-              className="text-[10px] uppercase tracking-widest text-proton-grey border-b border-proton-grey pb-0.5"
-            >
-              View All Collections
-            </Link>
-          </div>
+          </Link>
+          <Link href="/custom" className="group relative overflow-hidden aspect-[4/3] bg-proton-black flex items-end">
+            <Image
+              src="/images/homepage/homepagecustom.jpg"
+              alt="Custom Kit"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
+            <div className="relative z-10 p-8 md:p-10">
+              <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-2">Made to Order</p>
+              <h2 className="font-playfair text-4xl text-proton-white leading-none">Custom Kit</h2>
+              <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
+                Learn More
+              </span>
+            </div>
+          </Link>
         </div>
       </section>
 
-      {/* 4. CTA banner — wind tunnel story */}
-      <CTABanner
-        eyebrow="Development"
-        headline="Engineered in the wind tunnel."
-        ctaText="Read the Story"
-        ctaHref="/journal/wind-tunnel-testing-aero-series"
-        inverted
-      />
-
-      {/* 5. Editorial section */}
-      <section className="py-24 md:py-32 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">
-                The Brand
-              </p>
-              <h2 className="font-playfair text-4xl md:text-5xl leading-none">
-                No colour.<br />No compromise.
-              </h2>
-            </div>
-            <Link
-              href="/about"
-              className="hidden md:inline-block text-[10px] uppercase tracking-widest text-proton-grey border-b border-proton-grey pb-0.5 hover:text-proton-black hover:border-proton-black transition-colors duration-200"
-            >
-              About Us
-            </Link>
-          </div>
-          <EditorialGrid items={editorialImages} />
-        </div>
-      </section>
-
-      {/* 6. Journal */}
-      <section className="py-24 md:py-32 px-6 md:px-12 border-t border-proton-light">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">
-                Stories
-              </p>
-              <h2 className="font-playfair text-4xl md:text-5xl leading-none">Journal</h2>
-            </div>
-            <Link
-              href="/journal"
-              className="hidden md:inline-block text-[10px] uppercase tracking-widest text-proton-grey border-b border-proton-grey pb-0.5 hover:text-proton-black hover:border-proton-black transition-colors duration-200"
-            >
-              All Articles
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
-            {posts.map((post, i) => (
-              <JournalCard key={post.id} post={post} priority={i === 0} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 7. Final CTA */}
+      {/* 3. Final CTA */}
       <CTABanner
         headline="Ride without limits."
         ctaText="Shop Now"
-        ctaHref="/collections"
+        ctaHref="/shop"
       />
 
       <Footer />

@@ -1,0 +1,29 @@
+Category,Product,Handle (URL slug),Price (GBP),Collection,Notes
+Jerseys,SS Race Jersey,ss-race-jersey,80,Race,
+Jerseys,SS Training Jersey,ss-training-jersey,65,Training,
+Jerseys,SS Club Jersey,ss-club-jersey,50,Training,
+Jerseys,SS Zipperless Jersey,ss-zipperless-jersey,65,Race,
+Jerseys,LS Training Jersey,ls-training-jersey,70,Training,
+Jerseys,LS Fleece Jersey,ls-fleece-jersey,85,Race,
+Jerseys,MTB Jersey,mtb-jersey,30,Training,
+Shorts,Race Bib Shorts,race-bib-shorts,90,Race,
+Shorts,Training Bib Shorts,training-bib-shorts,80,Training,
+Shorts,Club Bib Shorts,club-bib-shorts,65,Training,
+Shorts,Training Bib Tights,training-bib-tights,110,Race,
+Jackets & Gilets,Winter Jacket,winter-jacket,100,Race,
+Jackets & Gilets,Summer Gilet,summer-gilet,55,Race,
+Jackets & Gilets,Winter Gilet,winter-gilet,70,Race,
+Skinsuits,SS Roadsuit,ss-roadsuit,120,Race,
+Skinsuits,SS Aerosuit,ss-aerosuit,140,Race,
+Skinsuits,LS Speedsuit,ls-speedsuit,150,Race,
+Skinsuits,SS Trisuit,ss-trisuit,135,Race,
+Skinsuits,Sleeveless Trisuit,sleeveless-trisuit,135,Race,
+Accessories,Aero Socks,aero-socks,20,Race,MOQ 10+
+Accessories,Training Mitts,training-mitts,20,Training,MOQ 10+
+Accessories,Aero Mitts,aero-mitts,25,Race,MOQ 10+
+Accessories,Arm Warmers,arm-warmers,20,Training,MOQ 10+
+Accessories,Aero Arm Warmers,aero-arm-warmers,25,Race,MOQ 10+
+Accessories,Knee Warmers,knee-warmers,25,Race,MOQ 10+
+Accessories,Leg Warmers,leg-warmers,25,Race,MOQ 10+
+Accessories,Buff,buff,10,Training,MOQ 10+
+Accessories,Cycling Cap,cycling-cap,10,Training,MOQ 10+
