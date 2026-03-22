@@ -10,6 +10,7 @@ export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, clearCart } = useCartStore()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +29,7 @@ export default function CartDrawer() {
     const res = await fetch('/api/club-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, items }),
+      body: JSON.stringify({ name, email, phone, items }),
     })
 
     setLoading(false)
@@ -75,7 +76,7 @@ export default function CartDrawer() {
               We&apos;ll be in touch shortly to confirm and arrange payment.
             </p>
             <button
-              onClick={() => { setSubmitted(false); setName(''); setEmail(''); closeCart() }}
+              onClick={() => { setSubmitted(false); setName(''); setEmail(''); setPhone(''); closeCart() }}
               className="mt-8 text-[10px] uppercase tracking-widest text-proton-grey underline underline-offset-4 hover:text-proton-black transition-colors duration-200"
             >
               Continue Shopping
@@ -129,6 +130,13 @@ export default function CartDrawer() {
                 placeholder="your@email.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                className={inputClasses}
+              />
+              <input
+                type="tel"
+                placeholder="Phone number"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
                 className={inputClasses}
               />
               {error && <p className="text-sm text-red-600">{error}</p>}

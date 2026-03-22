@@ -12,7 +12,7 @@ interface OrderItem {
 }
 
 export async function POST(req: Request) {
-  const { name, email, items }: { name: string; email: string; items: OrderItem[] } = await req.json()
+  const { name, email, phone, items }: { name: string; email: string; phone?: string; items: OrderItem[] } = await req.json()
 
   if (!name || !email || !items?.length) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     to: 'info@protonlab.cc',
     replyTo: email,
     subject: `Club Order: ${clubName} — ${name}`,
-    text: `Club: ${clubName}\nName: ${name}\nEmail: ${email}\n\nItems:\n${textSummary}`,
+    text: `Club: ${clubName}\nName: ${name}\nEmail: ${email}\nPhone: ${phone || '—'}\n\nItems:\n${textSummary}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a;">
         <h2 style="font-size:18px;margin-bottom:24px;">New Club Kit Order</h2>
@@ -56,6 +56,10 @@ export async function POST(req: Request) {
             <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">
               <a href="mailto:${email}" style="color:#1a1a1a;">${email}</a>
             </td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;color:#666;font-size:13px;">Phone</td>
+            <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">${phone || '—'}</td>
           </tr>
         </table>
 
