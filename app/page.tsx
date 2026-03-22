@@ -23,7 +23,7 @@ export default async function HomePage() {
         eyebrow="Proton Lab CC"
         headline="No Compromise."
         subheadline="Premium cycling apparel precision-engineered for those who train and race."
-        ctaText="Shop Collection"
+        ctaText="Shop"
         ctaHref="/shop"
         secondaryCtaText="Custom Kit"
         secondaryCtaHref="/custom"
@@ -35,7 +35,7 @@ export default async function HomePage() {
           <Link href="/shop" className="group relative overflow-hidden aspect-[4/3] bg-proton-light flex items-end">
             <Image
               src="/images/homepage/homepagecollection.JPG"
-              alt="Shop Collection"
+              alt="Shop"
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -43,7 +43,7 @@ export default async function HomePage() {
             <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
             <div className="relative z-10 p-8 md:p-10">
               <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-2">Ready to Ship</p>
-              <h2 className="font-playfair text-4xl text-proton-white leading-none">Shop Collection</h2>
+              <h2 className="font-playfair text-4xl text-proton-white leading-none">Shop</h2>
               <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
                 Shop Now
               </span>

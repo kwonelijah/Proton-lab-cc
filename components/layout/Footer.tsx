@@ -17,7 +17,7 @@ export default function Footer() {
 
         {/* Nav links */}
         <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-proton-white/60">
-          <Link href="/shop" className="hover:text-proton-white transition-colors duration-200">Shop Collection</Link>
+          <Link href="/shop" className="hover:text-proton-white transition-colors duration-200">Shop</Link>
           <span>|</span>
           <Link href="/custom" className="hover:text-proton-white transition-colors duration-200">Custom</Link>
           <span>|</span>

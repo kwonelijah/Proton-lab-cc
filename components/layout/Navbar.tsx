@@ -41,7 +41,7 @@ export default function Navbar() {
       {/* Desktop nav — 3 equal columns: left | center | right */}
       <nav className="hidden md:grid grid-cols-3 items-center max-w-7xl mx-auto px-6 md:px-12 h-20">
 
-        {/* Left — Custom | Shop Collection */}
+        {/* Left — Custom | Shop */}
         <div className="flex items-center gap-0 w-fit">
           <Link
             href="/shop"
@@ -51,7 +51,7 @@ export default function Navbar() {
                 : isLight ? 'text-proton-grey hover:text-proton-black' : 'text-proton-white/60 hover:text-proton-white'
             }`}
           >
-            Shop Collection
+            Shop
           </Link>
           <span className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
           <Link

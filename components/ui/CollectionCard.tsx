@@ -45,7 +45,7 @@ export default function CollectionCard({ collection, priority = false }: Collect
           {collection.description}
         </p>
         <span className="inline-block mt-3 text-xs uppercase tracking-widest text-proton-black border-b border-proton-black pb-0.5 group-hover:opacity-60 transition-opacity duration-200">
-          Shop Collection
+          Shop
         </span>
       </div>
     </Link>

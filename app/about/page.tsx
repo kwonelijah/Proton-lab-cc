@@ -97,7 +97,7 @@ export default function AboutPage() {
       <CTABanner
         eyebrow="The Collections"
         headline="See what we have built."
-        ctaText="Shop Collections"
+        ctaText="Shop"
         ctaHref="/collections"
       />
     </PageWrapper>

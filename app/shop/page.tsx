@@ -5,7 +5,7 @@ import ShopGrid from './ShopGrid'
 import { getProducts } from '@/lib/api'
 
 export const metadata: Metadata = {
-  title: 'Shop Collection',
+  title: 'Shop',
 }
 
 export default async function ShopPage() {
@@ -18,7 +18,7 @@ export default async function ShopPage() {
       <div className="relative w-full aspect-[21/9] bg-proton-light overflow-hidden">
         <Image
           src="/images/collections/collection2.JPG"
-          alt="Shop Collection"
+          alt="Shop"
           fill
           sizes="100vw"
           className="object-cover"
@@ -29,7 +29,7 @@ export default async function ShopPage() {
           <div className="max-w-7xl w-full mx-auto px-6 md:px-12 pb-10 md:pb-14">
             <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-2">In Stock</p>
             <h1 className="font-playfair text-5xl md:text-7xl text-proton-white leading-none">
-              Shop Collection
+              Shop
             </h1>
           </div>
         </div>
