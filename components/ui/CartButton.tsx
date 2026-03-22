@@ -1,27 +1,17 @@
 'use client'
 
-// PLACEHOLDER — Cart state not yet implemented
-// Future integration:
-//   1. npm install zustand
-//   2. Create /stores/cart.ts with Zustand store
-//   3. Uncomment import below and connect itemCount
-
-// import { useCartStore } from '@/stores/cart'
+import { useCartStore } from '@/stores/cart'
 
 export default function CartButton() {
-  // const { itemCount, openCart } = useCartStore()
-  const itemCount = 0
+  const { openCart, totalItems } = useCartStore()
+  const itemCount = totalItems()
 
   return (
     <button
       className="relative p-2 hover:opacity-60 transition-opacity duration-200"
       aria-label={`Shopping cart${itemCount > 0 ? `, ${itemCount} items` : ''}`}
-      onClick={() => {
-        // TODO: open cart drawer
-        // openCart()
-      }}
+      onClick={openCart}
     >
-      {/* Bag icon */}
       <svg
         width="20"
         height="20"

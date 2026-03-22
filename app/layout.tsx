@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Playfair_Display, Montserrat } from 'next/font/google'
 import '@/styles/globals.css'
+import CartDrawer from '@/components/ui/CartDrawer'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -37,6 +38,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body className="bg-proton-white text-proton-black font-inter antialiased">
         {children}
+        <CartDrawer />
       </body>
     </html>
   )

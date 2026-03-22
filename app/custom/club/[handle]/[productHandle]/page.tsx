@@ -95,7 +95,9 @@ export default function ClubProductPage() {
 
               <ClubVariantSelector
                 variants={variants}
+                productHandle={productHandle}
                 productName={clubProduct.name}
+                clubHandle={handle}
                 clubName={club.name}
                 price={clubProduct.price}
               />
