@@ -19,7 +19,7 @@ export default async function HomePage() {
 
       {/* 1. Hero */}
       <VideoHero
-        videoSrc="/videos/PLHomepageClip.mov"
+        videoSrc="https://zpwxsatldyroswl1.public.blob.vercel-storage.com/PLHomepageClip.mov"
         eyebrow="Proton Lab CC"
         headline="No Compromise."
         subheadline="Premium cycling apparel precision-engineered for those who train and race."
