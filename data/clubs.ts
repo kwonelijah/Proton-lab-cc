@@ -3,6 +3,7 @@ export interface ClubProduct {
   handle: string
   price: string
   image: string
+  customImages?: string[]
 }
 
 export interface Club {
