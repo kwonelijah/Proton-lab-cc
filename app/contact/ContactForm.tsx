@@ -8,10 +8,35 @@ const inputClasses =
 
 export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setSubmitted(true)
+    setLoading(true)
+    setError(null)
+
+    const form = e.currentTarget
+    const data = {
+      name: (form.elements.namedItem('name') as HTMLInputElement).value,
+      email: (form.elements.namedItem('email') as HTMLInputElement).value,
+      subject: (form.elements.namedItem('subject') as HTMLSelectElement).value,
+      message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
+    }
+
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+
+    setLoading(false)
+
+    if (res.ok) {
+      setSubmitted(true)
+    } else {
+      setError('Something went wrong. Please try again or email us directly.')
+    }
   }
 
   if (submitted) {
@@ -89,8 +114,12 @@ export default function ContactForm() {
         />
       </div>
 
-      <Button type="submit" variant="primary" size="lg">
-        Send Message
+      {error && (
+        <p className="text-sm text-red-600">{error}</p>
+      )}
+
+      <Button type="submit" variant="primary" size="lg" disabled={loading}>
+        {loading ? 'Sending…' : 'Send Message'}
       </Button>
     </form>
   )
