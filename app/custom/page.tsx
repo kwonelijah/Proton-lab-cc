@@ -187,14 +187,14 @@ export default function CustomPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div>
             <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">
-              Coming Soon
+              Club Shops
             </p>
             <h2 className="font-playfair text-3xl md:text-4xl leading-tight max-w-lg">
               Private team stores — order, reorder, and manage your club kit online.
             </h2>
           </div>
           <Button href="/custom/club" variant="secondary" size="lg">
-            Register Interest
+            Order Kit
           </Button>
         </div>
       </div>
