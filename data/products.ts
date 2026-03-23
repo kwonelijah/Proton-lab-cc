@@ -42,9 +42,9 @@ export const products: Product[] = [
       description: 'Race-fit, aero textured sleeves and full-zip construction. The Proton Lab Race Jersey delivers skinsuit performance in jersey format.',
       keywords: 'aero cycling jersey, race fit cycling jersey, performance cycling jersey, custom race jersey, road race jersey, aero sleeve jersey, custom cycling kit, premium cycling jersey UK, race day cycling apparel',
     },
-    featuredImage: { id: 'img-ss-race-jersey-1', url: '/images/products/ss-race-jersey/401440e2-c54f-4f4e-a1a6-10b76f132a7e.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
+    featuredImage: { id: 'img-ss-race-jersey-1', url: '/images/products/ss-race-jersey/ss-race-jersey1.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
     images: { nodes: [
-      { id: 'img-ss-race-jersey-1', url: '/images/products/ss-race-jersey/401440e2-c54f-4f4e-a1a6-10b76f132a7e.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
+      { id: 'img-ss-race-jersey-1', url: '/images/products/ss-race-jersey/ss-race-jersey1.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
     ]},
     variants: sizes('001', '80.00'),
     priceRange: { minVariantPrice: { amount: '80.00', currencyCode: 'GBP' } },
