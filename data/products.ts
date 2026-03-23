@@ -11,11 +11,11 @@ const img = (seed: string, w = 800, h = 1000) => ({
 
 const sizes = (id: string, price: string) => ({
   nodes: [
-    { id: `${id}_xs`, title: 'XS', availableForSale: false, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'XS' }] },
-    { id: `${id}_s`,  title: 'S',  availableForSale: false, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S' }] },
-    { id: `${id}_m`,  title: 'M',  availableForSale: false, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'M' }] },
-    { id: `${id}_l`,  title: 'L',  availableForSale: false, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'L' }] },
-    { id: `${id}_xl`, title: 'XL', availableForSale: false, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'XL' }] },
+    { id: `${id}_xs`, title: 'XS', availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'XS' }] },
+    { id: `${id}_s`,  title: 'S',  availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S' }] },
+    { id: `${id}_m`,  title: 'M',  availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'M' }] },
+    { id: `${id}_l`,  title: 'L',  availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'L' }] },
+    { id: `${id}_xl`, title: 'XL', availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'XL' }] },
   ],
 })
 
@@ -41,7 +41,7 @@ export const products: Product[] = [
     featuredImage: img('ss-zipperless'), images: { nodes: [img('ss-zipperless'), img('ss-zipperless-2')] },
     variants: sizes('002', '65.00'),
     priceRange: { minVariantPrice: { amount: '65.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['jersey', 'race', 'short-sleeve', 'zipperless'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['jersey', 'race', 'short-sleeve', 'zipperless'], availableForSale: true,
   },
   {
     id: 'prod_003', handle: 'ls-fleece-jersey', title: 'LS Fleece Jersey',
@@ -49,7 +49,7 @@ export const products: Product[] = [
     featuredImage: img('ls-fleece'), images: { nodes: [img('ls-fleece'), img('ls-fleece-2')] },
     variants: sizes('003', '85.00'),
     priceRange: { minVariantPrice: { amount: '85.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['jersey', 'race', 'long-sleeve', 'fleece', 'winter'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['jersey', 'race', 'long-sleeve', 'fleece', 'winter'], availableForSale: true,
   },
   {
     id: 'prod_004', handle: 'race-bib-shorts', title: 'Race Bib Shorts',
@@ -57,7 +57,7 @@ export const products: Product[] = [
     featuredImage: img('race-bib'), images: { nodes: [img('race-bib'), img('race-bib-2')] },
     variants: sizes('004', '90.00'),
     priceRange: { minVariantPrice: { amount: '90.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['shorts', 'race', 'bib'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['shorts', 'race', 'bib'], availableForSale: true,
   },
   {
     id: 'prod_005', handle: 'training-bib-tights', title: 'Training Bib Tights',
@@ -65,7 +65,7 @@ export const products: Product[] = [
     featuredImage: img('bib-tights'), images: { nodes: [img('bib-tights'), img('bib-tights-2')] },
     variants: sizes('005', '110.00'),
     priceRange: { minVariantPrice: { amount: '110.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['shorts', 'tights', 'winter', 'race'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['shorts', 'tights', 'winter', 'race'], availableForSale: true,
   },
   {
     id: 'prod_006', handle: 'winter-jacket', title: 'Winter Jacket',
@@ -73,7 +73,7 @@ export const products: Product[] = [
     featuredImage: img('winter-jacket'), images: { nodes: [img('winter-jacket'), img('winter-jacket-2')] },
     variants: sizes('006', '100.00'),
     priceRange: { minVariantPrice: { amount: '100.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['jacket', 'winter', 'outerwear'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['jacket', 'winter', 'outerwear'], availableForSale: true,
   },
   {
     id: 'prod_007', handle: 'summer-gilet', title: 'Summer Gilet',
@@ -89,7 +89,7 @@ export const products: Product[] = [
     featuredImage: img('winter-gilet'), images: { nodes: [img('winter-gilet'), img('winter-gilet-2')] },
     variants: sizes('008', '70.00'),
     priceRange: { minVariantPrice: { amount: '70.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['gilet', 'winter', 'outerwear'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['gilet', 'winter', 'outerwear'], availableForSale: true,
   },
   {
     id: 'prod_009', handle: 'ss-roadsuit', title: 'SS Roadsuit',
@@ -101,7 +101,7 @@ export const products: Product[] = [
     ]},
     variants: sizes('009', '120.00'),
     priceRange: { minVariantPrice: { amount: '120.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero'], availableForSale: true,
   },
   {
     id: 'prod_010', handle: 'ss-aerosuit', title: 'SS Aerosuit',
@@ -109,7 +109,7 @@ export const products: Product[] = [
     featuredImage: img('ss-aerosuit'), images: { nodes: [img('ss-aerosuit'), img('ss-aerosuit-2')] },
     variants: sizes('010', '140.00'),
     priceRange: { minVariantPrice: { amount: '140.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero', 'tt'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero', 'tt'], availableForSale: true,
   },
   {
     id: 'prod_011', handle: 'ls-speedsuit', title: 'LS Speedsuit',
@@ -117,7 +117,7 @@ export const products: Product[] = [
     featuredImage: img('ls-speedsuit'), images: { nodes: [img('ls-speedsuit'), img('ls-speedsuit-2')] },
     variants: sizes('011', '150.00'),
     priceRange: { minVariantPrice: { amount: '150.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero', 'long-sleeve'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero', 'long-sleeve'], availableForSale: true,
   },
   {
     id: 'prod_012', handle: 'ss-trisuit', title: 'SS Trisuit',
@@ -125,7 +125,7 @@ export const products: Product[] = [
     featuredImage: img('ss-trisuit'), images: { nodes: [img('ss-trisuit'), img('ss-trisuit-2')] },
     variants: sizes('012', '135.00'),
     priceRange: { minVariantPrice: { amount: '135.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['trisuit', 'triathlon', 'race'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['trisuit', 'triathlon', 'race'], availableForSale: true,
   },
   {
     id: 'prod_013', handle: 'sleeveless-trisuit', title: 'Sleeveless Trisuit',
@@ -133,7 +133,7 @@ export const products: Product[] = [
     featuredImage: img('sl-trisuit'), images: { nodes: [img('sl-trisuit'), img('sl-trisuit-2')] },
     variants: sizes('013', '135.00'),
     priceRange: { minVariantPrice: { amount: '135.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['trisuit', 'triathlon', 'race', 'sleeveless'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['trisuit', 'triathlon', 'race', 'sleeveless'], availableForSale: true,
   },
   {
     id: 'prod_014', handle: 'aero-socks', title: 'Aero Socks',
@@ -154,7 +154,7 @@ export const products: Product[] = [
     featuredImage: img('aero-mitts'), images: { nodes: [img('aero-mitts')] },
     variants: sizes('015', '25.00'),
     priceRange: { minVariantPrice: { amount: '25.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['accessories', 'mitts', 'aero', 'moq-10'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['accessories', 'mitts', 'aero', 'moq-10'], availableForSale: true,
   },
   {
     id: 'prod_016', handle: 'aero-arm-warmers', title: 'Aero Arm Warmers',
@@ -162,7 +162,7 @@ export const products: Product[] = [
     featuredImage: img('aero-armwarm'), images: { nodes: [img('aero-armwarm')] },
     variants: sizes('016', '25.00'),
     priceRange: { minVariantPrice: { amount: '25.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['accessories', 'arm-warmers', 'aero', 'moq-10'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['accessories', 'arm-warmers', 'aero', 'moq-10'], availableForSale: true,
   },
   {
     id: 'prod_017', handle: 'knee-warmers', title: 'Knee Warmers',
@@ -170,7 +170,7 @@ export const products: Product[] = [
     featuredImage: img('knee-warmers'), images: { nodes: [img('knee-warmers')] },
     variants: sizes('017', '25.00'),
     priceRange: { minVariantPrice: { amount: '25.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['accessories', 'knee-warmers', 'moq-10'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['accessories', 'knee-warmers', 'moq-10'], availableForSale: true,
   },
   {
     id: 'prod_018', handle: 'leg-warmers', title: 'Leg Warmers',
@@ -178,7 +178,7 @@ export const products: Product[] = [
     featuredImage: img('leg-warmers'), images: { nodes: [img('leg-warmers')] },
     variants: sizes('018', '25.00'),
     priceRange: { minVariantPrice: { amount: '25.00', currencyCode: 'GBP' } },
-    ...col('race', 'Race'), tags: ['accessories', 'leg-warmers', 'moq-10'], availableForSale: false,
+    ...col('race', 'Race'), tags: ['accessories', 'leg-warmers', 'moq-10'], availableForSale: true,
   },
 
   // ─── TRAINING COLLECTION ──────────────────────────────────────────────────
@@ -197,7 +197,7 @@ export const products: Product[] = [
     featuredImage: img('ss-club'), images: { nodes: [img('ss-club'), img('ss-club-2')] },
     variants: sizes('020', '50.00'),
     priceRange: { minVariantPrice: { amount: '50.00', currencyCode: 'GBP' } },
-    ...col('training', 'Training'), tags: ['jersey', 'training', 'club', 'short-sleeve'], availableForSale: false,
+    ...col('training', 'Training'), tags: ['jersey', 'training', 'club', 'short-sleeve'], availableForSale: true,
   },
   {
     id: 'prod_021', handle: 'ls-training-jersey', title: 'LS Training Jersey',
@@ -205,7 +205,7 @@ export const products: Product[] = [
     featuredImage: img('ls-training'), images: { nodes: [img('ls-training'), img('ls-training-2')] },
     variants: sizes('021', '70.00'),
     priceRange: { minVariantPrice: { amount: '70.00', currencyCode: 'GBP' } },
-    ...col('training', 'Training'), tags: ['jersey', 'training', 'long-sleeve'], availableForSale: false,
+    ...col('training', 'Training'), tags: ['jersey', 'training', 'long-sleeve'], availableForSale: true,
   },
   {
     id: 'prod_022', handle: 'mtb-jersey', title: 'MTB Jersey',
@@ -213,7 +213,7 @@ export const products: Product[] = [
     featuredImage: img('mtb-jersey'), images: { nodes: [img('mtb-jersey'), img('mtb-jersey-2')] },
     variants: sizes('022', '30.00'),
     priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
-    ...col('training', 'Training'), tags: ['jersey', 'mtb', 'off-road'], availableForSale: false,
+    ...col('training', 'Training'), tags: ['jersey', 'mtb', 'off-road'], availableForSale: true,
   },
   {
     id: 'prod_023', handle: 'training-bib-shorts', title: 'Training Bib Shorts',
@@ -229,7 +229,7 @@ export const products: Product[] = [
     featuredImage: img('club-bib'), images: { nodes: [img('club-bib'), img('club-bib-2')] },
     variants: sizes('024', '65.00'),
     priceRange: { minVariantPrice: { amount: '65.00', currencyCode: 'GBP' } },
-    ...col('training', 'Training'), tags: ['shorts', 'training', 'club', 'bib'], availableForSale: false,
+    ...col('training', 'Training'), tags: ['shorts', 'training', 'club', 'bib'], availableForSale: true,
   },
   {
     id: 'prod_025', handle: 'training-mitts', title: 'Training Mitts',
@@ -237,7 +237,7 @@ export const products: Product[] = [
     featuredImage: img('train-mitts'), images: { nodes: [img('train-mitts')] },
     variants: sizes('025', '20.00'),
     priceRange: { minVariantPrice: { amount: '20.00', currencyCode: 'GBP' } },
-    ...col('training', 'Training'), tags: ['accessories', 'mitts', 'training', 'moq-10'], availableForSale: false,
+    ...col('training', 'Training'), tags: ['accessories', 'mitts', 'training', 'moq-10'], availableForSale: true,
   },
   {
     id: 'prod_026', handle: 'arm-warmers', title: 'Arm Warmers',
@@ -245,7 +245,7 @@ export const products: Product[] = [
     featuredImage: img('arm-warmers'), images: { nodes: [img('arm-warmers')] },
     variants: sizes('026', '20.00'),
     priceRange: { minVariantPrice: { amount: '20.00', currencyCode: 'GBP' } },
-    ...col('training', 'Training'), tags: ['accessories', 'arm-warmers', 'moq-10'], availableForSale: false,
+    ...col('training', 'Training'), tags: ['accessories', 'arm-warmers', 'moq-10'], availableForSale: true,
   },
   {
     id: 'prod_027', handle: 'buff', title: 'Buff',
@@ -253,11 +253,11 @@ export const products: Product[] = [
     featuredImage: img('pl-buff'), images: { nodes: [img('pl-buff')] },
     variants: {
       nodes: [
-        { id: 'v027_os', title: 'One Size', availableForSale: false, price: { amount: '10.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'One Size' }] },
+        { id: 'v027_os', title: 'One Size', availableForSale: true, price: { amount: '10.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'One Size' }] },
       ],
     },
     priceRange: { minVariantPrice: { amount: '10.00', currencyCode: 'GBP' } },
-    ...col('training', 'Training'), tags: ['accessories', 'headwear', 'moq-10'], availableForSale: false,
+    ...col('training', 'Training'), tags: ['accessories', 'headwear', 'moq-10'], availableForSale: true,
   },
   {
     id: 'prod_028', handle: 'cycling-cap', title: 'Cycling Cap',
@@ -265,10 +265,10 @@ export const products: Product[] = [
     featuredImage: img('cycling-cap'), images: { nodes: [img('cycling-cap')] },
     variants: {
       nodes: [
-        { id: 'v028_os', title: 'One Size', availableForSale: false, price: { amount: '10.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'One Size' }] },
+        { id: 'v028_os', title: 'One Size', availableForSale: true, price: { amount: '10.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'One Size' }] },
       ],
     },
     priceRange: { minVariantPrice: { amount: '10.00', currencyCode: 'GBP' } },
-    ...col('training', 'Training'), tags: ['accessories', 'headwear', 'moq-10'], availableForSale: false,
+    ...col('training', 'Training'), tags: ['accessories', 'headwear', 'moq-10'], availableForSale: true,
   },
 ]
