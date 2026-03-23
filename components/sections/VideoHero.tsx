@@ -29,10 +29,11 @@ export default function VideoHero({
         muted
         loop
         playsInline
+        preload="auto"
         className="absolute inset-0 w-full h-full object-cover opacity-70"
       >
-        <source src={videoSrc} type="video/quicktime" />
         <source src={videoSrc} type="video/mp4" />
+        <source src={videoSrc} type="video/quicktime" />
       </video>
 
       {/* Gradient overlay */}
