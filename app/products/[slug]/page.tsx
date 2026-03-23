@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import PageWrapper from '@/components/layout/PageWrapper'
 import ProductGallery from './ProductGallery'
 import VariantSelector from './VariantSelector'
+import Accordion from '@/components/ui/Accordion'
 import { getProducts, getProductByHandle } from '@/lib/api'
 import { formatPrice } from '@/lib/utils'
 
@@ -110,6 +111,96 @@ export default async function ProductPage({ params }: PageProps) {
                 </ul>
               </div>
             )}
+
+            {/* Size Guide accordion */}
+            <Accordion title="Size Guide">
+              <p className="text-xs text-proton-grey leading-relaxed mb-5">
+                All measurements are in centimetres. Measure yourself and compare with the chart below. If you&apos;re between sizes, we recommend sizing down for a race fit or sizing up for a more relaxed club fit.
+              </p>
+              {/* Men's size table — always shown */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-proton-light">
+                      {['Size', 'Chest', 'Waist', 'Hip'].map(h => (
+                        <th key={h} className="pb-3 pr-6 text-[10px] uppercase tracking-widest text-proton-grey font-inter font-normal">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      ['XS', '84', '72', '87'],
+                      ['S',  '88', '78', '93'],
+                      ['M',  '92', '84', '99'],
+                      ['L',  '96', '90', '105'],
+                      ['XL', '100', '96', '111'],
+                    ].map(([size, chest, waist, hip], i) => (
+                      <tr key={size} className={`border-b border-proton-light/60 ${i % 2 === 1 ? 'bg-proton-light/30' : ''}`}>
+                        <td className="py-2.5 pr-6 text-sm text-proton-black font-inter">{size}</td>
+                        <td className="py-2.5 pr-6 text-sm text-proton-grey font-inter">{chest}</td>
+                        <td className="py-2.5 pr-6 text-sm text-proton-grey font-inter">{waist}</td>
+                        <td className="py-2.5 pr-6 text-sm text-proton-grey font-inter">{hip}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Women's size table — hidden by default, enable via showWomens prop when needed */}
+              {/* To enable: pass showWomens={true} to <Accordion> and wire it through as a prop */}
+              {false && (
+                <div className="overflow-x-auto mt-6">
+                  <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">Women&apos;s</p>
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-proton-light">
+                        {['Size', 'Chest', 'Waist', 'Hip'].map(h => (
+                          <th key={h} className="pb-3 pr-6 text-[10px] uppercase tracking-widest text-proton-grey font-inter font-normal">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ['XS', '82', '66', '90'],
+                        ['S',  '86', '72', '96'],
+                        ['M',  '90', '78', '102'],
+                        ['L',  '94', '84', '108'],
+                        ['XL', '98', '90', '114'],
+                      ].map(([size, chest, waist, hip], i) => (
+                        <tr key={size} className={`border-b border-proton-light/60 ${i % 2 === 1 ? 'bg-proton-light/30' : ''}`}>
+                          <td className="py-2.5 pr-6 text-sm text-proton-black font-inter">{size}</td>
+                          <td className="py-2.5 pr-6 text-sm text-proton-grey font-inter">{chest}</td>
+                          <td className="py-2.5 pr-6 text-sm text-proton-grey font-inter">{waist}</td>
+                          <td className="py-2.5 pr-6 text-sm text-proton-grey font-inter">{hip}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Accordion>
+
+            {/* Care & Washing accordion */}
+            <Accordion title="Care & Washing">
+              <ul className="space-y-2.5">
+                {[
+                  'Machine wash at 30°C in garment bag or handwash',
+                  'Delicate cycle / Quick wash',
+                  'Wash dark and bright colors separately',
+                  'No synthetics wash / Do not bleach',
+                  'Do not dry clean / Do not tumble dry / Do not iron',
+                ].map((line, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-proton-grey">
+                    <span className="mt-2 w-1 h-1 rounded-full bg-proton-grey shrink-0" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </Accordion>
           </div>
         </div>
       </div>

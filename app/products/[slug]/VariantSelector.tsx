@@ -20,11 +20,8 @@ export default function VariantSelector({ variants, productTitle }: VariantSelec
     <div className="space-y-6">
       {/* Size selector */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3">
           <p className="text-[10px] uppercase tracking-widest text-proton-grey">Size</p>
-          <button className="text-[10px] uppercase tracking-widest text-proton-grey underline underline-offset-2 hover:text-proton-black transition-colors duration-200">
-            Size Guide
-          </button>
         </div>
         <div className="flex flex-wrap gap-2">
           {variants.map(variant => {
