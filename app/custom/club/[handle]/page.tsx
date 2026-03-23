@@ -55,7 +55,7 @@ export default function ClubShopPage() {
                     alt={product.name}
                     fill
                     sizes="(max-width: 640px) 50vw, 25vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-contain transition-opacity duration-300 group-hover:opacity-90"
                     priority={i < 4}
                   />
                 </div>

@@ -42,16 +42,26 @@ export default function ClubProductPage() {
 
   if (!authed || !club || !clubProduct) return null
 
-  // Custom club images first, then general product images
-  const customImages: ProductImage[] = (clubProduct.customImages ?? []).map((url, i) => ({
-    id: `club-img-${i}`,
-    url,
-    altText: `${clubProduct.name} — custom design`,
+  // Featured design image first, then any additional custom images, then general product images
+  const featuredImage: ProductImage = {
+    id: 'club-featured',
+    url: clubProduct.image,
+    altText: `${clubProduct.name} — club design`,
     width: 800,
     height: 1000,
-  }))
-  const generalImages: ProductImage[] = product?.images.nodes ?? []
-  const allImages = [...customImages, ...generalImages]
+  }
+  const customImages: ProductImage[] = (clubProduct.customImages ?? [])
+    .filter(url => url !== clubProduct.image)
+    .map((url, i) => ({
+      id: `club-img-${i}`,
+      url,
+      altText: `${clubProduct.name} — custom design`,
+      width: 800,
+      height: 1000,
+    }))
+  const generalImages: ProductImage[] = (product?.images.nodes ?? [])
+    .filter(img => img.url !== clubProduct.image)
+  const allImages = [featuredImage, ...customImages, ...generalImages]
 
   // All sizes orderable for club kit
   const variants = (product?.variants.nodes ?? []).map(v => ({
