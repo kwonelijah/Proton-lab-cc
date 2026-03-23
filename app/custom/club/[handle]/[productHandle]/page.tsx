@@ -135,7 +135,7 @@ export default function ClubProductPage() {
 
               <Accordion title="Size Guide">
                 <p className="text-xs text-proton-grey leading-relaxed mb-5">
-                  All measurements are in centimetres. Measure yourself and compare with the chart below. If you&apos;re between sizes, we recommend sizing up for a more relaxed club fit.
+                  All measurements are in centimetres. Measure yourself and compare with the chart below. If you&apos;re between sizes, we recommend sizing up for a more relaxed fit.
                 </p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
