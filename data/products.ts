@@ -42,7 +42,10 @@ export const products: Product[] = [
       description: 'Race-fit, aero textured sleeves and full-zip construction. The Proton Lab Race Jersey delivers skinsuit performance in jersey format.',
       keywords: 'aero cycling jersey, race fit cycling jersey, performance cycling jersey, custom race jersey, road race jersey, aero sleeve jersey, custom cycling kit, premium cycling jersey UK, race day cycling apparel',
     },
-    featuredImage: img('ss-race-jersey'), images: { nodes: [img('ss-race-jersey'), img('ss-race-jersey-2')] },
+    featuredImage: { id: 'img-ss-race-jersey-1', url: '/images/products/ss-race-jersey/401440e2-c54f-4f4e-a1a6-10b76f132a7e.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
+    images: { nodes: [
+      { id: 'img-ss-race-jersey-1', url: '/images/products/ss-race-jersey/401440e2-c54f-4f4e-a1a6-10b76f132a7e.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
+    ]},
     variants: sizes('001', '80.00'),
     priceRange: { minVariantPrice: { amount: '80.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['jersey', 'race', 'short-sleeve'], availableForSale: true,
@@ -537,7 +540,10 @@ export const products: Product[] = [
       description: 'Loose fit, dropped tail, scooped U-neck. The Proton Lab Trail Jersey is built for trail riders and bike park performance.',
       keywords: 'MTB jersey, mountain bike jersey, trail jersey, bike park jersey, loose fit cycling jersey, custom MTB kit, baggy cycling jersey UK',
     },
-    featuredImage: img('mtb-jersey'), images: { nodes: [img('mtb-jersey'), img('mtb-jersey-2')] },
+    featuredImage: { id: 'img-mtb-jersey-1', url: '/images/products/mtb-jersey/mtb-jersey1.jpg', altText: 'MTB Jersey', width: 800, height: 1000 },
+    images: { nodes: [
+      { id: 'img-mtb-jersey-1', url: '/images/products/mtb-jersey/mtb-jersey1.jpg', altText: 'MTB Jersey', width: 800, height: 1000 },
+    ]},
     variants: sizes('022', '30.00'),
     priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['jersey', 'mtb', 'off-road'], availableForSale: true,
