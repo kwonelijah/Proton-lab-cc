@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useCartStore } from '@/stores/cart'
 
 const inputClasses =
-  'w-full bg-transparent border-b border-proton-mid text-proton-black text-sm py-3 outline-none focus:border-proton-black transition-colors duration-200 placeholder:text-proton-grey'
+  'w-full bg-transparent border-b border-proton-mid text-proton-black text-sm py-3 outline-none focus:border-proton-black focus-visible:ring-1 focus-visible:ring-proton-black focus-visible:ring-offset-1 transition-colors duration-200 placeholder:text-proton-grey'
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, clearCart } = useCartStore()
@@ -59,7 +59,7 @@ export default function CartDrawer() {
           <p className="text-[10px] uppercase tracking-widest text-proton-black">Your Cart</p>
           <button
             onClick={closeCart}
-            className="p-1 hover:opacity-60 transition-opacity duration-200"
+            className="p-3 -mr-2 hover:opacity-60 transition-opacity duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
             aria-label="Close cart"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -143,7 +143,7 @@ export default function CartDrawer() {
               <button
                 onClick={handleOrder}
                 disabled={!name || !email || loading}
-                className="w-full bg-proton-black text-proton-white text-xs uppercase tracking-widest py-4 font-inter transition-all duration-300 hover:bg-proton-grey disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full bg-proton-black text-proton-white text-xs uppercase tracking-widest py-4 font-inter transition-all duration-300 hover:bg-proton-grey disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
               >
                 {loading ? 'Placing Order…' : 'Place Order'}
               </button>

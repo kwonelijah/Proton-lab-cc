@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Button from '@/components/ui/Button'
 
 const inputClasses =
-  'w-full bg-transparent border-b border-proton-mid text-proton-black text-sm py-3 outline-none focus:border-proton-black transition-colors duration-200 placeholder:text-proton-grey'
+  'w-full bg-transparent border-b border-proton-mid text-proton-black text-sm py-3 outline-none focus:border-proton-black focus-visible:ring-1 focus-visible:ring-proton-black focus-visible:ring-offset-1 transition-colors duration-200 placeholder:text-proton-grey'
 
 export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false)

@@ -8,7 +8,7 @@ export default function CartButton() {
 
   return (
     <button
-      className="relative p-2 hover:opacity-60 transition-opacity duration-200"
+      className="relative p-3 hover:opacity-60 transition-opacity duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
       aria-label={`Shopping cart${itemCount > 0 ? `, ${itemCount} items` : ''}`}
       onClick={openCart}
     >

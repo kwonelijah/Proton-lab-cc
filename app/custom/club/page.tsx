@@ -41,7 +41,7 @@ export default function ClubGatePage() {
               onChange={e => { setPassword(e.target.value); setError(false) }}
               placeholder="Enter password"
               autoComplete="off"
-              className={`w-full border px-4 py-3 text-sm font-inter bg-transparent text-proton-black placeholder:text-proton-grey/50 focus:outline-none transition-colors duration-200 ${
+              className={`w-full border px-4 py-3 text-sm font-inter bg-transparent text-proton-black placeholder:text-proton-grey/50 outline-none focus:border-proton-black focus-visible:ring-1 focus-visible:ring-proton-black focus-visible:ring-offset-1 transition-colors duration-200 ${
                 error ? 'border-red-400' : 'border-proton-light focus:border-proton-black'
               }`}
             />
@@ -50,7 +50,7 @@ export default function ClubGatePage() {
             )}
             <button
               type="submit"
-              className="w-full border border-proton-black px-6 py-3 text-xs uppercase tracking-widest font-inter text-proton-black hover:bg-proton-black hover:text-proton-white transition-all duration-300"
+              className="w-full border border-proton-black px-6 py-3 text-xs uppercase tracking-widest font-inter text-proton-black hover:bg-proton-black hover:text-proton-white transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
             >
               Enter
             </button>

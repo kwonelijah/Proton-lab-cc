@@ -33,7 +33,7 @@ export default function VariantSelector({ variants, productTitle }: VariantSelec
                 key={variant.id}
                 onClick={() => variant.availableForSale && setSelectedId(variant.id)}
                 disabled={!variant.availableForSale}
-                className={`min-w-[3rem] h-10 px-3 border text-xs uppercase tracking-widest transition-all duration-200 ${
+                className={`min-w-[3rem] h-11 px-3 border text-xs uppercase tracking-widest transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2 ${
                   isSelected
                     ? 'bg-proton-black text-proton-white border-proton-black'
                     : variant.availableForSale

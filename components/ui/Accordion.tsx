@@ -15,7 +15,7 @@ export default function Accordion({ title, children, defaultOpen = false }: Acco
     <div className="border-t border-proton-light">
       <button
         onClick={() => setIsOpen(prev => !prev)}
-        className="flex items-center justify-between w-full py-4 text-left group"
+        className="flex items-center justify-between w-full py-4 text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
         aria-expanded={isOpen}
       >
         <span className="text-[10px] uppercase tracking-widest text-proton-grey group-hover:text-proton-black transition-colors duration-200">
