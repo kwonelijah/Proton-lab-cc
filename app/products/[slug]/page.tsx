@@ -61,7 +61,10 @@ export default async function ProductPage({ params }: PageProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 lg:gap-20">
           {/* Gallery */}
           <ProductGallery
-            images={product.images.nodes}
+            images={[
+              product.featuredImage,
+              ...product.images.nodes.filter(img => img.url !== product.featuredImage.url),
+            ]}
             productTitle={product.title}
           />
 
