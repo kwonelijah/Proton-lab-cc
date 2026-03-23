@@ -50,4 +50,10 @@ export interface Product {
   }
   tags: string[]
   availableForSale: boolean
+  bullets?: string[]
+  seo?: {
+    title: string
+    description: string
+    keywords: string
+  }
 }

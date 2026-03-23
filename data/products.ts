@@ -29,7 +29,19 @@ export const products: Product[] = [
 
   {
     id: 'prod_001', handle: 'ss-race-jersey', title: 'SS Race Jersey',
-    description: 'Short sleeve race jersey engineered for competition. Race fit, full-length zip, three rear pockets with security zip.',
+    description: 'All the intent of a skinsuit. The versatility of a jersey. The Race Jersey is engineered from the same performance philosophy as our Aerosuit, translating race-day aerodynamics into a full-zip jersey format. Textured aero sleeves reduce drag where it matters most.',
+    bullets: [
+      'Textured aero sleeves reduce aerodynamic drag',
+      'Race-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets',
+      'Designed and developed by riders, for the demands of race-day performance',
+    ],
+    seo: {
+      title: 'Race Cycling Jersey | Aero Performance Jersey | Proton Lab',
+      description: 'Race-fit, aero textured sleeves and full-zip construction. The Proton Lab Race Jersey delivers skinsuit performance in jersey format.',
+      keywords: 'aero cycling jersey, race fit cycling jersey, performance cycling jersey, custom race jersey, road race jersey, aero sleeve jersey, custom cycling kit, premium cycling jersey UK, race day cycling apparel',
+    },
     featuredImage: img('ss-race-jersey'), images: { nodes: [img('ss-race-jersey'), img('ss-race-jersey-2')] },
     variants: sizes('001', '80.00'),
     priceRange: { minVariantPrice: { amount: '80.00', currencyCode: 'GBP' } },
@@ -37,7 +49,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_002', handle: 'ss-zipperless-jersey', title: 'SS Zipperless Jersey',
-    description: 'Clean-line short sleeve jersey with no zip for a seamless aerodynamic profile. Three rear pockets.',
+    description: 'When the temperature climbs and every detail counts, the zipper becomes the first thing you\'d remove. The Zipperless Jersey is built for exactly that — a clean, uninterrupted silhouette that sits flush to the body with nothing to catch the wind. A specialist piece, designed for the days that demand it.',
+    bullets: [
+      'Zipperless construction for an uninterrupted aerodynamic profile',
+      'Race-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets',
+      'Designed and developed by riders, for warm weather performance',
+    ],
+    seo: {
+      title: 'Zipperless Cycling Jersey | Aero Warm Weather Jersey | Proton Lab',
+      description: 'Clean silhouette, no zip, no compromise. The Proton Lab Zipperless Jersey is built for warm weather racing and performance riding.',
+      keywords: 'zipperless cycling jersey, zipless cycling jersey, aero cycling jersey, warm weather cycling jersey, race fit jersey, custom cycling kit, premium cycling apparel UK',
+    },
     featuredImage: img('ss-zipperless'), images: { nodes: [img('ss-zipperless'), img('ss-zipperless-2')] },
     variants: sizes('002', '65.00'),
     priceRange: { minVariantPrice: { amount: '65.00', currencyCode: 'GBP' } },
@@ -45,7 +69,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_003', handle: 'ls-fleece-jersey', title: 'LS Fleece Jersey',
-    description: 'Long sleeve fleece-lined jersey for cold-weather racing and training. Thermal regulation with a race fit.',
+    description: 'For the rides that sit between seasons. The Fleece Jersey pairs a light fleece lining with a relaxed fit — built for the cool mornings of spring and the fading light of autumn, where you need just enough warmth without sacrificing how the kit moves with you.',
+    bullets: [
+      'Light fleece lining for warmth without bulk',
+      'Relaxed-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets with secure zip pocket',
+      'Designed and developed by riders, for the shoulder seasons',
+    ],
+    seo: {
+      title: 'Fleece Cycling Jersey | Autumn Spring Cycling Jersey | Proton Lab',
+      description: 'Light fleece lining, relaxed fit. The Proton Lab Fleece Jersey is built for spring and autumn riding where warmth and comfort matter most.',
+      keywords: 'fleece cycling jersey, autumn cycling jersey, spring cycling jersey, thermal cycling jersey, relaxed fit jersey, shoulder season cycling, custom cycling kit UK',
+    },
     featuredImage: img('ls-fleece'), images: { nodes: [img('ls-fleece'), img('ls-fleece-2')] },
     variants: sizes('003', '85.00'),
     priceRange: { minVariantPrice: { amount: '85.00', currencyCode: 'GBP' } },
@@ -53,7 +89,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_004', handle: 'race-bib-shorts', title: 'Race Bib Shorts',
-    description: 'Competition bib shorts with anatomic cut, silicone gripper hem, and high-density race chamois.',
+    description: 'Designed to disappear on the bike. The Race Bib Shorts are built around maximum compression and minimal distraction — a highly compressive fabric that locks everything in place, laser-cut grippers with seamless ends that hold without pressure, and an Elastic Interface® chamois engineered for the demands of race pace.',
+    bullets: [
+      'Highly compressive fabric construction for race-day performance',
+      'Laser-cut grippers with seamless ends',
+      'Elastic Interface® chamois',
+      'Breathable Italian Miti fabric construction',
+      'Designed and developed by riders, for the demands of race-day performance',
+    ],
+    seo: {
+      title: 'Race Bib Shorts | Compressive Cycling Bib Shorts | Proton Lab',
+      description: 'Highly compressive fabric, laser-cut grippers and Elastic Interface® chamois. The Proton Lab Race Bib Shorts are built for race-day performance.',
+      keywords: 'race bib shorts, compressive bib shorts, cycling bib shorts, custom bib shorts, laser cut grippers, elastic interface chamois, premium cycling shorts UK',
+    },
     featuredImage: img('race-bib'), images: { nodes: [img('race-bib'), img('race-bib-2')] },
     variants: sizes('004', '90.00'),
     priceRange: { minVariantPrice: { amount: '90.00', currencyCode: 'GBP' } },
@@ -61,7 +109,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_005', handle: 'training-bib-tights', title: 'Training Bib Tights',
-    description: 'Full-length bib tights for cold-weather riding. Thermal brushed inner, water-resistant outer, articulated knee panels.',
+    description: 'When the temperature drops but the training doesn\'t. The Training Bib Tights are built around a thermal fleece-lined construction that keeps your legs warm through the coldest rides — the same Elastic Interface® chamois as the rest of the shorts range, in a full-length tight built for winter miles.',
+    bullets: [
+      'Thermal fleece-lined construction for winter warmth',
+      'Elastic Interface® chamois',
+      'Breathable Italian Miti fabric construction',
+      'Race-fit',
+      'Designed and developed by riders, for the demands of winter training',
+    ],
+    seo: {
+      title: 'Training Bib Tights | Thermal Cycling Tights | Proton Lab',
+      description: 'Thermal fleece lining, Elastic Interface® chamois and race-fit construction. The Proton Lab Training Bib Tights are built for winter training without compromise.',
+      keywords: 'training bib tights, thermal cycling tights, winter cycling tights, fleece lined bib tights, custom cycling tights, winter cycling kit UK',
+    },
     featuredImage: img('bib-tights'), images: { nodes: [img('bib-tights'), img('bib-tights-2')] },
     variants: sizes('005', '110.00'),
     priceRange: { minVariantPrice: { amount: '110.00', currencyCode: 'GBP' } },
@@ -69,7 +129,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_006', handle: 'winter-jacket', title: 'Winter Jacket',
-    description: 'Windproof, water-resistant winter jacket with thermal fleece lining. Drop hem, three rear pockets, reflective details.',
+    description: 'When the temperature drops, the training doesn\'t stop. The Winter Jacket is built around a thick fleece lining and softshell construction that keeps you warm through the coldest months — a relaxed fit designed for comfort over long winter miles, without sacrificing how it moves with you on the bike.',
+    bullets: [
+      'Softshell construction with thick fleece lining for winter warmth',
+      'Relaxed-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets',
+      'Designed and developed by riders, for the demands of winter training',
+    ],
+    seo: {
+      title: 'Winter Cycling Jacket | Thermal Softshell Cycling Jacket | Proton Lab',
+      description: 'Thick fleece lining, softshell construction and relaxed fit. The Proton Lab Winter Jacket is built for riders who train through the coldest months.',
+      keywords: 'winter cycling jacket, thermal cycling jacket, softshell cycling jacket, fleece cycling jacket, custom cycling jacket, winter cycling kit, cycling jacket UK',
+    },
     featuredImage: img('winter-jacket'), images: { nodes: [img('winter-jacket'), img('winter-jacket-2')] },
     variants: sizes('006', '100.00'),
     priceRange: { minVariantPrice: { amount: '100.00', currencyCode: 'GBP' } },
@@ -77,7 +149,20 @@ export const products: Product[] = [
   },
   {
     id: 'prod_007', handle: 'summer-gilet', title: 'Summer Gilet',
-    description: 'Ultra-packable summer gilet. Windproof front panel, mesh back venting. Folds into its own rear pocket.',
+    description: 'The ride starts cold. It won\'t stay that way. The Summer Gilet is built for the early miles — a windproof front panel cuts the chill while the thin rear mesh keeps air moving as the pace and temperature rise. Easily packable, so when you no longer need it, it disappears into your pocket.',
+    bullets: [
+      'Windproof front panel with thin rear mesh for active ventilation',
+      'Easily packable — stows directly into a rear pocket',
+      '2-way zip for ventilation and layering versatility',
+      'Race-fit',
+      '3 rear pockets',
+      'Designed and developed by riders, for variable conditions',
+    ],
+    seo: {
+      title: 'Summer Cycling Gilet | Packable Windproof Gilet | Proton Lab',
+      description: 'Windproof front, mesh rear and packable design. The Proton Lab Summer Gilet is built for variable conditions and early morning rides.',
+      keywords: 'summer cycling gilet, packable cycling gilet, windproof cycling gilet, cycling gilet, custom cycling gilet, lightweight cycling gilet, cycling gilet UK',
+    },
     featuredImage: img('summer-gilet'), images: { nodes: [img('summer-gilet'), img('summer-gilet-2')] },
     variants: sizes('007', '55.00'),
     priceRange: { minVariantPrice: { amount: '55.00', currencyCode: 'GBP' } },
@@ -85,7 +170,20 @@ export const products: Product[] = [
   },
   {
     id: 'prod_008', handle: 'winter-gilet', title: 'Winter Gilet',
-    description: 'Thermal winter gilet with windproof front and insulated body. Deep drop hem for full back coverage.',
+    description: 'The layer that changes everything. The Winter Gilet is built around a thick thermal construction designed to sit over your base kit and lock in core warmth on the coldest rides — versatile enough to layer under a jacket or wear alone when the temperature sits just above freezing.',
+    bullets: [
+      'Thick thermal construction for core warmth',
+      '2-way zip for ventilation and layering versatility',
+      'Relaxed-fit',
+      'Breathable Italian Miti fabric construction',
+      'Front pocket and 3 rear pockets',
+      'Designed and developed by riders, for the demands of winter riding',
+    ],
+    seo: {
+      title: 'Winter Cycling Gilet | Thermal Layering Gilet | Proton Lab',
+      description: 'Thick thermal construction, 2-way zip and front pocket. The Proton Lab Winter Gilet is built for core warmth and layering versatility.',
+      keywords: 'winter cycling gilet, thermal cycling gilet, layering cycling gilet, 2-way zip gilet, custom cycling gilet, winter cycling kit, cycling gilet UK',
+    },
     featuredImage: img('winter-gilet'), images: { nodes: [img('winter-gilet'), img('winter-gilet-2')] },
     variants: sizes('008', '70.00'),
     priceRange: { minVariantPrice: { amount: '70.00', currencyCode: 'GBP' } },
@@ -93,7 +191,20 @@ export const products: Product[] = [
   },
   {
     id: 'prod_009', handle: 'ss-roadsuit', title: 'SS Roadsuit',
-    description: 'One-piece short sleeve road skinsuit. Aerodynamic construction with integrated chamois. Race-legal design.',
+    description: 'The purest form of road racing kit. The Roadsuit is built for riders who want the clean efficiency of a skinsuit with the breathability to sustain it across long race efforts — a highly breathable construction that keeps air moving when the pace does too, and a butterfly zip that opens fully for comfort on long days and fast turnarounds at feed zones.',
+    bullets: [
+      'Highly breathable fabric construction for sustained comfort over long race efforts',
+      'Butterfly zip — opens fully for ease of use on and off the bike',
+      'Race-fit',
+      'Elastic Interface® chamois',
+      '2 rear pockets',
+      'Designed and developed by riders, for the demands of road racing',
+    ],
+    seo: {
+      title: 'Road Cycling Skinsuit | Breathable Race Skinsuit | Proton Lab',
+      description: 'Breathable construction, butterfly zip and Elastic Interface® chamois. The Proton Lab Roadsuit is built for long road race efforts without compromise.',
+      keywords: 'road cycling skinsuit, breathable skinsuit, race skinsuit, custom skinsuit, road race suit, cycling one piece suit, premium skinsuit UK',
+    },
     featuredImage: { id: 'img-ss-roadsuit-1', url: '/images/products/ss-roadsuit/ss-roadsuit1.jpg', altText: 'SS Roadsuit', width: 800, height: 1000 },
     images: { nodes: [
       { id: 'img-ss-roadsuit-1', url: '/images/products/ss-roadsuit/ss-roadsuit1.jpg', altText: 'SS Roadsuit front', width: 800, height: 1000 },
@@ -105,7 +216,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_010', handle: 'ss-aerosuit', title: 'SS Aerosuit',
-    description: 'Wind-tunnel developed aerosuit for time trials and triathlon. Dimpled sleeve panels, integrated arm grippers.',
+    description: 'Built for the days you\'re in the breakaway. The Aerosuit is constructed from aero-specific fabrics designed to cut through the air and hold nothing back — every panel placed with purpose, every seam considered for speed. When the race is on the line, this is the suit you reach for.',
+    bullets: [
+      'Aero-specific fabric construction engineered to reduce drag',
+      'Race-fit',
+      'Elastic Interface® chamois',
+      '2 rear pockets',
+      'Designed and developed by riders, for race-winning performance',
+    ],
+    seo: {
+      title: 'Aero Cycling Skinsuit | Race Day Aerosuit | Proton Lab',
+      description: 'Aero-specific fabric construction and race-fit precision. The Proton Lab Aerosuit is built for the days when the race is on the line.',
+      keywords: 'aero cycling skinsuit, aerosuit, race day skinsuit, aerodynamic cycling suit, custom aerosuit, road race skinsuit, premium aerosuit UK',
+    },
     featuredImage: img('ss-aerosuit'), images: { nodes: [img('ss-aerosuit'), img('ss-aerosuit-2')] },
     variants: sizes('010', '140.00'),
     priceRange: { minVariantPrice: { amount: '140.00', currencyCode: 'GBP' } },
@@ -113,7 +236,20 @@ export const products: Product[] = [
   },
   {
     id: 'prod_011', handle: 'ls-speedsuit', title: 'LS Speedsuit',
-    description: 'Long sleeve speed suit for maximum aerodynamic efficiency in cooler conditions. Full-body compression fit.',
+    description: 'Designed for one purpose — the clock. The Speedsuit is built around aero-specific fabrics and a full-length sleeve construction that leaves nothing to chance on race day. Every panel is engineered for time trial performance, with a dedicated aero number pocket so the suit stays uninterrupted from start to finish line.',
+    bullets: [
+      'Aero-specific fabric construction engineered for time trial performance',
+      'Full-length sleeve construction for maximum aerodynamic coverage',
+      'Aero number pocket',
+      'Race-fit',
+      'Elastic Interface® chamois',
+      'Designed and developed by riders, for the demands of the clock',
+    ],
+    seo: {
+      title: 'Long Sleeve Speedsuit | Time Trial Skinsuit | Proton Lab',
+      description: 'Aero fabric construction, full-length sleeves and aero number pocket. The Proton Lab Speedsuit is built for time trial performance.',
+      keywords: 'time trial skinsuit, TT suit, long sleeve speedsuit, aero skinsuit, custom TT suit, time trial cycling suit, premium speedsuit UK',
+    },
     featuredImage: img('ls-speedsuit'), images: { nodes: [img('ls-speedsuit'), img('ls-speedsuit-2')] },
     variants: sizes('011', '150.00'),
     priceRange: { minVariantPrice: { amount: '150.00', currencyCode: 'GBP' } },
@@ -121,7 +257,20 @@ export const products: Product[] = [
   },
   {
     id: 'prod_012', handle: 'ss-trisuit', title: 'SS Trisuit',
-    description: 'Short sleeve trisuit designed for swim-to-bike transitions. Quick-dry fabric, tri-specific chamois, rear zip.',
+    description: 'From the water to the road without missing a beat. The Trisuit is built around compressive race-day fabrics that perform across all three disciplines — a tri-specific chamois pad that supports without slowing you down, and aero sleeves engineered to cut drag on the bike.',
+    bullets: [
+      'Compressive race-day fabric construction for swim, bike and run performance',
+      'Aero sleeves engineered to reduce drag on the bike',
+      'Tri-specific chamois pad',
+      '2 rear pockets for on-bike nutrition',
+      'Race-fit',
+      'Designed and developed by riders, for the demands of race-day',
+    ],
+    seo: {
+      title: 'Triathlon Suit | Aero Race Day Trisuit | Proton Lab',
+      description: 'Compressive fabrics, aero sleeves and tri-specific chamois. The Proton Lab Trisuit is built for race-day performance across all three disciplines.',
+      keywords: 'trisuit, triathlon suit, aero trisuit, race day trisuit, custom trisuit, compressive trisuit, triathlon race suit UK',
+    },
     featuredImage: img('ss-trisuit'), images: { nodes: [img('ss-trisuit'), img('ss-trisuit-2')] },
     variants: sizes('012', '135.00'),
     priceRange: { minVariantPrice: { amount: '135.00', currencyCode: 'GBP' } },
@@ -129,7 +278,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_013', handle: 'sleeveless-trisuit', title: 'Sleeveless Trisuit',
-    description: 'Sleeveless trisuit for warm-weather racing. Open back design for ventilation, tri chamois, race-legal cut.',
+    description: 'Built for heat, built for speed. The Sleeveless Trisuit is designed for race days where temperature is as much a factor as aerodynamics — breathable panels that keep air moving across all three disciplines, with an open back zip for fast, effortless transitions.',
+    bullets: [
+      'Breathable panel construction for hot weather race comfort',
+      'Tri-specific chamois pad',
+      'Open back zip for fast transitions',
+      'Race-fit',
+      'Designed and developed by riders, for the demands of race-day',
+    ],
+    seo: {
+      title: 'Sleeveless Trisuit | Hot Weather Race Trisuit | Proton Lab',
+      description: 'Breathable construction, tri-specific chamois and open back zip. The Proton Lab Sleeveless Trisuit is built for hot weather race-day performance.',
+      keywords: 'sleeveless trisuit, hot weather trisuit, triathlon suit, custom trisuit, race day trisuit, triathlon race suit UK',
+    },
     featuredImage: img('sl-trisuit'), images: { nodes: [img('sl-trisuit'), img('sl-trisuit-2')] },
     variants: sizes('013', '135.00'),
     priceRange: { minVariantPrice: { amount: '135.00', currencyCode: 'GBP' } },
@@ -137,7 +298,16 @@ export const products: Product[] = [
   },
   {
     id: 'prod_014', handle: 'aero-socks', title: 'Aero Socks',
-    description: 'Aero-profile cycling socks with compression cuff and moisture-wicking construction. Race legal 16cm height.',
+    description: 'The Aero Socks are built from a textured aero fabric that delivers aerodynamic savings at every speed — the finishing touch to a complete race-day setup.',
+    bullets: [
+      'Textured aero fabric construction for aerodynamic savings at every speed',
+      'Designed and developed by riders, for race-day performance',
+    ],
+    seo: {
+      title: 'Aero Cycling Socks | Race Day Cycling Socks | Proton Lab',
+      description: 'Textured aero fabric construction. The Proton Lab Aero Socks deliver aerodynamic savings at every speed.',
+      keywords: 'aero cycling socks, race day cycling socks, aerodynamic socks, custom cycling socks, premium cycling socks UK',
+    },
     featuredImage: img('aero-socks'), images: { nodes: [img('aero-socks')] },
     variants: {
       nodes: [
@@ -150,7 +320,17 @@ export const products: Product[] = [
   },
   {
     id: 'prod_015', handle: 'aero-mitts', title: 'Aero Mitts',
-    description: 'Short-finger aero mitts with silicone palm grip and low-profile cuff. Designed for race-day use.',
+    description: 'Textured aero fabric extended to every detail. An extended cut that eliminates any gap between suit and glove, leaving nothing to chance at race pace.',
+    bullets: [
+      'Textured aero fabric construction — the same fabric as our skinsuits',
+      'Extended cut for a seamless suit-to-glove transition',
+      'Designed and developed by riders, for race-day performance',
+    ],
+    seo: {
+      title: 'Aero Cycling Mitts | Race Day Cycling Gloves | Proton Lab',
+      description: 'Textured aero fabric and extended cut. The Proton Lab Aero Mitts deliver race-day aerodynamics to every detail.',
+      keywords: 'aero cycling mitts, race day cycling gloves, aero cycling gloves, custom cycling mitts, cycling accessories UK',
+    },
     featuredImage: img('aero-mitts'), images: { nodes: [img('aero-mitts')] },
     variants: sizes('015', '25.00'),
     priceRange: { minVariantPrice: { amount: '25.00', currencyCode: 'GBP' } },
@@ -158,7 +338,17 @@ export const products: Product[] = [
   },
   {
     id: 'prod_016', handle: 'aero-arm-warmers', title: 'Aero Arm Warmers',
-    description: 'Aero-surface arm warmers with non-slip silicone grippers. Designed to complement race kit.',
+    description: 'The aerodynamic advantage of the Race Jersey, extended to every condition. The Aero Arm Warmers are built from the same textured aero fabric as our skinsuits — adding coverage without adding drag.',
+    bullets: [
+      'Textured aero fabric construction — the same fabric as our skinsuits',
+      'Adds coverage without aerodynamic compromise',
+      'Designed and developed by riders, for race-day performance',
+    ],
+    seo: {
+      title: 'Aero Cycling Arm Warmers | Race Day Arm Warmers | Proton Lab',
+      description: 'Textured aero fabric construction. The Proton Lab Aero Arm Warmers extend race-day aerodynamics without compromise.',
+      keywords: 'aero arm warmers, cycling arm warmers, race day arm warmers, custom arm warmers, aero cycling accessories UK',
+    },
     featuredImage: img('aero-armwarm'), images: { nodes: [img('aero-armwarm')] },
     variants: sizes('016', '25.00'),
     priceRange: { minVariantPrice: { amount: '25.00', currencyCode: 'GBP' } },
@@ -166,7 +356,17 @@ export const products: Product[] = [
   },
   {
     id: 'prod_017', handle: 'knee-warmers', title: 'Knee Warmers',
-    description: 'Thermal knee warmers with silicone gripper bands. Flatlock seams for comfort under bib shorts.',
+    description: 'An extra layer where you need it most. The Knee Warmers are built as a lightweight layering piece for the days where full tights are too much — easy to add, easy to remove.',
+    bullets: [
+      'Lightweight fabric construction for cool weather layering',
+      'Easy on, easy off — packable into a rear pocket',
+      'Designed and developed by riders, for variable conditions',
+    ],
+    seo: {
+      title: 'Cycling Knee Warmers | Lightweight Knee Warmers | Proton Lab',
+      description: 'Lightweight layering for cool weather riding. The Proton Lab Knee Warmers are built for the days where full tights are too much.',
+      keywords: 'cycling knee warmers, lightweight knee warmers, custom knee warmers, cool weather cycling, cycling accessories UK',
+    },
     featuredImage: img('knee-warmers'), images: { nodes: [img('knee-warmers')] },
     variants: sizes('017', '25.00'),
     priceRange: { minVariantPrice: { amount: '25.00', currencyCode: 'GBP' } },
@@ -174,7 +374,17 @@ export const products: Product[] = [
   },
   {
     id: 'prod_018', handle: 'leg-warmers', title: 'Leg Warmers',
-    description: 'Full-length leg warmers with thermal brushed inner. Silicone gripper at thigh, ankle zip for easy removal.',
+    description: 'Full coverage, without the commitment of tights. The Leg Warmers are built from a thermal fleece-lined fabric for the coldest training days — warm enough to perform, easy enough to remove when conditions change.',
+    bullets: [
+      'Thermal fleece-lined construction for full leg warmth',
+      'Easy on, easy off — packable into a rear pocket',
+      'Designed and developed by riders, for cold weather training',
+    ],
+    seo: {
+      title: 'Cycling Leg Warmers | Thermal Leg Warmers | Proton Lab',
+      description: 'Thermal fleece-lined construction for cold weather training. The Proton Lab Leg Warmers deliver full leg warmth without the commitment of tights.',
+      keywords: 'cycling leg warmers, thermal leg warmers, fleece lined leg warmers, custom leg warmers, cold weather cycling, cycling accessories UK',
+    },
     featuredImage: img('leg-warmers'), images: { nodes: [img('leg-warmers')] },
     variants: sizes('018', '25.00'),
     priceRange: { minVariantPrice: { amount: '25.00', currencyCode: 'GBP' } },
@@ -185,7 +395,19 @@ export const products: Product[] = [
 
   {
     id: 'prod_019', handle: 'ss-training-jersey', title: 'SS Training Jersey',
-    description: 'Workhorse short sleeve jersey for daily training. Relaxed race fit, moisture-wicking fabric, three rear pockets.',
+    description: 'The jersey you reach for every time. The Training Jersey is built for the miles that matter most — the ones that don\'t make the results sheet but define the rider you become. Race-fit construction and textured arm panels keep you performing at your best, ride after ride.',
+    bullets: [
+      'Textured arm panels for enhanced performance and structure',
+      'Race-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets with secure zip pocket',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'Training Cycling Jersey | Performance Training Jersey | Proton Lab',
+      description: 'Race-fit, textured arm panels and breathable fabric construction. The Proton Lab Training Jersey is built for the riders who train hardest.',
+      keywords: 'training cycling jersey, performance training jersey, race fit jersey, breathable cycling jersey, custom training kit, daily cycling jersey, premium cycling apparel UK',
+    },
     featuredImage: img('ss-training'), images: { nodes: [img('ss-training'), img('ss-training-2')] },
     variants: sizes('019', '65.00'),
     priceRange: { minVariantPrice: { amount: '65.00', currencyCode: 'GBP' } },
@@ -193,7 +415,18 @@ export const products: Product[] = [
   },
   {
     id: 'prod_020', handle: 'ss-club-jersey', title: 'SS Club Jersey',
-    description: 'Club-fit short sleeve jersey. Durable construction for regular training use. Full-length zip, three rear pockets.',
+    description: 'Built for riders who spend their weekends in the saddle, where comfort over distance matters as much as how the kit performs. The entry point to the Proton Lab range, without compromise on what counts.',
+    bullets: [
+      'Club-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets with secure zip pocket',
+      'Designed and developed by riders, for the long days that define the sport',
+    ],
+    seo: {
+      title: 'Club Cycling Jersey | Endurance Road Jersey | Proton Lab',
+      description: 'Built for long days in the saddle. The Proton Lab Club Jersey delivers comfort and performance for every endurance ride.',
+      keywords: 'club cycling jersey, endurance cycling jersey, long ride jersey, relaxed fit cycling jersey, custom club kit, weekend cycling jersey, premium cycling apparel UK',
+    },
     featuredImage: img('ss-club'), images: { nodes: [img('ss-club'), img('ss-club-2')] },
     variants: sizes('020', '50.00'),
     priceRange: { minVariantPrice: { amount: '50.00', currencyCode: 'GBP' } },
@@ -201,7 +434,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_021', handle: 'ls-training-jersey', title: 'LS Training Jersey',
-    description: 'Long sleeve training jersey for cooler days. Comfortable fit with moisture management and thumb loops.',
+    description: 'The same jersey you reach for every time, now with full length sleeves. The LS Training Jersey carries all the performance of its short sleeve counterpart — the same race-fit construction, the same textured arm panels — built for the riders who prefer the coverage.',
+    bullets: [
+      'Textured arm panels for enhanced performance and structure',
+      'Race-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets with secure zip pocket',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'Long Sleeve Training Jersey | Performance Cycling Jersey | Proton Lab',
+      description: 'Full sleeve coverage, same race-fit performance. The Proton Lab LS Training Jersey is built for riders who prefer the coverage without compromise.',
+      keywords: 'long sleeve cycling jersey, race fit long sleeve jersey, training cycling jersey, custom cycling kit UK, performance long sleeve jersey',
+    },
     featuredImage: img('ls-training'), images: { nodes: [img('ls-training'), img('ls-training-2')] },
     variants: sizes('021', '70.00'),
     priceRange: { minVariantPrice: { amount: '70.00', currencyCode: 'GBP' } },
@@ -209,7 +454,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_022', handle: 'mtb-jersey', title: 'MTB Jersey',
-    description: 'Relaxed-fit MTB jersey with dropped tail and wider cut for off-road riding. Durable stretch fabric.',
+    description: 'The Trail Jersey is designed around the demands of mountain biking — a loose, baggy fit that moves with you through technical terrain, a dropped tail for full coverage in the attack position, and a scooped U-neck built for the MTB riding position.',
+    bullets: [
+      'Loose baggy fit — cut specifically for trail and bike park riding',
+      'Dropped tail for full coverage in the MTB position',
+      'Scooped U-neck designed for comfort on the trail',
+      'Breathable Italian Miti fabric construction',
+      'Designed and developed by riders, for trail and bike park performance',
+    ],
+    seo: {
+      title: 'MTB Trail Jersey | Mountain Bike Jersey | Proton Lab',
+      description: 'Loose fit, dropped tail, scooped U-neck. The Proton Lab Trail Jersey is built for trail riders and bike park performance.',
+      keywords: 'MTB jersey, mountain bike jersey, trail jersey, bike park jersey, loose fit cycling jersey, custom MTB kit, baggy cycling jersey UK',
+    },
     featuredImage: img('mtb-jersey'), images: { nodes: [img('mtb-jersey'), img('mtb-jersey-2')] },
     variants: sizes('022', '30.00'),
     priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
@@ -217,7 +474,19 @@ export const products: Product[] = [
   },
   {
     id: 'prod_023', handle: 'training-bib-shorts', title: 'Training Bib Shorts',
-    description: 'Daily training bib shorts. Four-way stretch fabric, comfortable bib construction, quality training chamois.',
+    description: 'Built for the hours you put in before race day. The Training Bib Shorts deliver performance-level compression in a fabric engineered for comfort over longer efforts — supportive enough to perform, forgiving enough to train in day after day.',
+    bullets: [
+      'Performance compression fabric for sustained comfort on long efforts',
+      'Laser-cut grippers with seamless ends',
+      'Elastic Interface® chamois',
+      'Breathable Italian Miti fabric construction',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'Training Bib Shorts | Performance Cycling Bib Shorts | Proton Lab',
+      description: 'Performance compression, Elastic Interface® chamois and laser-cut grippers. The Proton Lab Training Bib Shorts are built for the riders who train hardest.',
+      keywords: 'training bib shorts, performance bib shorts, cycling bib shorts, comfortable bib shorts, custom cycling shorts, elastic interface chamois, premium cycling shorts UK',
+    },
     featuredImage: img('train-bib'), images: { nodes: [img('train-bib'), img('train-bib-2')] },
     variants: sizes('023', '80.00'),
     priceRange: { minVariantPrice: { amount: '80.00', currencyCode: 'GBP' } },
@@ -225,7 +494,18 @@ export const products: Product[] = [
   },
   {
     id: 'prod_024', handle: 'club-bib-shorts', title: 'Club Bib Shorts',
-    description: 'Entry-level club bib shorts for recreational riding and club runs. Comfortable chamois and bib construction.',
+    description: 'The entry point to the Proton Lab shorts range — without compromise on what matters most. The Club Bib Shorts are built for long days in the saddle, where a relaxed fit and reliable chamois make the difference between a good ride and a great one.',
+    bullets: [
+      'Club-fit',
+      'Elastic Interface® chamois — the same grade as the Race and Training shorts',
+      'Breathable Italian Miti fabric construction',
+      'Designed and developed by riders, for the long days that define the sport',
+    ],
+    seo: {
+      title: 'Club Bib Shorts | Endurance Cycling Bib Shorts | Proton Lab',
+      description: 'Relaxed fit, Elastic Interface® chamois. The Proton Lab Club Bib Shorts are built for long days in the saddle without compromise.',
+      keywords: 'club bib shorts, endurance bib shorts, relaxed fit bib shorts, cycling bib shorts, custom cycling shorts, elastic interface chamois, cycling shorts UK',
+    },
     featuredImage: img('club-bib'), images: { nodes: [img('club-bib'), img('club-bib-2')] },
     variants: sizes('024', '65.00'),
     priceRange: { minVariantPrice: { amount: '65.00', currencyCode: 'GBP' } },
@@ -233,7 +513,17 @@ export const products: Product[] = [
   },
   {
     id: 'prod_025', handle: 'training-mitts', title: 'Training Mitts',
-    description: 'Short-finger training mitts with padded palm and velcro closure. Durable construction for daily use.',
+    description: 'Comfortable enough for long efforts, precise enough to never get in the way. The Training Mitts are constructed from a breathable fabric that keeps your hands comfortable across long training rides — slim enough to maintain full dexterity on the bike.',
+    bullets: [
+      'Breathable fabric construction for sustained comfort',
+      'Slim profile for full dexterity and control',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'Training Cycling Mitts | Performance Cycling Gloves | Proton Lab',
+      description: 'Breathable, slim profile construction. The Proton Lab Training Mitts deliver comfort and control for the demands of daily training.',
+      keywords: 'training cycling mitts, cycling gloves, custom cycling mitts, breathable cycling mitts, cycling accessories UK',
+    },
     featuredImage: img('train-mitts'), images: { nodes: [img('train-mitts')] },
     variants: sizes('025', '20.00'),
     priceRange: { minVariantPrice: { amount: '20.00', currencyCode: 'GBP' } },
@@ -241,7 +531,17 @@ export const products: Product[] = [
   },
   {
     id: 'prod_026', handle: 'arm-warmers', title: 'Arm Warmers',
-    description: 'Versatile thermal arm warmers. Non-slip silicone grippers, flatlock seams, UPF 50+ sun protection.',
+    description: 'The simplest way to add warmth without adding kit. The Arm Warmers are built for the rides where the temperature is unpredictable — easy to pull on at the start, easy to remove and pocket when the sun breaks through.',
+    bullets: [
+      'Thermal fabric construction for cool weather comfort',
+      'Easy on, easy off — packable into a rear pocket',
+      'Designed and developed by riders, for variable conditions',
+    ],
+    seo: {
+      title: 'Cycling Arm Warmers | Thermal Arm Warmers | Proton Lab',
+      description: 'Thermal fabric construction for cool weather comfort. The Proton Lab Arm Warmers are built for unpredictable conditions.',
+      keywords: 'cycling arm warmers, thermal arm warmers, custom arm warmers, cool weather cycling, cycling accessories UK',
+    },
     featuredImage: img('arm-warmers'), images: { nodes: [img('arm-warmers')] },
     variants: sizes('026', '20.00'),
     priceRange: { minVariantPrice: { amount: '20.00', currencyCode: 'GBP' } },
@@ -249,7 +549,17 @@ export const products: Product[] = [
   },
   {
     id: 'prod_027', handle: 'buff', title: 'Buff',
-    description: 'Multifunctional neck tube and headwear. Moisture-wicking, quick-dry fabric for year-round use.',
+    description: 'A simple piece, done properly. The Proton Lab Buff keeps the elements off your neck and face on the coldest rides — lightweight, packable, and built to the same standard as the rest of the range.',
+    bullets: [
+      'Lightweight construction for cold weather comfort',
+      'Versatile wear — neck, face, or head coverage',
+      'Designed and developed by riders, for the demands of winter riding',
+    ],
+    seo: {
+      title: 'Cycling Buff | Neck Warmer | Proton Lab',
+      description: 'Lightweight and versatile. The Proton Lab Buff delivers cold weather protection built to the same standard as the rest of the range.',
+      keywords: 'cycling buff, neck warmer, cycling neck warmer, custom cycling buff, winter cycling accessories UK',
+    },
     featuredImage: img('pl-buff'), images: { nodes: [img('pl-buff')] },
     variants: {
       nodes: [
@@ -261,7 +571,17 @@ export const products: Product[] = [
   },
   {
     id: 'prod_028', handle: 'cycling-cap', title: 'Cycling Cap',
-    description: 'Classic cycling cap with structured peak and moisture-wicking sweatband. Fits under a helmet.',
+    description: 'The finishing touch to any kit. The Proton Lab Cycling Cap is a classic piece built for sun, rain, and everything in between — worn under a helmet or off the bike, it carries the same attention to detail as every piece in the range.',
+    bullets: [
+      'Classic cycling cap construction',
+      'Worn under helmet or off the bike',
+      'Designed and developed by riders, for every ride',
+    ],
+    seo: {
+      title: 'Cycling Cap | Classic Cycling Cap | Proton Lab',
+      description: 'Classic construction, worn on and off the bike. The Proton Lab Cycling Cap carries the same attention to detail as every piece in the range.',
+      keywords: 'cycling cap, classic cycling cap, custom cycling cap, cycling accessories, cycling cap UK',
+    },
     featuredImage: img('cycling-cap'), images: { nodes: [img('cycling-cap')] },
     variants: {
       nodes: [

@@ -20,8 +20,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const product = await getProductByHandle(params.slug)
   if (!product) return {}
   return {
-    title: product.title,
-    description: product.description,
+    title: product.seo?.title ?? product.title,
+    description: product.seo?.description ?? product.description,
+    keywords: product.seo?.keywords,
   }
 }
 
@@ -96,17 +97,17 @@ export default async function ProductPage({ params }: PageProps) {
               </p>
             </div>
 
-            {/* Tags */}
-            {product.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2">
-                {product.tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="text-[10px] uppercase tracking-widest text-proton-grey border border-proton-light px-3 py-1"
-                  >
-                    {tag}
-                  </span>
-                ))}
+            {/* Bullets */}
+            {product.bullets && product.bullets.length > 0 && (
+              <div className="pt-4 border-t border-proton-light">
+                <ul className="space-y-2">
+                  {product.bullets.map((bullet, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-proton-black">
+                      <span className="mt-2 w-1 h-1 rounded-full bg-proton-black shrink-0" />
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
