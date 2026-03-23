@@ -115,7 +115,7 @@ export default async function ProductPage({ params }: PageProps) {
             {/* Size Guide accordion */}
             <Accordion title="Size Guide">
               <p className="text-xs text-proton-grey leading-relaxed mb-5">
-                All measurements are in centimetres. Measure yourself and compare with the chart below. If you&apos;re between sizes, we recommend sizing down for a race fit or sizing up for a more relaxed club fit.
+                All measurements are in centimetres. Measure yourself and compare with the chart below. If you&apos;re between sizes, we recommend sizing up for a more relaxed club fit.
               </p>
               {/* Men's size table — always shown */}
               <div className="overflow-x-auto">
