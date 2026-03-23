@@ -46,7 +46,7 @@ export default function ClubGatePage() {
               }`}
             />
             {error && (
-              <p className="text-xs text-red-500 -mt-2">Incorrect password. Please try again.</p>
+              <p className="text-xs text-red-500 -mt-2">Looks like your password is incorrect or your club shop isn&apos;t set up yet.</p>
             )}
             <button
               type="submit"

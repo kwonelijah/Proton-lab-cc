@@ -33,5 +33,5 @@ export function getClubByHandle(handle: string): Club | undefined {
 }
 
 export function getClubByPassword(password: string): Club | undefined {
-  return clubs.find(c => c.password === password)
+  return clubs.find(c => c.password.toLowerCase() === password.toLowerCase())
 }
