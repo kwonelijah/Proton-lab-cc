@@ -29,6 +29,7 @@ export default function Navbar() {
 
   const isCustom = pathname.startsWith('/custom')
   const isShop = pathname.startsWith('/shop') || pathname.startsWith('/collections') || pathname.startsWith('/products')
+  const isClubShop = pathname.startsWith('/custom/club')
 
   return (
     <header
@@ -57,12 +58,23 @@ export default function Navbar() {
           <Link
             href="/custom"
             className={`px-3 py-2 text-xs uppercase tracking-widest font-inter transition-colors duration-300 ${
-              isCustom
+              isCustom && !isClubShop
                 ? isLight ? 'text-proton-black' : 'text-proton-white'
                 : isLight ? 'text-proton-grey hover:text-proton-black' : 'text-proton-white/60 hover:text-proton-white'
             }`}
           >
             Custom
+          </Link>
+          <span className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
+          <Link
+            href="/custom/club"
+            className={`px-3 py-2 text-xs uppercase tracking-widest font-inter transition-colors duration-300 ${
+              isClubShop
+                ? isLight ? 'text-proton-black' : 'text-proton-white'
+                : isLight ? 'text-proton-grey hover:text-proton-black' : 'text-proton-white/60 hover:text-proton-white'
+            }`}
+          >
+            Club Shop
           </Link>
         </div>
 
@@ -140,12 +152,15 @@ export default function Navbar() {
       {/* Mobile menu */}
       <div className={`md:hidden overflow-hidden transition-all duration-300 ${mobileOpen ? 'max-h-screen' : 'max-h-0'}`}>
         <div className="px-6 pb-8 pt-4 bg-proton-white/95 space-y-6">
-          <div className="grid grid-cols-2 gap-3 pb-6 border-b border-proton-light">
-            <Link href="/custom" className={`text-center py-3 border text-xs uppercase tracking-widest transition-all duration-200 ${isCustom ? 'bg-proton-black text-proton-white border-proton-black' : 'border-proton-black text-proton-black'}`}>
+          <div className="grid grid-cols-3 gap-3 pb-6 border-b border-proton-light">
+            <Link href="/custom" className={`text-center py-3 border text-xs uppercase tracking-widest transition-all duration-200 ${isCustom && !isClubShop ? 'bg-proton-black text-proton-white border-proton-black' : 'border-proton-black text-proton-black'}`}>
               Custom
             </Link>
             <Link href="/shop" className={`text-center py-3 border text-xs uppercase tracking-widest transition-all duration-200 ${isShop ? 'bg-proton-black text-proton-white border-proton-black' : 'border-proton-black text-proton-black'}`}>
               Shop
+            </Link>
+            <Link href="/custom/club" className={`text-center py-3 border text-xs uppercase tracking-widest transition-all duration-200 ${isClubShop ? 'bg-proton-black text-proton-white border-proton-black' : 'border-proton-black text-proton-black'}`}>
+              Club Shop
             </Link>
           </div>
           <ul className="space-y-5">
