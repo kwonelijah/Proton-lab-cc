@@ -44,7 +44,7 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                 alt={img.altText ?? `${productTitle} image ${i + 1}`}
                 fill
                 sizes="64px"
-                className="object-cover"
+                className="object-contain"
               />
             </button>
           ))}
