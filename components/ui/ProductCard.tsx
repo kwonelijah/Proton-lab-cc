@@ -21,7 +21,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           alt={product.featuredImage.altText ?? product.title}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-contain transition-opacity duration-300 group-hover:opacity-90"
           priority={priority}
         />
         {/* Hover overlay */}
