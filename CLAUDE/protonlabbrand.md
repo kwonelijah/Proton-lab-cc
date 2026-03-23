@@ -217,7 +217,45 @@ Both routes send formatted HTML emails with a consistent table layout (Name, Ema
 
 ---
 
-## 13. PHASE 2 — SHOPIFY (PENDING)
+## 13. ACCESSIBILITY STANDARDS (WCAG 2.2 AA)
+
+Applied via the Spacious design system skill. All future interactive elements must meet these rules.
+
+### Touch Targets
+- Minimum 44×44px on all interactive elements
+- Size selector buttons: `h-11` (44px) — never `h-10`
+- CartButton: `p-3` — never `p-2` (icon is 20px; 12px padding each side = 44px total)
+- Icon-only buttons (close, remove): minimum `p-3` to meet 44px
+
+### Focus States
+Use `focus-visible:` (not `focus:`) so rings only appear on keyboard navigation, not mouse clicks.
+
+**Buttons:**
+```
+focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2
+```
+
+**Inputs / textarea / select (underline-style fields):**
+```
+outline-none focus:border-proton-black focus-visible:ring-1 focus-visible:ring-proton-black focus-visible:ring-offset-1
+```
+
+Apply to: size selectors, CartButton, CartDrawer close button, Place Order button, all inputs in ContactForm / CartDrawer / club gate, Accordion trigger.
+
+### Contrast
+- All text follows the existing proton palette — `proton-black` on `proton-white` passes AAA
+- Validation errors use `text-red-600` (only permitted non-palette colour)
+- Never use `text-proton-grey` for body copy — reserved for labels/secondary only
+
+### Semantic HTML
+- Accordion trigger is a `<button>` with `aria-expanded`
+- Size selector buttons use `aria-label="Size XS, sold out"` for unavailable sizes
+- CartButton uses dynamic `aria-label` with item count
+- Icon-only buttons always have `aria-label`; icons have `aria-hidden="true"`
+
+---
+
+## 14. PHASE 2 — SHOPIFY (PENDING)
 
 When ready to connect Shopify Storefront API:
 1. Implement `lib/shopify.ts` stubs
