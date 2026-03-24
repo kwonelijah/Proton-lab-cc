@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useRef } from 'react'
 import Button from '@/components/ui/Button'
 
 interface VideoHeroProps {
@@ -21,10 +24,22 @@ export default function VideoHero({
   secondaryCtaHref,
   eyebrow,
 }: VideoHeroProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    video.muted = true
+    video.play().catch(() => {
+      // Autoplay blocked — video stays as poster/black; silent fail is fine
+    })
+  }, [])
+
   return (
     <section className="relative min-h-screen flex items-end overflow-hidden bg-proton-black">
       {/* Background video */}
       <video
+        ref={videoRef}
         autoPlay
         muted
         loop
@@ -32,7 +47,6 @@ export default function VideoHero({
         preload="auto"
         className="absolute inset-0 w-full h-full object-cover opacity-70"
       >
-        <source src={videoSrc} type="video/mp4" />
         <source src={videoSrc} type="video/quicktime" />
       </video>
 
