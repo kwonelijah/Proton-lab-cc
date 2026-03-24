@@ -120,7 +120,7 @@ export default function Navbar() {
       </nav>
 
       {/* Mobile nav */}
-      <nav className="md:hidden flex items-center justify-between px-6 h-16">
+      <nav className="md:hidden flex items-center justify-between px-6 h-24">
         <Link href="/" className="flex items-center">
           <Image
             src="/Logos/PLlogo1.png"
