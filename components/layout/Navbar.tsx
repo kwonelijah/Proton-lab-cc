@@ -54,7 +54,7 @@ export default function Navbar() {
           >
             Shop
           </Link>
-          <span className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
+          <span aria-hidden="true" className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
           <Link
             href="/custom"
             className={`px-3 py-2 text-xs uppercase tracking-widest font-inter transition-colors duration-300 ${
@@ -65,7 +65,7 @@ export default function Navbar() {
           >
             Custom
           </Link>
-          <span className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
+          <span aria-hidden="true" className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
           <Link
             href="/custom/club"
             className={`px-3 py-2 text-xs uppercase tracking-widest font-inter transition-colors duration-300 ${
@@ -112,7 +112,7 @@ export default function Navbar() {
               </Link>
             </>
           ))}
-          <span className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
+          <span aria-hidden="true" className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
           <span className={`pl-3 transition-colors duration-300 ${isLight ? 'text-proton-black' : 'text-proton-white'}`}>
             <CartButton />
           </span>
@@ -139,6 +139,7 @@ export default function Navbar() {
             className={`p-2 transition-colors duration-300 ${isLight ? 'text-proton-black' : 'text-proton-white'}`}
             onClick={() => setMobileOpen(prev => !prev)}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
           >
             <div className="w-5 flex flex-col gap-1.5">
               <span className={`block h-px bg-current transition-all duration-300 ${mobileOpen ? 'rotate-45 translate-y-2.5' : ''}`} />

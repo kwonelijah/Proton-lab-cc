@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 
 interface KitCarouselProps {
@@ -9,6 +9,7 @@ interface KitCarouselProps {
 
 export default function KitCarousel({ images }: KitCarouselProps) {
   const [index, setIndex] = useState(0)
+  const pausedRef = useRef(false)
 
   const count = images.length
   const visible = 2
@@ -22,7 +23,9 @@ export default function KitCarousel({ images }: KitCarouselProps) {
   }, [count])
 
   useEffect(() => {
-    const timer = setInterval(next, 10000)
+    const timer = setInterval(() => {
+      if (!pausedRef.current) next()
+    }, 10000)
     return () => clearInterval(timer)
   }, [next])
 
@@ -31,7 +34,13 @@ export default function KitCarousel({ images }: KitCarouselProps) {
   if (count === 0) return null
 
   return (
-    <div className="relative w-full overflow-hidden bg-proton-black py-16 md:py-24">
+    <div
+      className="relative w-full overflow-hidden bg-proton-black py-16 md:py-24"
+      onMouseEnter={() => { pausedRef.current = true }}
+      onMouseLeave={() => { pausedRef.current = false }}
+      onFocus={() => { pausedRef.current = true }}
+      onBlur={() => { pausedRef.current = false }}
+    >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <p className="text-[10px] text-proton-white/40 uppercase tracking-widest mb-10 text-center">Kit Gallery</p>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '@/stores/cart'
 
 const inputClasses =
@@ -15,11 +15,59 @@ export default function CartDrawer() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Prevent body scroll when drawer is open
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
+
+  // Prevent body scroll when drawer is open (with scrollbar compensation)
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (isOpen) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+      document.body.style.overflow = 'hidden'
+      document.body.style.paddingRight = `${scrollbarWidth}px`
+    } else {
+      document.body.style.overflow = ''
+      document.body.style.paddingRight = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.paddingRight = ''
+    }
   }, [isOpen])
+
+  // Save focus position, move focus into drawer on open, restore on close
+  useEffect(() => {
+    if (isOpen) {
+      previousFocusRef.current = document.activeElement as HTMLElement
+      const focusable = drawerRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input, a[href], [tabindex]:not([tabindex="-1"])'
+      )
+      focusable?.[0]?.focus()
+    } else {
+      previousFocusRef.current?.focus()
+    }
+  }, [isOpen])
+
+  // Focus trap + Escape to close
+  useEffect(() => {
+    if (!isOpen) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') { closeCart(); return }
+      if (e.key !== 'Tab') return
+      const focusable = drawerRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input, a[href], [tabindex]:not([tabindex="-1"])'
+      )
+      if (!focusable || focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus() }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus() }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, closeCart])
 
   async function handleOrder() {
     if (!name || !email || items.length === 0) return
@@ -52,7 +100,13 @@ export default function CartDrawer() {
       />
 
       {/* Drawer */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-proton-white z-50 flex flex-col shadow-2xl">
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping cart"
+        className="fixed top-0 right-0 h-full w-full max-w-md bg-proton-white z-50 flex flex-col shadow-2xl"
+      >
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-proton-light">
@@ -121,6 +175,7 @@ export default function CartDrawer() {
               <input
                 type="text"
                 placeholder="Your name"
+                aria-label="Your name"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 className={inputClasses}
@@ -128,6 +183,7 @@ export default function CartDrawer() {
               <input
                 type="email"
                 placeholder="your@email.com"
+                aria-label="Email address"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className={inputClasses}
@@ -135,11 +191,12 @@ export default function CartDrawer() {
               <input
                 type="tel"
                 placeholder="Phone number"
+                aria-label="Phone number"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 className={inputClasses}
               />
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
               <button
                 onClick={handleOrder}
                 disabled={!name || !email || loading}

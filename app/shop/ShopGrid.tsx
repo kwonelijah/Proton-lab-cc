@@ -39,11 +39,12 @@ export default function ShopGrid({ products }: ShopGridProps) {
   return (
     <div>
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-2 mb-12">
+      <div role="group" aria-label="Filter by category" className="flex flex-wrap gap-2 mb-12">
         {filters.map(f => (
           <button
             key={f.value}
             onClick={() => setActive(f.value)}
+            aria-pressed={active === f.value}
             className={`px-4 py-2 text-xs uppercase tracking-widest font-inter border transition-all duration-200 ${
               active === f.value
                 ? 'bg-proton-black text-proton-white border-proton-black'
