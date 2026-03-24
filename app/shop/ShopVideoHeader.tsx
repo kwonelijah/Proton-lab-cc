@@ -25,7 +25,7 @@ export default function ShopVideoHeader() {
         preload="metadata"
         className="absolute inset-0 w-full h-full object-cover opacity-80"
       >
-        <source src="/videos/PLShopHomepageClip.mp4" type="video/mp4" />
+        <source src="https://zpwxsatldyroswl1.public.blob.vercel-storage.com/PLShopHomepageClip.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-proton-black/30" />
       <div className="absolute inset-0 flex items-end">

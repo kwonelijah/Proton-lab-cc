@@ -93,8 +93,7 @@ export default function CustomPage() {
           playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-60"
         >
-          <source src="https://zpwxsatldyroswl1.public.blob.vercel-storage.com/PLCustomHomepageClip.mov" type="video/quicktime" />
-          <source src="https://zpwxsatldyroswl1.public.blob.vercel-storage.com/PLCustomHomepageClip.mov" type="video/mp4" />
+          <source src="https://zpwxsatldyroswl1.public.blob.vercel-storage.com/PLCustomHomepageClip%20copy.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-t from-proton-black/80 via-proton-black/20 to-transparent" />
         <div className="relative z-10 max-w-7xl w-full mx-auto px-6 md:px-12 pb-12 md:pb-16">
