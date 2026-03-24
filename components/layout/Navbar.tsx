@@ -127,7 +127,7 @@ export default function Navbar() {
             alt="Proton Lab CC"
             width={140}
             height={40}
-            className={`h-10 w-auto transition-all duration-300 ${isLight ? 'brightness-0' : 'brightness-100'}`}
+            className={`h-20 w-auto transition-all duration-300 ${isLight ? 'brightness-0' : 'brightness-100'}`}
           />
         </Link>
         <div className="flex items-center gap-2">
