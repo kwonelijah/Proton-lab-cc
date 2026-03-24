@@ -8,7 +8,7 @@ export default function Footer() {
 
         {/* Logo */}
         <Image
-          src="/PLlogo2.png"
+          src="/Logos/PLlogo2.png"
           alt="Proton Lab CC"
           width={80}
           height={80}

@@ -82,7 +82,7 @@ export default function Navbar() {
         <div className="flex justify-center">
           <Link href="/" className="flex items-center">
             <Image
-              src="/PLlogo1.png"
+              src="/Logos/PLlogo1.png"
               alt="Proton Lab CC"
               width={240}
               height={70}
@@ -123,7 +123,7 @@ export default function Navbar() {
       <nav className="md:hidden flex items-center justify-between px-6 h-16">
         <Link href="/" className="flex items-center">
           <Image
-            src="/PLlogo1.png"
+            src="/Logos/PLlogo1.png"
             alt="Proton Lab CC"
             width={140}
             height={40}
