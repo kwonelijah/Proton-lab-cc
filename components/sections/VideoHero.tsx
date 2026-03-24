@@ -47,7 +47,7 @@ export default function VideoHero({
         preload="metadata"
         className="absolute inset-0 w-full h-full object-cover opacity-70"
       >
-        <source src={videoSrc} type="video/quicktime" />
+        <source src={videoSrc} type="video/mp4" />
       </video>
 
       {/* Gradient overlay */}
