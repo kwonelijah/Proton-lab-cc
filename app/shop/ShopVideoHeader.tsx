@@ -15,7 +15,7 @@ export default function ShopVideoHeader() {
   }, [])
 
   return (
-    <div className="relative w-full aspect-[21/9] bg-proton-black overflow-hidden">
+    <div className="relative min-h-screen bg-proton-black overflow-hidden flex items-end">
       <video
         ref={videoRef}
         autoPlay
