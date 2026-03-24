@@ -46,7 +46,7 @@ export default function HeroSection({
             {eyebrow}
           </p>
         )}
-        <h1 className="font-playfair text-proton-white text-6xl md:text-8xl lg:text-9xl leading-none max-w-4xl">
+        <h1 className="font-playfair text-proton-white text-5xl sm:text-6xl md:text-8xl lg:text-9xl leading-none max-w-4xl">
           {headline}
         </h1>
         {subheadline && (
@@ -77,7 +77,7 @@ export default function HeroSection({
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 right-8 md:right-12 flex flex-col items-center gap-2 opacity-50">
+      <div aria-hidden="true" className="absolute bottom-[max(2rem,env(safe-area-inset-bottom))] right-8 md:right-12 flex flex-col items-center gap-2 opacity-50">
         <span className="text-proton-white text-[10px] uppercase tracking-widest rotate-90 origin-center translate-y-4">
           Scroll
         </span>

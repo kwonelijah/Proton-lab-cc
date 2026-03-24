@@ -32,7 +32,7 @@ export default async function HomePage() {
       {/* 2. Two-path CTA */}
       <section className="py-24 md:py-32 px-6 md:px-12">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Link href="/shop" className="group relative overflow-hidden aspect-[4/3] bg-proton-light flex items-end">
+          <Link href="/shop" className="group relative overflow-hidden aspect-[4/3] bg-proton-light flex items-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2">
             <Image
               src="/images/homepage/homepagecollection.JPG"
               alt="Shop"
@@ -49,7 +49,7 @@ export default async function HomePage() {
               </span>
             </div>
           </Link>
-          <Link href="/custom" className="group relative overflow-hidden aspect-[4/3] bg-proton-black flex items-end">
+          <Link href="/custom" className="group relative overflow-hidden aspect-[4/3] bg-proton-black flex items-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2">
             <Image
               src="/images/homepage/homepagecustom.jpg"
               alt="Custom Kit"

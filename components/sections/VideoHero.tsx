@@ -30,8 +30,8 @@ export default function VideoHero({
     const video = videoRef.current
     if (!video) return
     video.muted = true
-    video.play().catch(() => {
-      // Autoplay blocked — video stays as poster/black; silent fail is fine
+    video.play().catch((e) => {
+      if (process.env.NODE_ENV !== 'production') console.warn('Video autoplay blocked:', e)
     })
   }, [])
 
@@ -44,7 +44,7 @@ export default function VideoHero({
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
         className="absolute inset-0 w-full h-full object-cover opacity-70"
       >
         <source src={videoSrc} type="video/quicktime" />
@@ -91,7 +91,7 @@ export default function VideoHero({
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 right-8 md:right-12 flex flex-col items-center gap-2 opacity-40">
+      <div aria-hidden="true" className="absolute bottom-8 right-8 md:right-12 flex flex-col items-center gap-2 opacity-40">
         <span className="text-proton-white text-[10px] uppercase tracking-widest rotate-90 origin-center translate-y-4">
           Scroll
         </span>

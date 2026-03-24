@@ -12,6 +12,7 @@ interface JournalCardProps {
 export default function JournalCard({ post, featured = false, priority = false }: JournalCardProps) {
   if (featured) {
     return (
+      <article>
       <Link href={`/journal/${post.handle}`} className="group grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         <div className="relative overflow-hidden aspect-[3/2] bg-proton-light">
           <Image
@@ -38,10 +39,12 @@ export default function JournalCard({ post, featured = false, priority = false }
           </span>
         </div>
       </Link>
+      </article>
     )
   }
 
   return (
+    <article>
     <Link href={`/journal/${post.handle}`} className="group block">
       <div className="relative overflow-hidden aspect-[3/2] bg-proton-light mb-4">
         <Image
@@ -63,5 +66,6 @@ export default function JournalCard({ post, featured = false, priority = false }
         {post.excerpt}
       </p>
     </Link>
+    </article>
   )
 }

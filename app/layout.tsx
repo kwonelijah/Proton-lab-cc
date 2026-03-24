@@ -37,6 +37,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body className="bg-proton-white text-proton-black font-inter antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-proton-white focus:text-proton-black focus:px-4 focus:py-2 focus:text-xs focus:uppercase focus:tracking-widest focus:outline-none focus:ring-2 focus:ring-proton-black"
+        >
+          Skip to content
+        </a>
         {children}
         <CartDrawer />
       </body>

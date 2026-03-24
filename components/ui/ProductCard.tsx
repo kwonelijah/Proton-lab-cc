@@ -13,7 +13,11 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const { amount, currencyCode } = product.priceRange.minVariantPrice
 
   return (
-    <Link href={`/products/${product.handle}`} className="group block">
+    <Link
+      href={`/products/${product.handle}`}
+      className="group block"
+      aria-label={`${product.title}${!product.availableForSale ? ' — Sold Out' : ''}`}
+    >
       {/* Image container */}
       <div className="relative overflow-hidden aspect-[4/5] bg-proton-light">
         <Image

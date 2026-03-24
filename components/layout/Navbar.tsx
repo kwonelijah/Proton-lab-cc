@@ -128,7 +128,6 @@ export default function Navbar() {
             width={140}
             height={40}
             className={`h-10 w-auto transition-all duration-300 ${isLight ? 'brightness-0' : 'brightness-100'}`}
-            priority
           />
         </Link>
         <div className="flex items-center gap-2">
@@ -151,7 +150,7 @@ export default function Navbar() {
       </nav>
 
       {/* Mobile menu */}
-      <div className={`md:hidden overflow-hidden transition-all duration-300 ${mobileOpen ? 'max-h-screen' : 'max-h-0'}`}>
+      <div className={`md:hidden overflow-hidden transition-all duration-300 ${mobileOpen ? 'max-h-[400px]' : 'max-h-0'}`}>
         <div className="px-6 pb-8 pt-4 bg-proton-white/95 space-y-6">
           <div className="grid grid-cols-3 gap-3 pb-6 border-b border-proton-light">
             <Link href="/custom" className={`text-center py-3 border text-xs uppercase tracking-widest transition-all duration-200 ${isCustom && !isClubShop ? 'bg-proton-black text-proton-white border-proton-black' : 'border-proton-black text-proton-black'}`}>

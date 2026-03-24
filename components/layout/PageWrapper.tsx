@@ -11,7 +11,7 @@ export default function PageWrapper({ children, className = '', noPadding = fals
   return (
     <>
       <Navbar />
-      <main className={`min-h-screen ${noPadding ? '' : 'pt-20'} ${className}`}>
+      <main id="main-content" className={`min-h-screen ${noPadding ? '' : 'pt-20'} ${className}`}>
         {children}
       </main>
       <Footer />

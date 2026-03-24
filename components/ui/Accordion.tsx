@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useId } from 'react'
 
 interface AccordionProps {
   title: string
@@ -10,6 +10,7 @@ interface AccordionProps {
 
 export default function Accordion({ title, children, defaultOpen = false }: AccordionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const panelId = useId()
 
   return (
     <div className="border-t border-proton-light">
@@ -17,6 +18,7 @@ export default function Accordion({ title, children, defaultOpen = false }: Acco
         onClick={() => setIsOpen(prev => !prev)}
         className="flex items-center justify-between w-full py-4 text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
         aria-expanded={isOpen}
+        aria-controls={panelId}
       >
         <span className="text-[10px] uppercase tracking-widest text-proton-grey group-hover:text-proton-black transition-colors duration-200">
           {title}
@@ -37,7 +39,7 @@ export default function Accordion({ title, children, defaultOpen = false }: Acco
       </button>
 
       {/* Smooth expand/collapse using CSS grid trick */}
-      <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+      <div id={panelId} className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
         <div className="overflow-hidden">
           <div className="pb-6">
             {children}

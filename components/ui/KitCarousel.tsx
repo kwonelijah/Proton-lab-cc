@@ -78,7 +78,8 @@ export default function KitCarousel({ images }: KitCarouselProps) {
               <button
                 key={i}
                 onClick={() => setIndex(i)}
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={`Slide ${i + 1} of ${images.length}${i === index ? ' (current)' : ''}`}
+                aria-current={i === index ? 'true' : undefined}
                 className={`w-1 h-1 rounded-full transition-colors duration-200 ${i === index ? 'bg-proton-white' : 'bg-proton-white/30'}`}
               />
             ))}

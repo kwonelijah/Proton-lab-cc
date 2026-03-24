@@ -38,7 +38,7 @@ export default async function ProductPage({ params }: PageProps) {
     <PageWrapper>
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-16">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-proton-grey mb-8">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-proton-grey mb-8">
           <Link href="/collections" className="hover:text-proton-black transition-colors duration-200">
             Collections
           </Link>
@@ -126,7 +126,7 @@ export default async function ProductPage({ params }: PageProps) {
                   <thead>
                     <tr className="border-b border-proton-light">
                       {['Size', 'Chest', 'Waist', 'Hip'].map(h => (
-                        <th key={h} className="pb-3 pr-6 text-[10px] uppercase tracking-widest text-proton-grey font-inter font-normal">
+                        <th key={h} scope="col" className="pb-3 pr-6 text-[10px] uppercase tracking-widest text-proton-grey font-inter font-normal">
                           {h}
                         </th>
                       ))}
@@ -160,7 +160,7 @@ export default async function ProductPage({ params }: PageProps) {
                     <thead>
                       <tr className="border-b border-proton-light">
                         {['Size', 'Chest', 'Waist', 'Hip'].map(h => (
-                          <th key={h} className="pb-3 pr-6 text-[10px] uppercase tracking-widest text-proton-grey font-inter font-normal">
+                          <th key={h} scope="col" className="pb-3 pr-6 text-[10px] uppercase tracking-widest text-proton-grey font-inter font-normal">
                             {h}
                           </th>
                         ))}

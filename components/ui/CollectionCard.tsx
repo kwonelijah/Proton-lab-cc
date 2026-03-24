@@ -11,7 +11,11 @@ export default function CollectionCard({ collection, priority = false }: Collect
   const productCount = collection.products.nodes.length
 
   return (
-    <Link href={`/collections/${collection.handle}`} className="group block">
+    <Link
+      href={`/collections/${collection.handle}`}
+      className="group block"
+      aria-label={`Shop ${collection.title} — ${productCount} ${productCount === 1 ? 'piece' : 'pieces'}`}
+    >
       {/* Image container */}
       <div className="relative overflow-hidden aspect-[3/2] bg-proton-light">
         {collection.image ? (

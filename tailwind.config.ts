@@ -11,7 +11,7 @@ const config: Config = {
       colors: {
         'proton-black': '#0A0A0A',
         'proton-white': '#F5F4F0',
-        'proton-grey': '#6B6B6B',
+        'proton-grey': '#595959',
         'proton-light': '#E8E7E3',
         'proton-mid': '#D4D2CD',
       },

@@ -16,17 +16,18 @@ export default function Footer() {
         />
 
         {/* Nav links */}
-        <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-proton-white/60">
+        <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-proton-white/60">
           <Link href="/shop" className="hover:text-proton-white transition-colors duration-200">Shop</Link>
-          <span>|</span>
+          <span aria-hidden="true">|</span>
           <Link href="/custom" className="hover:text-proton-white transition-colors duration-200">Custom</Link>
-          <span>|</span>
-<Link href="/contact" className="hover:text-proton-white transition-colors duration-200">Contact</Link>
-          <span>|</span>
+          <span aria-hidden="true">|</span>
+          <Link href="/contact" className="hover:text-proton-white transition-colors duration-200">Contact</Link>
+          <span aria-hidden="true">|</span>
           <a
             href="https://www.instagram.com/protonlabcc/"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Instagram (opens in new tab)"
             className="hover:text-proton-white transition-colors duration-200"
           >
             Instagram
@@ -34,7 +35,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <p className="text-[10px] text-proton-grey uppercase tracking-widest">
+        <p className="text-xs text-proton-grey uppercase tracking-widest">
           © {new Date().getFullYear()} Proton Sports Management Ltd. All rights reserved. Registered in the UK.
         </p>
 
