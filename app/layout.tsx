@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Playfair_Display, Montserrat } from 'next/font/google'
 import '@/styles/globals.css'
 import CartDrawer from '@/components/ui/CartDrawer'
+import { Analytics } from '@vercel/analytics/next'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -45,6 +46,7 @@ export default function RootLayout({
         </a>
         {children}
         <CartDrawer />
+        <Analytics />
       </body>
     </html>
   )
