@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProtonLab — Test Checkout</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 6px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .price {
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      margin: 20px 0 8px;
+    }
+    .price span {
+      font-size: 16px;
+      font-weight: 400;
+      color: #888;
+    }
+    .description {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .test-badge {
+      display: inline-block;
+      background: #1a3a1a;
+      color: #4caf50;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.88; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .error {
+      margin-top: 16px;
+      padding: 12px;
+      background: #2a1a1a;
+      border: 1px solid #5a2a2a;
+      border-radius: 8px;
+      color: #f87171;
+      font-size: 13px;
+      display: none;
+    }
+    .test-card {
+      margin-top: 24px;
+      padding: 14px;
+      background: #0f1f0f;
+      border: 1px solid #1a3a1a;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #888;
+      line-height: 1.8;
+    }
+    .test-card strong { color: #4caf50; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">ProtonLab</div>
+    <h1>Test Product</h1>
+    <div class="test-badge">⚡ Test Mode</div>
+
+    <div class="price">$49.99 <span>USD</span></div>
+    <div class="description">
+      This is a test checkout page. No real charges will be made.
+      Use the test card below to simulate a payment.
+    </div>
+
+    <button id="checkout-btn" onclick="startCheckout()">
+      Pay with Stripe →
+    </button>
+
+    <div class="error" id="error-msg"></div>
+
+    <div class="test-card">
+      <strong>Test card details:</strong><br>
+      Number: <strong>4242 4242 4242 4242</strong><br>
+      Expiry: any future date (e.g. 12/34)<br>
+      CVC: any 3 digits (e.g. 123)<br>
+      ZIP: any 5 digits (e.g. 12345)
+    </div>
+  </div>
+
+  <script>
+    // ── UPDATE THIS to your Vercel deployment URL ─────────────────────────
+    const BACKEND_URL = 'https://YOUR-VERCEL-PROJECT.vercel.app';
+    // ─────────────────────────────────────────────────────────────────────
+
+    async function startCheckout() {
+      const btn = document.getElementById('checkout-btn');
+      const errorEl = document.getElementById('error-msg');
+
+      btn.disabled = true;
+      btn.textContent = 'Connecting to Stripe...';
+      errorEl.style.display = 'none';
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: [
+              { name: 'Test Product', description: 'ProtonLab test item', price: 4999, quantity: 1 }
+            ],
+            customerEmail: null,
+            customerName: null,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        // Redirect to Stripe hosted checkout
+        window.location.href = data.url;
+
+      } catch (err) {
+        errorEl.textContent = `Error: ${err.message}. Check that your backend is deployed and BACKEND_URL is correct.`;
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Pay with Stripe →';
+      }
+    }
+  </script>
+</body>
+</html>
