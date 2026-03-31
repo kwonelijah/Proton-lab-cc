@@ -2,17 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '@/stores/cart'
-
-const inputClasses =
-  'w-full bg-transparent border-b border-proton-mid text-proton-black text-sm py-3 outline-none focus:border-proton-black focus-visible:ring-1 focus-visible:ring-proton-black focus-visible:ring-offset-1 transition-colors duration-200 placeholder:text-proton-grey'
+import { redirectToCheckout } from '@/lib/checkout'
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, clearCart } = useCartStore()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
+  const { items, isOpen, closeCart, removeItem } = useCartStore()
   const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const drawerRef = useRef<HTMLDivElement>(null)
@@ -69,23 +63,23 @@ export default function CartDrawer() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, closeCart])
 
-  async function handleOrder() {
-    if (!name || !email || items.length === 0) return
+  async function handleCheckout() {
+    if (items.length === 0) return
     setLoading(true)
     setError(null)
-
-    const res = await fetch('/api/club-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, phone, items }),
-    })
-
-    setLoading(false)
-    if (res.ok) {
-      setSubmitted(true)
-      clearCart()
-    } else {
-      setError('Something went wrong. Please try again or email us directly.')
+    try {
+      await redirectToCheckout(
+        items.map(item => ({
+          name: item.productName,
+          description: `Size: ${item.size}`,
+          price: Math.round(parseFloat(item.price) * 100),
+          quantity: item.quantity,
+          image: item.image,
+        }))
+      )
+    } catch {
+      setLoading(false)
+      setError('Could not connect to payment server. Please try again.')
     }
   }
 
@@ -123,20 +117,7 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        {submitted ? (
-          <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-            <p className="font-playfair text-3xl text-proton-black mb-3">Order received.</p>
-            <p className="text-sm text-proton-grey leading-relaxed">
-              We&apos;ll be in touch shortly to confirm and arrange payment.
-            </p>
-            <button
-              onClick={() => { setSubmitted(false); setName(''); setEmail(''); setPhone(''); closeCart() }}
-              className="mt-8 text-[10px] uppercase tracking-widest text-proton-grey underline underline-offset-4 hover:text-proton-black transition-colors duration-200"
-            >
-              Continue Shopping
-            </button>
-          </div>
-        ) : items.length === 0 ? (
+        {items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
             <p className="text-sm text-proton-grey">Your cart is empty.</p>
           </div>
@@ -169,43 +150,24 @@ export default function CartDrawer() {
               ))}
             </div>
 
-            {/* Checkout form */}
+            {/* Checkout footer */}
             <div className="px-6 py-6 border-t border-proton-light space-y-4">
-              <p className="text-[10px] uppercase tracking-widest text-proton-grey">Your Details</p>
-              <input
-                type="text"
-                placeholder="Your name"
-                aria-label="Your name"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                className={inputClasses}
-              />
-              <input
-                type="email"
-                placeholder="your@email.com"
-                aria-label="Email address"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className={inputClasses}
-              />
-              <input
-                type="tel"
-                placeholder="Phone number"
-                aria-label="Phone number"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                className={inputClasses}
-              />
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] uppercase tracking-widest text-proton-grey">Total</p>
+                <p className="text-sm text-proton-black">
+                  £{items.reduce((sum, i) => sum + parseFloat(i.price) * i.quantity, 0).toFixed(2)}
+                </p>
+              </div>
               {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
               <button
-                onClick={handleOrder}
-                disabled={!name || !email || loading}
+                onClick={handleCheckout}
+                disabled={loading}
                 className="w-full bg-proton-black text-proton-white text-xs uppercase tracking-widest py-4 font-inter transition-all duration-300 hover:bg-proton-grey disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
               >
-                {loading ? 'Placing Order…' : 'Place Order'}
+                {loading ? 'Redirecting…' : 'Checkout'}
               </button>
               <p className="text-[10px] text-proton-grey text-center">
-                We&apos;ll confirm your order and arrange payment by email.
+                Secure checkout via Stripe
               </p>
             </div>
           </>

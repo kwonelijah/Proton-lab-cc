@@ -7,8 +7,9 @@ export interface CartItem {
   productHandle: string
   productName: string
   size: string
-  price: string
+  price: string // GBP amount string e.g. "80.00"
   quantity: number
+  image?: string
 }
 
 interface CartStore {

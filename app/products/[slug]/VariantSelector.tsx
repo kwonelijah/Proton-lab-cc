@@ -3,18 +3,37 @@
 import { useState } from 'react'
 import type { ProductVariant } from '@/types/product'
 import Button from '@/components/ui/Button'
+import { useCartStore } from '@/stores/cart'
 
 interface VariantSelectorProps {
   variants: ProductVariant[]
   productTitle: string
+  productHandle: string
+  productImage?: string
 }
 
-export default function VariantSelector({ variants, productTitle }: VariantSelectorProps) {
+export default function VariantSelector({ variants, productTitle, productHandle, productImage }: VariantSelectorProps) {
   const [selectedId, setSelectedId] = useState<string | null>(
     variants.find(v => v.availableForSale)?.id ?? null
   )
+  const { addItem, openCart } = useCartStore()
 
   const selected = variants.find(v => v.id === selectedId)
+
+  function handleAddToCart() {
+    if (!selected?.availableForSale) return
+    const sizeLabel = selected.selectedOptions.find(o => o.name === 'Size')?.value ?? selected.title
+    addItem({
+      clubHandle: 'protonlab',
+      clubName: 'Proton Lab',
+      productHandle,
+      productName: productTitle,
+      size: sizeLabel,
+      price: selected.price.amount,
+      image: productImage,
+    })
+    openCart()
+  }
 
   return (
     <div className="space-y-6">
@@ -62,18 +81,10 @@ export default function VariantSelector({ variants, productTitle }: VariantSelec
           size="lg"
           disabled={!selected?.availableForSale}
           className="w-full justify-center"
-          onClick={() => {
-            // TODO: add to cart via Zustand store
-            // cartStore.addItem({ variantId: selected!.id, productTitle })
-          }}
+          onClick={handleAddToCart}
         >
-          {!selected || !selected.availableForSale ? 'Sold Out' : 'Add to Cart — Coming Soon'}
+          {!selected || !selected.availableForSale ? 'Sold Out' : 'Add to Cart'}
         </Button>
-        {selected?.availableForSale && (
-          <p className="text-[10px] text-proton-grey text-center mt-3 uppercase tracking-widest">
-            Checkout via Shopify — launching soon
-          </p>
-        )}
       </div>
     </div>
   )

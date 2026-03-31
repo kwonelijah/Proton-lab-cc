@@ -89,6 +89,8 @@ export default async function ProductPage({ params }: PageProps) {
             <VariantSelector
               variants={product.variants.nodes}
               productTitle={product.title}
+              productHandle={product.handle}
+              productImage={product.featuredImage.url}
             />
 
             {/* Description */}
