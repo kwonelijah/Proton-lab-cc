@@ -68,11 +68,12 @@ export default function CartDrawer() {
     setLoading(true)
     setError(null)
     try {
+      const toAmount = (p: string) => parseFloat(p.replace(/[^0-9.]/g, ''))
       await redirectToCheckout(
         items.map(item => ({
           name: item.productName,
           description: `Size: ${item.size}`,
-          price: Math.round(parseFloat(item.price) * 100),
+          price: Math.round(toAmount(item.price) * 100),
           quantity: item.quantity,
           image: item.image,
         }))
@@ -155,7 +156,7 @@ export default function CartDrawer() {
               <div className="flex items-center justify-between">
                 <p className="text-[10px] uppercase tracking-widest text-proton-grey">Total</p>
                 <p className="text-sm text-proton-black">
-                  £{items.reduce((sum, i) => sum + parseFloat(i.price) * i.quantity, 0).toFixed(2)}
+                  £{items.reduce((sum, i) => sum + parseFloat(i.price.replace(/[^0-9.]/g, '')) * i.quantity, 0).toFixed(2)}
                 </p>
               </div>
               {error && <p role="alert" className="text-sm text-red-600">{error}</p>}

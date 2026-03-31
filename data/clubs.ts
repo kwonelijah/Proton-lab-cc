@@ -26,6 +26,15 @@ export const clubs: Club[] = [
       { name: 'SS Roadsuit', handle: 'ss-roadsuit', price: '£120.00', image: '/images/clubs/edinburgh-bike-fitting-club/ss-roadsuit.jpg' },
     ],
   },
+  {
+    handle: 'hamish-mayes',
+    name: 'Hamish Mayes',
+    password: 'HAMISH',
+    tagline: 'Your kit — order directly below.',
+    products: [
+      { name: 'Training Bib Shorts', handle: 'training-bib-shorts', price: '£70.00', image: '/images/products/training-bib-shorts/training-bib-shorts1.jpg' },
+    ],
+  },
 ]
 
 export function getClubByHandle(handle: string): Club | undefined {
