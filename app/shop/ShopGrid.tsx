@@ -36,6 +36,8 @@ export default function ShopGrid({ products }: ShopGridProps) {
         )
       )
 
+  if (products.length === 0) return null
+
   return (
     <div>
       {/* Filter bar */}
