@@ -1,9 +1,8 @@
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'https://protonlab-backend.vercel.app'
 
 export interface CheckoutItem {
-  name: string
-  description: string
-  price: number // pence (GBP × 100)
+  handle: string
+  size: string
   quantity: number
   image?: string
 }

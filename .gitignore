@@ -35,3 +35,6 @@ next-env.d.ts
 
 # Large media files
 public/videos/
+
+# Local-only notes / one-off prompt docs
+STRIPE_MIGRATION_PROMPT.md

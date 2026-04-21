@@ -68,12 +68,10 @@ export default function CartDrawer() {
     setLoading(true)
     setError(null)
     try {
-      const toAmount = (p: string) => parseFloat(p.replace(/[^0-9.]/g, ''))
       await redirectToCheckout(
         items.map(item => ({
-          name: item.productName,
-          description: `Size: ${item.size}`,
-          price: Math.round(toAmount(item.price) * 100),
+          handle: item.productHandle,
+          size: item.size,
           quantity: item.quantity,
           image: item.image,
         }))

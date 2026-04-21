@@ -1,0 +1,254 @@
+{
+  "ss-race-jersey": {
+    "productId": "prod_UNYWcgAUQ5PcDw",
+    "priceId": "price_1TOnPe3x1N43j1ucwUOaFzOu",
+    "name": "SS Race Jersey",
+    "unitAmount": 8000,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Race"
+  },
+  "ss-training-jersey": {
+    "productId": "prod_UNYWosFs4xhzP0",
+    "priceId": "price_1TOnPf3x1N43j1uc1n1EVyzM",
+    "name": "SS Training Jersey",
+    "unitAmount": 6500,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Training"
+  },
+  "ss-club-jersey": {
+    "productId": "prod_UNYWox5km4n8mg",
+    "priceId": "price_1TOnPf3x1N43j1uchXvoyHDT",
+    "name": "SS Club Jersey",
+    "unitAmount": 5000,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Training"
+  },
+  "ss-zipperless-jersey": {
+    "productId": "prod_UNYWdNCHUs7xLP",
+    "priceId": "price_1TOnPg3x1N43j1ucKvRsvKs6",
+    "name": "SS Zipperless Jersey",
+    "unitAmount": 6500,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Race"
+  },
+  "ls-training-jersey": {
+    "productId": "prod_UNYWSdCUPrVA2K",
+    "priceId": "price_1TOnPi3x1N43j1ucxsktjJBf",
+    "name": "LS Training Jersey",
+    "unitAmount": 7000,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Training"
+  },
+  "ls-fleece-jersey": {
+    "productId": "prod_UNYWh74Q45TEJ1",
+    "priceId": "price_1TOnPj3x1N43j1uct8sqJZ8U",
+    "name": "LS Fleece Jersey",
+    "unitAmount": 8500,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Race"
+  },
+  "mtb-jersey": {
+    "productId": "prod_UNYWjIZqcRt34u",
+    "priceId": "price_1TOnPj3x1N43j1ucDaQXlBaY",
+    "name": "MTB Jersey",
+    "unitAmount": 3000,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Training"
+  },
+  "race-bib-shorts": {
+    "productId": "prod_UNYWBZi4CP2irA",
+    "priceId": "price_1TOnPk3x1N43j1ucgRPcGvHy",
+    "name": "Race Bib Shorts",
+    "unitAmount": 9000,
+    "currency": "gbp",
+    "category": "Shorts",
+    "collection": "Race"
+  },
+  "training-bib-shorts": {
+    "productId": "prod_UNYW77LhFq5UO3",
+    "priceId": "price_1TOnPm3x1N43j1ucKPZICpUB",
+    "name": "Training Bib Shorts",
+    "unitAmount": 8000,
+    "currency": "gbp",
+    "category": "Shorts",
+    "collection": "Training"
+  },
+  "club-bib-shorts": {
+    "productId": "prod_UNYWWuZwpqrDSP",
+    "priceId": "price_1TOnPn3x1N43j1ucdrFWJA9l",
+    "name": "Club Bib Shorts",
+    "unitAmount": 6500,
+    "currency": "gbp",
+    "category": "Shorts",
+    "collection": "Training"
+  },
+  "training-bib-tights": {
+    "productId": "prod_UNYWMMea2adexg",
+    "priceId": "price_1TOnPo3x1N43j1uct7hT7eXB",
+    "name": "Training Bib Tights",
+    "unitAmount": 11000,
+    "currency": "gbp",
+    "category": "Shorts",
+    "collection": "Race"
+  },
+  "winter-jacket": {
+    "productId": "prod_UNYWXIgdqgKqng",
+    "priceId": "price_1TOnPo3x1N43j1ucxOIr0Umr",
+    "name": "Winter Jacket",
+    "unitAmount": 10000,
+    "currency": "gbp",
+    "category": "Jackets & Gilets",
+    "collection": "Race"
+  },
+  "summer-gilet": {
+    "productId": "prod_UNYWHza2kkPcx8",
+    "priceId": "price_1TOnPp3x1N43j1ucB6aQ9yoc",
+    "name": "Summer Gilet",
+    "unitAmount": 5500,
+    "currency": "gbp",
+    "category": "Jackets & Gilets",
+    "collection": "Race"
+  },
+  "winter-gilet": {
+    "productId": "prod_UNYWq8lZqm9SIU",
+    "priceId": "price_1TOnPr3x1N43j1ucxdPIfevc",
+    "name": "Winter Gilet",
+    "unitAmount": 7000,
+    "currency": "gbp",
+    "category": "Jackets & Gilets",
+    "collection": "Race"
+  },
+  "ss-roadsuit": {
+    "productId": "prod_UNYWmEBzC3VEr4",
+    "priceId": "price_1TOnPr3x1N43j1ucUwN4aL55",
+    "name": "SS Roadsuit",
+    "unitAmount": 12000,
+    "currency": "gbp",
+    "category": "Skinsuits",
+    "collection": "Race"
+  },
+  "ss-aerosuit": {
+    "productId": "prod_UNYWFe2NWjtRXP",
+    "priceId": "price_1TOnPt3x1N43j1ucizzUDa6L",
+    "name": "SS Aerosuit",
+    "unitAmount": 14000,
+    "currency": "gbp",
+    "category": "Skinsuits",
+    "collection": "Race"
+  },
+  "ls-speedsuit": {
+    "productId": "prod_UNYWjdW4FC44YB",
+    "priceId": "price_1TOnPt3x1N43j1ucUOO4XMTr",
+    "name": "LS Speedsuit",
+    "unitAmount": 15000,
+    "currency": "gbp",
+    "category": "Skinsuits",
+    "collection": "Race"
+  },
+  "ss-trisuit": {
+    "productId": "prod_UNYWQICGV8rddi",
+    "priceId": "price_1TOnPu3x1N43j1ucxd9SXsOr",
+    "name": "SS Trisuit",
+    "unitAmount": 13500,
+    "currency": "gbp",
+    "category": "Skinsuits",
+    "collection": "Race"
+  },
+  "sleeveless-trisuit": {
+    "productId": "prod_UNYWXjd4oBN0y7",
+    "priceId": "price_1TOnPv3x1N43j1ucARNrFfE5",
+    "name": "Sleeveless Trisuit",
+    "unitAmount": 13500,
+    "currency": "gbp",
+    "category": "Skinsuits",
+    "collection": "Race"
+  },
+  "aero-socks": {
+    "productId": "prod_UNYX7LMqNhMUNS",
+    "priceId": "price_1TOnPx3x1N43j1ucwYWdPzxF",
+    "name": "Aero Socks",
+    "unitAmount": 2000,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Race"
+  },
+  "training-mitts": {
+    "productId": "prod_UNYXKeHZQO0nFb",
+    "priceId": "price_1TOnPx3x1N43j1uc86myhiX3",
+    "name": "Training Mitts",
+    "unitAmount": 2000,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Training"
+  },
+  "aero-mitts": {
+    "productId": "prod_UNYXtuYWQCI1P7",
+    "priceId": "price_1TOnPy3x1N43j1uccf93wSxk",
+    "name": "Aero Mitts",
+    "unitAmount": 2500,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Race"
+  },
+  "arm-warmers": {
+    "productId": "prod_UNYXxoT27PXHeO",
+    "priceId": "price_1TOnPz3x1N43j1uceJ4ARt1E",
+    "name": "Arm Warmers",
+    "unitAmount": 2000,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Training"
+  },
+  "aero-arm-warmers": {
+    "productId": "prod_UNYXD8x7inKOby",
+    "priceId": "price_1TOnQ03x1N43j1ucGvMr3lcQ",
+    "name": "Aero Arm Warmers",
+    "unitAmount": 2500,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Race"
+  },
+  "knee-warmers": {
+    "productId": "prod_UNYXANieBTmEal",
+    "priceId": "price_1TOnQ13x1N43j1ucxLT75JKT",
+    "name": "Knee Warmers",
+    "unitAmount": 2500,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Race"
+  },
+  "leg-warmers": {
+    "productId": "prod_UNYXMxDZby0J0q",
+    "priceId": "price_1TOnQ23x1N43j1ucMghEZU9N",
+    "name": "Leg Warmers",
+    "unitAmount": 2500,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Race"
+  },
+  "buff": {
+    "productId": "prod_UNYXCkuHdmHAfG",
+    "priceId": "price_1TOnQ33x1N43j1ucJQomCpKA",
+    "name": "Buff",
+    "unitAmount": 1000,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Training"
+  },
+  "cycling-cap": {
+    "productId": "prod_UNYX3HQkomPQvR",
+    "priceId": "price_1TOnQ43x1N43j1ucWt45Gf0W",
+    "name": "Cycling Cap",
+    "unitAmount": 1000,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Training"
+  }
+}
