@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 }
 
 export default async function ShopPage() {
-  // Stock temporarily cleared — repopulate data/products.ts and remove this override
-  const inStock: Awaited<ReturnType<typeof getProducts>> = []
+  const products = await getProducts()
+  const inStock = products.filter(p => p.availableForSale)
 
   return (
     <PageWrapper noPadding>

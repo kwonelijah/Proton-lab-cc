@@ -9,6 +9,7 @@ export interface CartItem {
   size: string
   price: string // GBP amount string e.g. "80.00"
   quantity: number
+  maxQuantity?: number // units on hand; undefined = no cap (custom team kits)
   image?: string
 }
 
@@ -17,7 +18,7 @@ interface CartStore {
   isOpen: boolean
   openCart: () => void
   closeCart: () => void
-  addItem: (item: Omit<CartItem, 'id' | 'quantity'>) => void
+  addItem: (item: Omit<CartItem, 'id' | 'quantity'>) => { ok: boolean; reason?: 'out-of-stock' | 'max-reached' }
   removeItem: (id: string) => void
   clearCart: () => void
   totalItems: () => number
@@ -32,8 +33,13 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   addItem: (item) => {
     const id = `${item.clubHandle}-${item.productHandle}-${item.size}`
+    const cap = item.maxQuantity
+    if (cap !== undefined && cap <= 0) return { ok: false, reason: 'out-of-stock' }
+    const existing = get().items.find(i => i.id === id)
+    if (existing && cap !== undefined && existing.quantity >= cap) {
+      return { ok: false, reason: 'max-reached' }
+    }
     set(state => {
-      const existing = state.items.find(i => i.id === id)
       if (existing) {
         return {
           items: state.items.map(i =>
@@ -43,6 +49,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       }
       return { items: [...state.items, { ...item, id, quantity: 1 }] }
     })
+    return { ok: true }
   },
 
   removeItem: (id) => set(state => ({

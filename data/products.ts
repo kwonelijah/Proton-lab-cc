@@ -9,13 +9,20 @@ const img = (seed: string, w = 800, h = 1000) => ({
   height: h,
 })
 
-const sizes = (id: string, price: string) => ({
+const sizes = (id: string, price: string, extra: string[] = []) => ({
   nodes: [
     { id: `${id}_xs`, title: 'XS', availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'XS' }] },
     { id: `${id}_s`,  title: 'S',  availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S' }] },
     { id: `${id}_m`,  title: 'M',  availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'M' }] },
     { id: `${id}_l`,  title: 'L',  availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'L' }] },
     { id: `${id}_xl`, title: 'XL', availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'XL' }] },
+    ...extra.map(label => ({
+      id: `${id}_${label.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+      title: label,
+      availableForSale: true,
+      price: { amount: price, currencyCode: 'GBP' },
+      selectedOptions: [{ name: 'Size', value: label }],
+    })),
   ],
 })
 
@@ -188,7 +195,7 @@ export const products: Product[] = [
       { id: 'img-summer-gilet-1', url: '/images/products/summer-gilet/summer-gilet1.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
       { id: 'img-summer-gilet-2', url: '/images/products/summer-gilet/summer-gilet2.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
     ]},
-    variants: sizes('007', '55.00'),
+    variants: sizes('007', '55.00', ['2XL']),
     priceRange: { minVariantPrice: { amount: '55.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['gilet', 'summer', 'outerwear', 'packable'], availableForSale: true,
   },
@@ -496,7 +503,7 @@ export const products: Product[] = [
       keywords: 'club cycling jersey, endurance cycling jersey, long ride jersey, relaxed fit cycling jersey, custom club kit, weekend cycling jersey, premium cycling apparel UK',
     },
     featuredImage: img('ss-club'), images: { nodes: [img('ss-club'), img('ss-club-2')] },
-    variants: sizes('020', '50.00'),
+    variants: sizes('020', '50.00', ['2XL']),
     priceRange: { minVariantPrice: { amount: '50.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['jersey', 'training', 'club', 'short-sleeve'], availableForSale: true,
   },

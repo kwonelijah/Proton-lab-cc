@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "sync-stock": "node scripts/sync-stock.mjs",
+    "predev": "node scripts/sync-stock.mjs",
+    "prebuild": "node scripts/sync-stock.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

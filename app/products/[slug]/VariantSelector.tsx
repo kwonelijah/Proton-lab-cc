@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { ProductVariant } from '@/types/product'
 import Button from '@/components/ui/Button'
 import { useCartStore } from '@/stores/cart'
@@ -16,22 +16,44 @@ export default function VariantSelector({ variants, productTitle, productHandle,
   const [selectedId, setSelectedId] = useState<string | null>(
     variants.find(v => v.availableForSale)?.id ?? null
   )
-  const { addItem, openCart } = useCartStore()
+  const [note, setNote] = useState<string | null>(null)
+  const { addItem, openCart, items } = useCartStore()
 
   const selected = variants.find(v => v.id === selectedId)
+
+  const alreadyInCart = useMemo(() => {
+    if (!selected) return 0
+    const sizeLabel = selected.selectedOptions.find(o => o.name === 'Size')?.value ?? selected.title
+    const id = `protonlab-${productHandle}-${sizeLabel}`
+    return items.find(i => i.id === id)?.quantity ?? 0
+  }, [items, selected, productHandle])
+
+  const remaining = selected?.quantity !== undefined
+    ? Math.max(0, selected.quantity - alreadyInCart)
+    : undefined
 
   function handleAddToCart() {
     if (!selected?.availableForSale) return
     const sizeLabel = selected.selectedOptions.find(o => o.name === 'Size')?.value ?? selected.title
-    addItem({
+    const result = addItem({
       clubHandle: 'protonlab',
       clubName: 'Proton Lab',
       productHandle,
       productName: productTitle,
       size: sizeLabel,
       price: selected.price.amount,
+      maxQuantity: selected.quantity,
       image: productImage,
     })
+    if (!result.ok) {
+      setNote(
+        result.reason === 'out-of-stock'
+          ? 'This size is out of stock.'
+          : `Only ${selected.quantity} available — already in your cart.`
+      )
+      return
+    }
+    setNote(null)
     openCart()
   }
 
@@ -72,19 +94,29 @@ export default function VariantSelector({ variants, productTitle, productHandle,
             )
           })}
         </div>
+        {selected?.availableForSale && remaining !== undefined && remaining > 0 && remaining <= 3 && (
+          <p className="mt-3 text-[11px] uppercase tracking-widest text-proton-grey">
+            Only {remaining} left
+          </p>
+        )}
       </div>
 
       {/* Add to cart */}
-      <div className="pt-2">
+      <div className="pt-2 space-y-2">
         <Button
           variant="primary"
           size="lg"
-          disabled={!selected?.availableForSale}
+          disabled={!selected?.availableForSale || remaining === 0}
           className="w-full justify-center"
           onClick={handleAddToCart}
         >
-          {!selected || !selected.availableForSale ? 'Sold Out' : 'Add to Cart'}
+          {!selected || !selected.availableForSale
+            ? 'Sold Out'
+            : remaining === 0
+            ? 'Max in cart'
+            : 'Add to Cart'}
         </Button>
+        {note && <p role="alert" className="text-[11px] text-red-600">{note}</p>}
       </div>
     </div>
   )

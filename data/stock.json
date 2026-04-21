@@ -1,0 +1,189 @@
+{
+  "ss-race-jersey": {
+    "XS": 0,
+    "S": 1,
+    "M": 2,
+    "L": 0,
+    "XL": 0
+  },
+  "ss-zipperless-jersey": {
+    "XS": 0,
+    "S": 0,
+    "M": 1,
+    "L": 1,
+    "XL": 0
+  },
+  "ls-fleece-jersey": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "race-bib-shorts": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "training-bib-tights": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "winter-jacket": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "summer-gilet": {
+    "XS": 0,
+    "S": 2,
+    "M": 2,
+    "L": 1,
+    "XL": 0,
+    "2XL": 1
+  },
+  "winter-gilet": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "ss-roadsuit": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "ss-aerosuit": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "ls-speedsuit": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "ss-trisuit": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "sleeveless-trisuit": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "aero-socks": {
+    "S/M": 0,
+    "L/XL": 0
+  },
+  "aero-mitts": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "aero-arm-warmers": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "knee-warmers": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "leg-warmers": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "ss-training-jersey": {
+    "XS": 0,
+    "S": 1,
+    "M": 2,
+    "L": 2,
+    "XL": 1
+  },
+  "ss-club-jersey": {
+    "XS": 0,
+    "S": 3,
+    "M": 3,
+    "L": 2,
+    "XL": 2,
+    "2XL": 2
+  },
+  "ls-training-jersey": {
+    "XS": 0,
+    "S": 1,
+    "M": 0,
+    "L": 1,
+    "XL": 0
+  },
+  "mtb-jersey": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "training-bib-shorts": {
+    "XS": 0,
+    "S": 1,
+    "M": 0,
+    "L": 0,
+    "XL": 1
+  },
+  "club-bib-shorts": {
+    "XS": 0,
+    "S": 0,
+    "M": 1,
+    "L": 0,
+    "XL": 0
+  },
+  "training-mitts": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "arm-warmers": {
+    "XS": 0,
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "buff": {
+    "One Size": 0
+  },
+  "cycling-cap": {
+    "One Size": 0
+  }
+}

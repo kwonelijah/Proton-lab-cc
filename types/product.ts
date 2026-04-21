@@ -14,6 +14,9 @@ export interface ProductVariant {
   id: string
   title: string
   availableForSale: boolean
+  // Units on hand — populated by lib/api.ts from inventory/stock.csv.
+  // Absent on the Shopify-shaped source; added during merge.
+  quantity?: number
   price: {
     // Shopify returns prices as strings e.g. "149.00"
     amount: string
