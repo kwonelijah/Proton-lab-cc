@@ -33,8 +33,8 @@ export default function TeamStorePage({ params }: PageProps) {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button href="/collections" variant="primary" size="lg">
-            Browse Collections
+          <Button href="/shop" variant="primary" size="lg">
+            Browse Shop
           </Button>
           <Button href="/contact" variant="secondary" size="lg">
             Team Enquiry

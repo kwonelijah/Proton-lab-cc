@@ -28,7 +28,7 @@ export default function Navbar() {
   }, [pathname])
 
   const isCustom = pathname.startsWith('/custom')
-  const isShop = pathname.startsWith('/shop') || pathname.startsWith('/collections') || pathname.startsWith('/products')
+  const isShop = pathname.startsWith('/shop') || pathname.startsWith('/products')
   const isClubShop = pathname.startsWith('/custom/club')
 
   return (

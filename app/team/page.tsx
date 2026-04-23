@@ -112,7 +112,7 @@ export default function TeamPage() {
       <CTABanner
         headline="No compromise. No colour."
         ctaText="Shop"
-        ctaHref="/collections"
+        ctaHref="/shop"
         inverted
       />
     </PageWrapper>

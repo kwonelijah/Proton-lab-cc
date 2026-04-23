@@ -39,20 +39,9 @@ export default async function ProductPage({ params }: PageProps) {
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-16">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-proton-grey mb-8">
-          <Link href="/collections" className="hover:text-proton-black transition-colors duration-200">
-            Collections
+          <Link href="/shop" className="hover:text-proton-black transition-colors duration-200">
+            Shop
           </Link>
-          {collectionRef && (
-            <>
-              <span>/</span>
-              <Link
-                href={`/collections/${collectionRef.handle}`}
-                className="hover:text-proton-black transition-colors duration-200"
-              >
-                {collectionRef.title}
-              </Link>
-            </>
-          )}
           <span>/</span>
           <span className="text-proton-black">{product.title}</span>
         </nav>
