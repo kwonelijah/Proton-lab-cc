@@ -12,6 +12,8 @@ const kitGallery = [
   { src: '/images/custom/gallery5.jpg', alt: 'Custom kit example 5' },
   { src: '/images/custom/gallery6.jpg', alt: 'Custom kit example 6' },
   { src: '/images/custom/gallery7.jpg', alt: 'Custom kit example 7' },
+  { src: '/images/custom/gallery8.jpg', alt: 'Custom kit example 8' },
+  { src: '/images/custom/gallery9.jpg', alt: 'Custom kit example 9' },
 ]
 
 export const metadata: Metadata = {
