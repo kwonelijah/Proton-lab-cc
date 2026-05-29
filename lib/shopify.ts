@@ -17,7 +17,6 @@
 /*
 import { createStorefrontApiClient } from '@shopify/storefront-api-client'
 import type { Product } from '@/types/product'
-import type { Collection } from '@/types/collection'
 import type { JournalPost } from '@/types/journal'
 
 const client = createStorefrontApiClient({
@@ -79,38 +78,6 @@ export async function getProductByHandle(handle: string): Promise<Product | null
     ${PRODUCT_FRAGMENT}
   `, { variables: { handle } })
   return data.product ?? null
-}
-
-// ─── COLLECTIONS ─────────────────────────────────────────────────────────────
-
-export async function getCollections(): Promise<Collection[]> {
-  const { data } = await client.request(`
-    query GetCollections {
-      collections(first: 20) {
-        nodes {
-          id handle title description descriptionHtml
-          image { url altText }
-          products(first: 12) { nodes { ...ProductFields } }
-        }
-      }
-    }
-    ${PRODUCT_FRAGMENT}
-  `)
-  return data.collections.nodes
-}
-
-export async function getCollectionByHandle(handle: string): Promise<Collection | null> {
-  const { data } = await client.request(`
-    query GetCollection($handle: String!) {
-      collection(handle: $handle) {
-        id handle title description descriptionHtml
-        image { url altText }
-        products(first: 24) { nodes { ...ProductFields } }
-      }
-    }
-    ${PRODUCT_FRAGMENT}
-  `, { variables: { handle } })
-  return data.collection ?? null
 }
 
 // ─── JOURNAL (Shopify Blog) ───────────────────────────────────────────────────

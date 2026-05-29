@@ -13,12 +13,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { Product } from '@/types/product'
-import type { Collection } from '@/types/collection'
 import type { JournalPost } from '@/types/journal'
 
 // ─── MOCK DATA MODE (active) ─────────────────────────────────────────────────
 import { products as mockProducts } from '@/data/products'
-import { collections as mockCollections } from '@/data/collections'
 import { journalPosts as mockJournalPosts } from '@/data/journal'
 import stockJson from '@/data/stock.json'
 
@@ -26,8 +24,6 @@ import stockJson from '@/data/stock.json'
 // import {
 //   getProducts as shopifyGetProducts,
 //   getProductByHandle as shopifyGetProductByHandle,
-//   getCollections as shopifyGetCollections,
-//   getCollectionByHandle as shopifyGetCollectionByHandle,
 //   getJournalPosts as shopifyGetJournalPosts,
 //   getJournalPostByHandle as shopifyGetJournalPostByHandle,
 // } from './shopify'
@@ -55,13 +51,6 @@ function withStock(product: Product): Product {
   }
 }
 
-function mergeCollection(col: Collection): Collection {
-  return {
-    ...col,
-    products: { nodes: col.products.nodes.map(withStock) },
-  }
-}
-
 // ─── EXPORTED FUNCTIONS ──────────────────────────────────────────────────────
 
 export async function getProducts(): Promise<Product[]> {
@@ -73,17 +62,6 @@ export async function getProductByHandle(handle: string): Promise<Product | null
   const p = mockProducts.find(p => p.handle === handle)
   return p ? withStock(p) : null
   // return shopifyGetProductByHandle(handle)
-}
-
-export async function getCollections(): Promise<Collection[]> {
-  return mockCollections.map(mergeCollection)
-  // return shopifyGetCollections()
-}
-
-export async function getCollectionByHandle(handle: string): Promise<Collection | null> {
-  const c = mockCollections.find(c => c.handle === handle)
-  return c ? mergeCollection(c) : null
-  // return shopifyGetCollectionByHandle(handle)
 }
 
 export async function getJournalPosts(): Promise<JournalPost[]> {
