@@ -4,6 +4,7 @@
 // Phase 2: uncomment the sheets + agent lines once Google is set up
 
 import Stripe from 'stripe';
+import { sendOrderConfirmation, sendInternalNotification } from '../lib/email.js';
 // import { appendOrder } from '../lib/sheets.js';     // Phase 2
 // import { processNewOrders } from '../lib/agent.js'; // Phase 2
 
@@ -58,8 +59,12 @@ export default async function handler(req, res) {
       date: new Date().toISOString(),
     };
 
-    // Phase 1: just log the order — check Vercel logs to confirm it's working
     console.log('✓ Payment received:', JSON.stringify(order, null, 2));
+
+    await Promise.all([
+      sendOrderConfirmation(order),
+      sendInternalNotification(order),
+    ]);
 
     // Phase 2: uncomment these once Google Sheets is configured
     // await appendOrder(order);
