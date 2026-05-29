@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import PageWrapper from '@/components/layout/PageWrapper'
 import CTABanner from '@/components/sections/CTABanner'
 import Button from '@/components/ui/Button'
@@ -88,15 +89,14 @@ export default function CustomPage() {
     <PageWrapper noPadding>
       {/* Hero */}
       <div className="relative min-h-screen bg-proton-black overflow-hidden flex items-end">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
-        >
-          <source src="https://zpwxsatldyroswl1.public.blob.vercel-storage.com/PLCustomHomepageClip%20copy.mp4" type="video/mp4" />
-        </video>
+        <Image
+          src="/images/hero/Custom.png"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-60"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-proton-black/80 via-proton-black/20 to-transparent" />
         <div className="relative z-10 max-w-7xl w-full mx-auto px-6 md:px-12 pb-12 md:pb-16">
           <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-3">

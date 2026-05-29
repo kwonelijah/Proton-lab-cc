@@ -1,10 +1,8 @@
-'use client'
-
-import { useEffect, useRef } from 'react'
+import Image from 'next/image'
 import Button from '@/components/ui/Button'
 
 interface VideoHeroProps {
-  videoSrc: string
+  imageSrc: string
   headline: string
   subheadline?: string
   ctaText: string
@@ -15,7 +13,7 @@ interface VideoHeroProps {
 }
 
 export default function VideoHero({
-  videoSrc,
+  imageSrc,
   headline,
   subheadline,
   ctaText,
@@ -24,31 +22,17 @@ export default function VideoHero({
   secondaryCtaHref,
   eyebrow,
 }: VideoHeroProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    video.muted = true
-    video.play().catch((e) => {
-      if (process.env.NODE_ENV !== 'production') console.warn('Video autoplay blocked:', e)
-    })
-  }, [])
-
   return (
     <section className="relative min-h-screen flex items-end overflow-hidden bg-proton-black">
-      {/* Background video */}
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        className="absolute inset-0 w-full h-full object-cover opacity-70"
-      >
-        <source src={videoSrc} type="video/mp4" />
-      </video>
+      {/* Background image */}
+      <Image
+        src={imageSrc}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover opacity-70"
+      />
 
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-proton-black/80 via-proton-black/20 to-transparent" />

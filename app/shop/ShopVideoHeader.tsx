@@ -1,32 +1,16 @@
-'use client'
-
-import { useEffect, useRef } from 'react'
+import Image from 'next/image'
 
 export default function ShopVideoHeader() {
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    video.muted = true
-    video.play().catch((e) => {
-      if (process.env.NODE_ENV !== 'production') console.warn('Shop video autoplay blocked:', e)
-    })
-  }, [])
-
   return (
     <div className="relative min-h-screen bg-proton-black overflow-hidden flex items-end">
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        className="absolute inset-0 w-full h-full object-cover opacity-80"
-      >
-        <source src="https://zpwxsatldyroswl1.public.blob.vercel-storage.com/PLShopHomepageClip.mp4" type="video/mp4" />
-      </video>
+      <Image
+        src="/images/hero/Shop.png"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover opacity-80"
+      />
       <div className="absolute inset-0 bg-proton-black/30" />
       <div className="absolute inset-0 flex items-end">
         <div className="max-w-7xl w-full mx-auto px-6 md:px-12 pb-10 md:pb-14">
