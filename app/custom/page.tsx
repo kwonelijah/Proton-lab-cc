@@ -80,7 +80,7 @@ const categories = [
 const process = [
   { step: '01', title: 'Enquire', description: 'Tell us about your club, team size, and what you need. We\'ll come back to you within 48 hours.' },
   { step: '02', title: 'Design', description: 'Our team works with you to develop a kit identity. We handle the design process from brief to approval.' },
-  { step: '03', title: 'Order', description: 'Minimum order quantity of 5 pieces. Accessories require MOQ 10+. Individual items available at 50% surcharge.' },
+  { step: '03', title: 'Order', description: 'Minimum Order Quantity of 5 Pieces. Individual items available at 25% Surcharge.' },
   { step: '04', title: 'Deliver', description: 'Production and delivery to your door. Typical lead time 4–6 weeks from design approval.' },
 ]
 
