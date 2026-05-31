@@ -6,8 +6,8 @@ ss-race-jersey,L,0
 ss-race-jersey,XL,0
 ss-zipperless-jersey,XS,0
 ss-zipperless-jersey,S,0
-ss-zipperless-jersey,M,1
-ss-zipperless-jersey,L,1
+ss-zipperless-jersey,M,0
+ss-zipperless-jersey,L,0
 ss-zipperless-jersey,XL,0
 ls-fleece-jersey,XS,0
 ls-fleece-jersey,S,0
@@ -93,11 +93,11 @@ ss-training-jersey,M,2
 ss-training-jersey,L,1
 ss-training-jersey,XL,1
 ss-club-jersey,XS,0
-ss-club-jersey,S,3
-ss-club-jersey,M,3
-ss-club-jersey,L,2
-ss-club-jersey,XL,2
-ss-club-jersey,2XL,2
+ss-club-jersey,S,0
+ss-club-jersey,M,0
+ss-club-jersey,L,0
+ss-club-jersey,XL,0
+ss-club-jersey,2XL,0
 ls-training-jersey,XS,0
 ls-training-jersey,S,1
 ls-training-jersey,M,0
@@ -115,7 +115,7 @@ training-bib-shorts,L,0
 training-bib-shorts,XL,1
 club-bib-shorts,XS,0
 club-bib-shorts,S,0
-club-bib-shorts,M,1
+club-bib-shorts,M,0
 club-bib-shorts,L,0
 club-bib-shorts,XL,0
 training-mitts,XS,0

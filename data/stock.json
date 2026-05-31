@@ -9,8 +9,8 @@
   "ss-zipperless-jersey": {
     "XS": 0,
     "S": 0,
-    "M": 1,
-    "L": 1,
+    "M": 0,
+    "L": 0,
     "XL": 0
   },
   "ls-fleece-jersey": {
@@ -132,11 +132,11 @@
   },
   "ss-club-jersey": {
     "XS": 0,
-    "S": 3,
-    "M": 3,
-    "L": 2,
-    "XL": 2,
-    "2XL": 2
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0,
+    "2XL": 0
   },
   "ls-training-jersey": {
     "XS": 0,
@@ -162,7 +162,7 @@
   "club-bib-shorts": {
     "XS": 0,
     "S": 0,
-    "M": 1,
+    "M": 0,
     "L": 0,
     "XL": 0
   },
