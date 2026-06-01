@@ -52,6 +52,8 @@ export const products: Product[] = [
     featuredImage: { id: 'img-ss-race-jersey-1', url: '/images/products/ss-race-jersey/ss-race-jersey1.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
     images: { nodes: [
       { id: 'img-ss-race-jersey-1', url: '/images/products/ss-race-jersey/ss-race-jersey1.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
+      { id: 'img-ss-race-jersey-2', url: '/images/products/ss-race-jersey/ss-race-jersey2.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
+      { id: 'img-ss-race-jersey-3', url: '/images/products/ss-race-jersey/ss-race-jersey3.jpg', altText: 'SS Race Jersey', width: 800, height: 1000 },
     ]},
     variants: sizes('001', '80.00'),
     priceRange: { minVariantPrice: { amount: '80.00', currencyCode: 'GBP' } },
@@ -194,6 +196,8 @@ export const products: Product[] = [
     images: { nodes: [
       { id: 'img-summer-gilet-1', url: '/images/products/summer-gilet/summer-gilet1.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
       { id: 'img-summer-gilet-2', url: '/images/products/summer-gilet/summer-gilet2.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
+      { id: 'img-summer-gilet-3', url: '/images/products/summer-gilet/summer-gilet3.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
+      { id: 'img-summer-gilet-4', url: '/images/products/summer-gilet/summer-gilet4.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
     ]},
     variants: sizes('007', '55.00', ['2XL']),
     priceRange: { minVariantPrice: { amount: '55.00', currencyCode: 'GBP' } },
@@ -502,7 +506,10 @@ export const products: Product[] = [
       description: 'Built for long days in the saddle. The Proton Lab Club Jersey delivers comfort and performance for every endurance ride.',
       keywords: 'club cycling jersey, endurance cycling jersey, long ride jersey, relaxed fit cycling jersey, custom club kit, weekend cycling jersey, premium cycling apparel UK',
     },
-    featuredImage: img('ss-club'), images: { nodes: [img('ss-club'), img('ss-club-2')] },
+    featuredImage: { id: 'img-ss-club-jersey-1', url: '/images/products/ss-club-jersey/ss-club-jersey1.jpg', altText: 'SS Club Jersey', width: 800, height: 1000 },
+    images: { nodes: [
+      { id: 'img-ss-club-jersey-1', url: '/images/products/ss-club-jersey/ss-club-jersey1.jpg', altText: 'SS Club Jersey', width: 800, height: 1000 },
+    ]},
     variants: sizes('020', '50.00', ['2XL']),
     priceRange: { minVariantPrice: { amount: '50.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['jersey', 'training', 'club', 'short-sleeve'], availableForSale: true,
