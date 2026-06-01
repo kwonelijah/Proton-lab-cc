@@ -4,7 +4,7 @@ export default function ShopVideoHeader() {
   return (
     <div className="relative min-h-screen bg-proton-black overflow-hidden flex items-end">
       <Image
-        src="/images/hero/Shop.png"
+        src="/images/hero/Shop.jpg"
         alt=""
         fill
         priority

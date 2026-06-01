@@ -90,7 +90,7 @@ export default function CustomPage() {
       {/* Hero */}
       <div className="relative min-h-screen bg-proton-black overflow-hidden flex items-end">
         <Image
-          src="/images/hero/Custom.png"
+          src="/images/hero/Custom.jpg"
           alt=""
           fill
           priority
