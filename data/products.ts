@@ -198,6 +198,7 @@ export const products: Product[] = [
       { id: 'img-summer-gilet-2', url: '/images/products/summer-gilet/summer-gilet2.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
       { id: 'img-summer-gilet-3', url: '/images/products/summer-gilet/summer-gilet3.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
       { id: 'img-summer-gilet-4', url: '/images/products/summer-gilet/summer-gilet4.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
+      { id: 'img-summer-gilet-5', url: '/images/products/summer-gilet/summer-gilet5.jpg', altText: 'Summer Gilet', width: 800, height: 1000 },
     ]},
     variants: sizes('007', '55.00', ['2XL']),
     priceRange: { minVariantPrice: { amount: '55.00', currencyCode: 'GBP' } },
@@ -487,6 +488,8 @@ export const products: Product[] = [
     images: { nodes: [
       { id: 'img-ss-training-jersey-1', url: '/images/products/ss-training-jersey/ss-training-jersey1.jpg', altText: 'SS Training Jersey', width: 800, height: 1000 },
       { id: 'img-ss-training-jersey-2', url: '/images/products/ss-training-jersey/ss-training-jersey2.jpg', altText: 'SS Training Jersey', width: 800, height: 1000 },
+      { id: 'img-ss-training-jersey-3', url: '/images/products/ss-training-jersey/ss-training-jersey3.jpg', altText: 'SS Training Jersey', width: 800, height: 1000 },
+      { id: 'img-ss-training-jersey-4', url: '/images/products/ss-training-jersey/ss-training-jersey4.jpg', altText: 'SS Training Jersey', width: 800, height: 1000 },
     ]},
     variants: sizes('019', '65.00'),
     priceRange: { minVariantPrice: { amount: '65.00', currencyCode: 'GBP' } },
