@@ -15,8 +15,11 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Main image */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-proton-light">
+      {/* Main image — frame takes the photo's own aspect ratio (no letterbox) */}
+      <div
+        className="relative overflow-hidden bg-proton-light"
+        style={{ aspectRatio: `${active.width} / ${active.height}` }}
+      >
         <Image
           src={active.url}
           alt={active.altText ?? productTitle}
@@ -44,7 +47,7 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                 alt={img.altText ?? `${productTitle} image ${i + 1}`}
                 fill
                 sizes="64px"
-                className="object-contain"
+                className="object-cover"
               />
             </button>
           ))}

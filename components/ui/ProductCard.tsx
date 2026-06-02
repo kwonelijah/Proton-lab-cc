@@ -18,8 +18,11 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       className="group block"
       aria-label={`${product.title}${!product.availableForSale ? ' — Sold Out' : ''}`}
     >
-      {/* Image container */}
-      <div className="relative overflow-hidden aspect-[4/5] bg-proton-light">
+      {/* Image container — frame takes the photo's own aspect ratio (no letterbox) */}
+      <div
+        className="relative overflow-hidden bg-proton-light"
+        style={{ aspectRatio: `${product.featuredImage.width} / ${product.featuredImage.height}` }}
+      >
         <Image
           src={product.featuredImage.url}
           alt={product.featuredImage.altText ?? product.title}
