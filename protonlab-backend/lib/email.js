@@ -8,8 +8,8 @@ import { Resend } from 'resend';
 // before any error handling runs — this surfaces it as a handled error instead.
 let _resend = null;
 function getResend() {
-  const key = process.env.Resend_Backend_Key;
-  if (!key) throw new Error('RESEND_KEY_MISSING: Resend_Backend_Key is not set in the environment');
+  const key = process.env.proton_resend_key || process.env.Resend_Backend_Key;
+  if (!key) throw new Error('RESEND_KEY_MISSING: proton_resend_key is not set in the environment');
   if (!_resend) _resend = new Resend(key);
   return _resend;
 }

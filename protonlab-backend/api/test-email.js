@@ -41,7 +41,7 @@ export default async function handler(req, res) {
   ]);
 
   res.status(200).json({
-    resendKeyPresent: Boolean(process.env.Resend_Backend_Key),
+    resendKeyPresent: Boolean(process.env.proton_resend_key || process.env.Resend_Backend_Key),
     internalTo: 'info@protonlab.cc',
     internal,
     customerTo: order.email,
