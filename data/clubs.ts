@@ -19,7 +19,7 @@ export const clubs: Club[] = [
     handle: 'edinburgh-bike-fitting-club',
     name: 'Edinburgh Bike Fitting Club',
     password: 'EBFSHOP',
-    tagline: 'Your club kit — order directly below.',
+    tagline: 'Your club kit — order directly below. Order Window closes Midnight Sunday 14th June.',
     products: [
       { name: 'SS Race Jersey', handle: 'ss-race-jersey', price: '£80.00',
         image: '/images/clubs/edinburgh-bike-fitting-club/ss-race-jersey-front.jpg?v=2',
