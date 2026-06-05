@@ -12,21 +12,26 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const collectionTitle = product.collections?.nodes[0]?.title
   const { amount, currencyCode } = product.priceRange.minVariantPrice
 
+  // Fixed 2:3 frame keeps every card the same height. Portrait photos fill it
+  // edge-to-edge (cover); landscape photos (e.g. accessory flat-lays) would crop
+  // badly, so they sit whole on the brand-light panel (contain) instead.
+  const isLandscape = product.featuredImage.width > product.featuredImage.height
+  const fit = isLandscape ? 'object-contain' : 'object-cover'
+
   return (
     <Link
       href={`/products/${product.handle}`}
       className="group block"
       aria-label={`${product.title}${!product.availableForSale ? ' — Sold Out' : ''}`}
     >
-      {/* Image container — fixed 2:3 frame so every card is the same height
-          (keeps titles/prices aligned); object-cover fills it with no blank space */}
+      {/* Image container — fixed 2:3 frame so every card is the same height */}
       <div className="relative overflow-hidden aspect-[2/3] bg-proton-light">
         <Image
           src={product.featuredImage.url}
           alt={product.featuredImage.altText ?? product.title}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover transition-opacity duration-300 group-hover:opacity-90"
+          className={`${fit} transition-opacity duration-300 group-hover:opacity-90`}
           priority={priority}
         />
         {/* Hover overlay */}
