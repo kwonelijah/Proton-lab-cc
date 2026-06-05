@@ -49,7 +49,7 @@ export default function ClubShopPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
             {club.products.map((product, i) => (
               <Link key={product.handle} href={`/custom/club/${handle}/${product.handle}`} className="group">
-                <div className="relative aspect-[4/5] bg-proton-light overflow-hidden mb-3">
+                <div className="relative aspect-[2/3] bg-proton-light overflow-hidden mb-3">
                   <Image
                     src={product.image}
                     alt={product.name}

@@ -47,8 +47,8 @@ export default function ClubProductPage() {
     id: 'club-featured',
     url: clubProduct.image,
     altText: `${clubProduct.name} — club design`,
-    width: 800,
-    height: 1000,
+    width: 1200,
+    height: 1800,
   }
   const customImages: ProductImage[] = (clubProduct.customImages ?? [])
     .filter(url => url !== clubProduct.image)
@@ -56,11 +56,11 @@ export default function ClubProductPage() {
       id: `club-img-${i}`,
       url,
       altText: `${clubProduct.name} — custom design`,
-      width: 800,
-      height: 1000,
+      width: 1200,
+      height: 1800,
     }))
   const generalImages: ProductImage[] = (product?.images.nodes ?? [])
-    .filter(img => img.url !== clubProduct.image)
+    .filter(img => img.url !== clubProduct.image && !img.url.includes('blank.png'))
   const allImages = [featuredImage, ...customImages, ...generalImages]
 
   // All sizes orderable for club kit

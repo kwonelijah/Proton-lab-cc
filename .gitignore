@@ -36,5 +36,8 @@ next-env.d.ts
 # Large media files
 public/videos/
 
+# Design source files (kept locally, not deployed)
+*.psd
+
 # Local-only notes / one-off prompt docs
 STRIPE_MIGRATION_PROMPT.md
