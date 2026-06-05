@@ -18,17 +18,15 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       className="group block"
       aria-label={`${product.title}${!product.availableForSale ? ' — Sold Out' : ''}`}
     >
-      {/* Image container — frame takes the photo's own aspect ratio (no letterbox) */}
-      <div
-        className="relative overflow-hidden bg-proton-light"
-        style={{ aspectRatio: `${product.featuredImage.width} / ${product.featuredImage.height}` }}
-      >
+      {/* Image container — fixed 2:3 frame so every card is the same height
+          (keeps titles/prices aligned); object-cover fills it with no blank space */}
+      <div className="relative overflow-hidden aspect-[2/3] bg-proton-light">
         <Image
           src={product.featuredImage.url}
           alt={product.featuredImage.altText ?? product.title}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-contain transition-opacity duration-300 group-hover:opacity-90"
+          className="object-cover transition-opacity duration-300 group-hover:opacity-90"
           priority={priority}
         />
         {/* Hover overlay */}
