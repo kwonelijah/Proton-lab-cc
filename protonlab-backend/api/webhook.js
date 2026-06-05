@@ -10,6 +10,16 @@ import { sendOrderConfirmation, sendInternalNotification } from '../lib/email.js
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// Deterministic 5-digit order number derived from the Stripe payment id, so the
+// same order always yields the same reference without needing a stored counter.
+function orderNumber(id) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) {
+    h = (h * 31 + id.charCodeAt(i)) % 100000;
+  }
+  return String(h).padStart(5, '0');
+}
+
 // Vercel requires raw body for Stripe signature verification
 export const config = {
   api: {
@@ -53,14 +63,33 @@ export default async function handler(req, res) {
     // onto the PaymentIntent's `shipping` field (name + address + phone).
     const shipping = payment.shipping || null;
 
+    // Line items with sizes, captured at checkout: [{ name, handle, size, qty }]
+    let lineItems = [];
+    try {
+      lineItems = JSON.parse(payment.metadata?.items || '[]');
+    } catch {
+      lineItems = [];
+    }
+
+    const club = payment.metadata?.club || 'N/A';
+
+    // Human-friendly order reference: "<Club> #<number>". No DB/counter exists,
+    // so the number is derived deterministically from the Stripe id (stable per
+    // order, not a 1,2,3 sequence). The raw Stripe id is kept for lookup.
+    const number = orderNumber(payment.id);
+    const ref = club && club !== 'N/A' ? `${club} #${number}` : `Order #${number}`;
+
     const order = {
       id: payment.id,
+      ref,
+      number,
       amount: (payment.amount / 100).toFixed(2),
       currency: payment.currency.toUpperCase(),
       email: payment.receipt_email || payment.metadata?.email || 'N/A',
       name: payment.metadata?.name || shipping?.name || 'N/A',
-      club: payment.metadata?.club || 'N/A',
+      club,
       product: payment.metadata?.product || 'N/A',
+      lineItems,
       shipping,
       date: new Date().toISOString(),
     };

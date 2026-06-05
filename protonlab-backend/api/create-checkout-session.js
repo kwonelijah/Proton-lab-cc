@@ -111,7 +111,7 @@ export default async function handler(req, res) {
           club,
           product: resolved.map(i => i.name).join(', '),
           items: JSON.stringify(
-            resolved.map(i => ({ handle: i.handle, size: i.size, qty: i.quantity }))
+            resolved.map(i => ({ name: i.name, handle: i.handle, size: i.size, qty: i.quantity }))
           ),
         },
       },
