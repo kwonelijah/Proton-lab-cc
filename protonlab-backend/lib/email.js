@@ -191,6 +191,12 @@ export async function sendInternalNotification(order) {
           </td>
         </tr>
         <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;color:#666;">Phone</td>
+          <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">
+            <a href="tel:${order.phone}" style="color:#1a1a1a;">${order.phone}</a>
+          </td>
+        </tr>
+        <tr>
           <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;color:#666;vertical-align:top;">Items</td>
           <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;line-height:1.6;">${itemsFmt.html}</td>
         </tr>${shippingRow}
@@ -213,7 +219,7 @@ export async function sendInternalNotification(order) {
       to: 'info@protonlab.cc',
       subject: `New order: ${orderRef} — ${order.name}`,
       html,
-      text: `New order\n\nOrder: ${orderRef}\nClub: ${club}\nCustomer: ${order.name} (${order.email})\nItems:\n${itemsFmt.text}\nDeliver to:\n${shipping ? shipping.text : 'No address collected'}\nTotal: ${total}\nStripe ref: ${order.id}`,
+      text: `New order\n\nOrder: ${orderRef}\nClub: ${club}\nCustomer: ${order.name} (${order.email})\nPhone: ${order.phone}\nItems:\n${itemsFmt.text}\nDeliver to:\n${shipping ? shipping.text : 'No address collected'}\nTotal: ${total}\nStripe ref: ${order.id}`,
     }));
   } catch (e) {
     error = e;

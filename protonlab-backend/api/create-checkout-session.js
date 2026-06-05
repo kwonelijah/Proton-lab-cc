@@ -88,7 +88,20 @@ export default async function handler(req, res) {
       shipping_address_collection: {
         allowed_countries: ['GB', 'IE'],
       },
+      // Phone is required at checkout so we can reach the customer about their order.
       phone_number_collection: { enabled: true },
+
+      // Free shipping for now — shown explicitly as a £0.00 "Free shipping" method
+      // on the hosted page so the customer sees there's no delivery charge.
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: { amount: 0, currency: 'gbp' },
+            display_name: 'Free shipping',
+          },
+        },
+      ],
 
       line_items: resolved.map((item) => ({
         price: item.priceId,
@@ -99,6 +112,9 @@ export default async function handler(req, res) {
       // Price ID, so surface size info via custom_text so the customer sees it
       // on the hosted page. Fulfillment still uses metadata.items (authoritative).
       custom_text: {
+        shipping_address: {
+          message: 'Free shipping on all orders — delivered across the UK & Ireland.',
+        },
         submit: {
           message: 'Sizes: ' + resolved.map(i => `${i.name} — ${i.size}`).join(', '),
         },

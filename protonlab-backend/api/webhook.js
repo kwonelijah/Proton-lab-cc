@@ -87,6 +87,7 @@ export default async function handler(req, res) {
       currency: payment.currency.toUpperCase(),
       email: payment.receipt_email || payment.metadata?.email || 'N/A',
       name: payment.metadata?.name || shipping?.name || 'N/A',
+      phone: shipping?.phone || payment.metadata?.phone || 'N/A',
       club,
       product: payment.metadata?.product || 'N/A',
       lineItems,
