@@ -244,10 +244,10 @@ export const products: Product[] = [
       description: 'Breathable construction, butterfly zip and Elastic Interface® chamois. The Proton Lab Roadsuit is built for long road race efforts without compromise.',
       keywords: 'road cycling skinsuit, breathable skinsuit, race skinsuit, custom skinsuit, road race suit, cycling one piece suit, premium skinsuit UK',
     },
-    featuredImage: { id: 'img-ss-roadsuit-1', url: '/images/products/ss-roadsuit/ss-roadsuit1.jpg?v=2', altText: 'SS Roadsuit', width: 519, height: 860 },
+    featuredImage: { id: 'img-ss-roadsuit-1', url: '/images/products/ss-roadsuit/ss-roadsuit1.jpg?v=3', altText: 'SS Roadsuit', width: 1365, height: 2048 },
     images: { nodes: [
-      { id: 'img-ss-roadsuit-1', url: '/images/products/ss-roadsuit/ss-roadsuit1.jpg?v=2', altText: 'SS Roadsuit', width: 519, height: 860 },
-      { id: 'img-ss-roadsuit-2', url: '/images/products/ss-roadsuit/ss-roadsuit2.jpg?v=2', altText: 'SS Roadsuit', width: 1200, height: 1600 },
+      { id: 'img-ss-roadsuit-1', url: '/images/products/ss-roadsuit/ss-roadsuit1.jpg?v=3', altText: 'SS Roadsuit', width: 1365, height: 2048 },
+      { id: 'img-ss-roadsuit-2', url: '/images/products/ss-roadsuit/ss-roadsuit2.jpg?v=3', altText: 'SS Roadsuit', width: 1365, height: 2048 },
       { id: 'img-ss-roadsuit-3', url: '/images/products/ss-roadsuit/ss-roadsuit3.jpg?v=2', altText: 'SS Roadsuit', width: 2048, height: 1638 },
       { id: 'img-ss-roadsuit-4', url: '/images/products/ss-roadsuit/ss-roadsuit4.jpg?v=2', altText: 'SS Roadsuit', width: 1365, height: 2048 },
     ]},
