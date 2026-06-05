@@ -3,7 +3,16 @@
 
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.Resend_Backend_Key);
+// Construct the Resend client lazily. Doing it at module scope means a missing
+// API key throws on import and crashes the whole function (webhook included)
+// before any error handling runs — this surfaces it as a handled error instead.
+let _resend = null;
+function getResend() {
+  const key = process.env.Resend_Backend_Key;
+  if (!key) throw new Error('RESEND_KEY_MISSING: Resend_Backend_Key is not set in the environment');
+  if (!_resend) _resend = new Resend(key);
+  return _resend;
+}
 
 // Formats a Stripe `shipping` object into address lines. Returns null if no
 // address was collected, so callers can omit the delivery block entirely.
@@ -94,14 +103,19 @@ export async function sendOrderConfirmation(order) {
 
   const text = `Hi ${greeting},\n\nThank you for your order${club ? ` with ${club}` : ''} — we really appreciate it. Your order is confirmed.\n\nOrder: ${order.id}\n${club ? `Club: ${club}\n` : ''}Items: ${products}\nTotal: ${total}\n${shipping ? `Deliver to:\n${shipping.text}\n` : ''}Date: ${new Date(order.date).toLocaleDateString('en-GB')}\n\nQuestions? Reply to this email.\n\n— Proton Lab CC`;
 
-  const { error } = await resend.emails.send({
-    from: 'Proton Lab CC <noreply@protonlab.cc>',
-    to: order.email,
-    replyTo: 'info@protonlab.cc',
-    subject: `Order confirmed${club ? ` — ${club}` : ''} — ${products}`,
-    html,
-    text,
-  });
+  let error;
+  try {
+    ({ error } = await getResend().emails.send({
+      from: 'Proton Lab CC <noreply@protonlab.cc>',
+      to: order.email,
+      replyTo: 'info@protonlab.cc',
+      subject: `Order confirmed${club ? ` — ${club}` : ''} — ${products}`,
+      html,
+      text,
+    }));
+  } catch (e) {
+    error = e;
+  }
 
   if (error) {
     console.error('Failed to send customer confirmation:', error);
@@ -160,13 +174,18 @@ export async function sendInternalNotification(order) {
     </div>
   `;
 
-  const { error } = await resend.emails.send({
-    from: 'Proton Lab CC <noreply@protonlab.cc>',
-    to: 'info@protonlab.cc',
-    subject: `New order: ${order.product} — ${order.name}`,
-    html,
-    text: `New order\n\nID: ${order.id}\nClub: ${club}\nCustomer: ${order.name} (${order.email})\nItems: ${order.product}\nDeliver to:\n${shipping ? shipping.text : 'No address collected'}\nTotal: ${total}`,
-  });
+  let error;
+  try {
+    ({ error } = await getResend().emails.send({
+      from: 'Proton Lab CC <noreply@protonlab.cc>',
+      to: 'info@protonlab.cc',
+      subject: `New order: ${order.product} — ${order.name}`,
+      html,
+      text: `New order\n\nID: ${order.id}\nClub: ${club}\nCustomer: ${order.name} (${order.email})\nItems: ${order.product}\nDeliver to:\n${shipping ? shipping.text : 'No address collected'}\nTotal: ${total}`,
+    }));
+  } catch (e) {
+    error = e;
+  }
 
   if (error) {
     console.error('Failed to send internal notification:', error);
