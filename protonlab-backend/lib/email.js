@@ -27,7 +27,7 @@ function formatShipping(shipping) {
 export async function sendOrderConfirmation(order) {
   if (!order.email || order.email === 'N/A') {
     console.warn('No customer email — skipping confirmation send');
-    return;
+    return { ok: false, skipped: 'no-customer-email' };
   }
 
   const greeting = order.name && order.name !== 'N/A' ? order.name.split(' ')[0] : 'there';
@@ -105,9 +105,10 @@ export async function sendOrderConfirmation(order) {
 
   if (error) {
     console.error('Failed to send customer confirmation:', error);
-  } else {
-    console.log(`Confirmation sent to ${order.email}`);
+    return { ok: false, error: error.message || String(error) };
   }
+  console.log(`Confirmation sent to ${order.email}`);
+  return { ok: true };
 }
 
 // ─── Internal team notification ─────────────────────────────────────────────
@@ -169,7 +170,8 @@ export async function sendInternalNotification(order) {
 
   if (error) {
     console.error('Failed to send internal notification:', error);
-  } else {
-    console.log(`Internal notification sent for order ${order.id}`);
+    return { ok: false, error: error.message || String(error) };
   }
+  console.log(`Internal notification sent for order ${order.id}`);
+  return { ok: true };
 }
