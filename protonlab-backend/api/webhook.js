@@ -49,13 +49,19 @@ export default async function handler(req, res) {
   if (event.type === 'payment_intent.succeeded') {
     const payment = event.data.object;
 
+    // Delivery address — Stripe Checkout copies the collected shipping address
+    // onto the PaymentIntent's `shipping` field (name + address + phone).
+    const shipping = payment.shipping || null;
+
     const order = {
       id: payment.id,
       amount: (payment.amount / 100).toFixed(2),
       currency: payment.currency.toUpperCase(),
       email: payment.receipt_email || payment.metadata?.email || 'N/A',
-      name: payment.metadata?.name || 'N/A',
+      name: payment.metadata?.name || shipping?.name || 'N/A',
+      club: payment.metadata?.club || 'N/A',
       product: payment.metadata?.product || 'N/A',
+      shipping,
       date: new Date().toISOString(),
     };
 

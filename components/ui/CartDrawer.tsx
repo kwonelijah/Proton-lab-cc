@@ -74,6 +74,7 @@ export default function CartDrawer() {
           size: item.size,
           quantity: item.quantity,
           image: item.image,
+          clubName: item.clubName,
         }))
       )
     } catch {

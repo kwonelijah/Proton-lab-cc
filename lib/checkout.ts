@@ -5,6 +5,7 @@ export interface CheckoutItem {
   size: string
   quantity: number
   image?: string
+  clubName?: string
 }
 
 export async function redirectToCheckout(items: CheckoutItem[]): Promise<void> {

@@ -5,6 +5,23 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.Resend_Backend_Key);
 
+// Formats a Stripe `shipping` object into address lines. Returns null if no
+// address was collected, so callers can omit the delivery block entirely.
+function formatShipping(shipping) {
+  if (!shipping || !shipping.address) return null;
+  const a = shipping.address;
+  const lines = [
+    shipping.name,
+    a.line1,
+    a.line2,
+    [a.postal_code, a.city].filter(Boolean).join(' '),
+    a.state,
+    a.country,
+  ].filter(Boolean);
+  if (lines.length === 0) return null;
+  return { html: lines.join('<br>'), text: lines.join('\n') };
+}
+
 // ─── Customer confirmation email ────────────────────────────────────────────
 
 export async function sendOrderConfirmation(order) {
@@ -15,7 +32,21 @@ export async function sendOrderConfirmation(order) {
 
   const greeting = order.name && order.name !== 'N/A' ? order.name.split(' ')[0] : 'there';
   const products = order.product || 'your order';
+  const club = order.club && order.club !== 'N/A' ? order.club : null;
   const total = `£${parseFloat(order.amount).toFixed(2)}`;
+  const shipping = formatShipping(order.shipping);
+
+  const clubRow = club ? `
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#999;">Club</td>
+          <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">${club}</td>
+        </tr>` : '';
+
+  const shippingRow = shipping ? `
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#999;vertical-align:top;">Deliver to</td>
+          <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:13px;line-height:1.6;">${shipping.html}</td>
+        </tr>` : '';
 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a;padding:40px 20px;">
@@ -26,14 +57,15 @@ export async function sendOrderConfirmation(order) {
 
       <p style="font-size:15px;margin:0 0 8px 0;">Hi ${greeting},</p>
       <p style="font-size:14px;color:#444;line-height:1.6;margin:0 0 32px 0;">
-        Your order is confirmed. We'll be in touch once your kit is ready to ship.
+        Thank you for your order${club ? ` with ${club}` : ''} — we really appreciate it.
+        Your order is confirmed and we'll be in touch once your kit is ready to ship.
       </p>
 
       <table style="width:100%;border-collapse:collapse;margin-bottom:32px;">
         <tr>
           <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#999;width:120px;">Order</td>
           <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">${order.id}</td>
-        </tr>
+        </tr>${clubRow}
         <tr>
           <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#999;">Items</td>
           <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">${products}</td>
@@ -41,7 +73,7 @@ export async function sendOrderConfirmation(order) {
         <tr>
           <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#999;">Total</td>
           <td style="padding:12px 0;border-bottom:1px solid #e5e5e5;font-size:13px;font-weight:bold;">${total}</td>
-        </tr>
+        </tr>${shippingRow}
         <tr>
           <td style="padding:12px 0;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#999;">Date</td>
           <td style="padding:12px 0;font-size:13px;">${new Date(order.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
@@ -60,13 +92,13 @@ export async function sendOrderConfirmation(order) {
     </div>
   `;
 
-  const text = `Hi ${greeting},\n\nYour order is confirmed.\n\nOrder: ${order.id}\nItems: ${products}\nTotal: ${total}\nDate: ${new Date(order.date).toLocaleDateString('en-GB')}\n\nQuestions? Reply to this email.\n\n— Proton Lab CC`;
+  const text = `Hi ${greeting},\n\nThank you for your order${club ? ` with ${club}` : ''} — we really appreciate it. Your order is confirmed.\n\nOrder: ${order.id}\n${club ? `Club: ${club}\n` : ''}Items: ${products}\nTotal: ${total}\n${shipping ? `Deliver to:\n${shipping.text}\n` : ''}Date: ${new Date(order.date).toLocaleDateString('en-GB')}\n\nQuestions? Reply to this email.\n\n— Proton Lab CC`;
 
   const { error } = await resend.emails.send({
     from: 'Proton Lab CC <noreply@protonlab.cc>',
     to: order.email,
     replyTo: 'info@protonlab.cc',
-    subject: `Order confirmed — ${products}`,
+    subject: `Order confirmed${club ? ` — ${club}` : ''} — ${products}`,
     html,
     text,
   });
@@ -82,6 +114,20 @@ export async function sendOrderConfirmation(order) {
 
 export async function sendInternalNotification(order) {
   const total = `£${parseFloat(order.amount).toFixed(2)}`;
+  const club = order.club && order.club !== 'N/A' ? order.club : '—';
+  const shipping = formatShipping(order.shipping);
+
+  const clubRow = `
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;color:#666;">Club</td>
+          <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">${club}</td>
+        </tr>`;
+
+  const shippingRow = `
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;color:#666;vertical-align:top;">Deliver to</td>
+          <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;line-height:1.6;">${shipping ? shipping.html : 'No address collected'}</td>
+        </tr>`;
 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a;">
@@ -90,7 +136,7 @@ export async function sendInternalNotification(order) {
         <tr>
           <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;color:#666;width:100px;">Order ID</td>
           <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">${order.id}</td>
-        </tr>
+        </tr>${clubRow}
         <tr>
           <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;color:#666;">Customer</td>
           <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">${order.name}</td>
@@ -104,7 +150,7 @@ export async function sendInternalNotification(order) {
         <tr>
           <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;color:#666;">Items</td>
           <td style="padding:10px 0;border-bottom:1px solid #e5e5e5;font-size:13px;">${order.product}</td>
-        </tr>
+        </tr>${shippingRow}
         <tr>
           <td style="padding:10px 0;font-size:13px;color:#666;">Total</td>
           <td style="padding:10px 0;font-size:13px;font-weight:bold;">${total}</td>
@@ -118,7 +164,7 @@ export async function sendInternalNotification(order) {
     to: 'info@protonlab.cc',
     subject: `New order: ${order.product} — ${order.name}`,
     html,
-    text: `New order\n\nID: ${order.id}\nCustomer: ${order.name} (${order.email})\nItems: ${order.product}\nTotal: ${total}`,
+    text: `New order\n\nID: ${order.id}\nClub: ${club}\nCustomer: ${order.name} (${order.email})\nItems: ${order.product}\nDeliver to:\n${shipping ? shipping.text : 'No address collected'}\nTotal: ${total}`,
   });
 
   if (error) {

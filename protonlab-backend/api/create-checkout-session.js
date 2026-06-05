@@ -68,8 +68,13 @@ export default async function handler(req, res) {
       priceId: entry.priceId,
       name: entry.name,
       image: typeof item.image === 'string' ? item.image : undefined,
+      clubName: typeof item.clubName === 'string' ? item.clubName : undefined,
     });
   }
+
+  // Club name(s) for this order — usually one club per cart. Deduped + joined
+  // so it survives into the order emails via payment_intent metadata.
+  const club = [...new Set(resolved.map(i => i.clubName).filter(Boolean))].join(', ');
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -77,6 +82,13 @@ export default async function handler(req, res) {
       mode: 'payment',
 
       customer_email: customerEmail || undefined,
+
+      // Collect a delivery address on the hosted page. Stripe copies this onto
+      // the resulting PaymentIntent's `shipping` field, which the webhook reads.
+      shipping_address_collection: {
+        allowed_countries: ['GB', 'IE'],
+      },
+      phone_number_collection: { enabled: true },
 
       line_items: resolved.map((item) => ({
         price: item.priceId,
@@ -96,6 +108,7 @@ export default async function handler(req, res) {
         metadata: {
           name: customerName || '',
           email: customerEmail || '',
+          club,
           product: resolved.map(i => i.name).join(', '),
           items: JSON.stringify(
             resolved.map(i => ({ handle: i.handle, size: i.size, qty: i.quantity }))
