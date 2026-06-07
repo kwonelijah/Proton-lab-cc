@@ -63,6 +63,20 @@ export default async function handler(req, res) {
     // onto the PaymentIntent's `shipping` field (name + address + phone).
     const shipping = payment.shipping || null;
 
+    // Customer contact details. The email + phone the customer types on the Stripe
+    // hosted page are stored on the Checkout Session (`customer_details`), NOT on
+    // the PaymentIntent — so look up the session by payment_intent to recover them.
+    let customer = null;
+    try {
+      const sessions = await stripe.checkout.sessions.list({
+        payment_intent: payment.id,
+        limit: 1,
+      });
+      customer = sessions.data[0]?.customer_details || null;
+    } catch (err) {
+      console.error('Could not fetch checkout session for customer details:', err.message);
+    }
+
     // Line items with sizes, captured at checkout: [{ name, handle, size, qty }]
     let lineItems = [];
     try {
@@ -85,9 +99,9 @@ export default async function handler(req, res) {
       number,
       amount: (payment.amount / 100).toFixed(2),
       currency: payment.currency.toUpperCase(),
-      email: payment.receipt_email || payment.metadata?.email || 'N/A',
-      name: payment.metadata?.name || shipping?.name || 'N/A',
-      phone: shipping?.phone || payment.metadata?.phone || 'N/A',
+      email: customer?.email || payment.receipt_email || payment.metadata?.email || 'N/A',
+      name: customer?.name || payment.metadata?.name || shipping?.name || 'N/A',
+      phone: customer?.phone || shipping?.phone || payment.metadata?.phone || 'N/A',
       club,
       product: payment.metadata?.product || 'N/A',
       lineItems,
