@@ -63,18 +63,49 @@ export default async function handler(req, res) {
     // onto the PaymentIntent's `shipping` field (name + address + phone).
     const shipping = payment.shipping || null;
 
-    // Customer contact details. The email + phone the customer types on the Stripe
-    // hosted page are stored on the Checkout Session (`customer_details`), NOT on
-    // the PaymentIntent — so look up the session by payment_intent to recover them.
+    // Customer contact details, chosen shipping option and any discount all live
+    // on the Checkout Session (`customer_details`, `shipping_cost`,
+    // `total_details`), NOT on the PaymentIntent — so look up the session by
+    // payment_intent to recover them.
     let customer = null;
+    let session = null;
     try {
       const sessions = await stripe.checkout.sessions.list({
         payment_intent: payment.id,
         limit: 1,
+        expand: ['data.shipping_cost.shipping_rate', 'data.total_details.breakdown'],
       });
-      customer = sessions.data[0]?.customer_details || null;
+      session = sessions.data[0] || null;
+      customer = session?.customer_details || null;
     } catch (err) {
       console.error('Could not fetch checkout session for customer details:', err.message);
+    }
+
+    // Which delivery service the customer picked. `evri_service` metadata is set
+    // on every rate in config/shipping.js; fall back to 'standard' for legacy
+    // orders created before shipping options existed.
+    const shippingRate = session?.shipping_cost?.shipping_rate;
+    const shippingMethod =
+      (typeof shippingRate === 'object' && shippingRate?.metadata?.evri_service) || 'standard';
+    const shippingLabel =
+      (typeof shippingRate === 'object' && shippingRate?.display_name) || 'Standard Delivery';
+    const shippingAmount = session?.shipping_cost?.amount_total ?? 0; // pence
+
+    // Discount details, if a promotion code was applied at checkout.
+    const discountAmount = session?.total_details?.amount_discount ?? 0; // pence
+    let promoCode = '';
+    if (discountAmount > 0) {
+      try {
+        const applied = session?.total_details?.breakdown?.discounts?.[0]?.discount;
+        if (applied?.promotion_code) {
+          const pc = await stripe.promotionCodes.retrieve(applied.promotion_code);
+          promoCode = pc.code;
+        } else if (applied?.coupon?.name) {
+          promoCode = applied.coupon.name;
+        }
+      } catch (err) {
+        console.error('Could not resolve promotion code:', err.message);
+      }
     }
 
     // Line items with sizes, captured at checkout: [{ name, handle, size, qty }]
@@ -106,19 +137,28 @@ export default async function handler(req, res) {
       product: payment.metadata?.product || 'N/A',
       lineItems,
       shipping,
+      shippingMethod,
+      shippingLabel,
+      shippingAmount: (shippingAmount / 100).toFixed(2),
+      discountAmount: (discountAmount / 100).toFixed(2),
+      promoCode,
       date: new Date().toISOString(),
     };
 
     console.log('✓ Payment received:', JSON.stringify(order, null, 2));
 
-    // Stamp contact details onto the PaymentIntent so the admin listing can
-    // read them directly instead of re-fetching the checkout session later.
+    // Stamp contact details onto the PaymentIntent so the admin listing and the
+    // Evri export can read them directly instead of re-fetching the session later.
     try {
       await stripe.paymentIntents.update(payment.id, {
         metadata: {
           customer_email: order.email !== 'N/A' ? order.email : '',
           customer_name: order.name !== 'N/A' ? order.name : '',
           customer_phone: order.phone !== 'N/A' ? order.phone : '',
+          shipping_method: shippingMethod,
+          shipping_amount: String(shippingAmount),
+          promo_code: promoCode,
+          discount_amount: String(discountAmount),
         },
       });
     } catch (err) {

@@ -25,7 +25,26 @@ function orderNumber(id) {
   return String(h).padStart(5, '0');
 }
 
-const COUNTRY_NAMES = { GB: 'United Kingdom', IE: 'Ireland' };
+const COUNTRY_NAMES = {
+  GB: 'United Kingdom', IE: 'Ireland',
+  AT: 'Austria', BE: 'Belgium', BG: 'Bulgaria', CH: 'Switzerland', CY: 'Cyprus',
+  CZ: 'Czech Republic', DE: 'Germany', DK: 'Denmark', EE: 'Estonia', ES: 'Spain',
+  FI: 'Finland', FR: 'France', GR: 'Greece', HR: 'Croatia', HU: 'Hungary',
+  IS: 'Iceland', IT: 'Italy', LI: 'Liechtenstein', LT: 'Lithuania', LU: 'Luxembourg',
+  LV: 'Latvia', MC: 'Monaco', MT: 'Malta', NL: 'Netherlands', NO: 'Norway',
+  PL: 'Poland', PT: 'Portugal', RO: 'Romania', SE: 'Sweden', SI: 'Slovenia',
+  SK: 'Slovakia', US: 'United States', CA: 'Canada', AU: 'Australia',
+  NZ: 'New Zealand', JP: 'Japan', SG: 'Singapore', HK: 'Hong Kong',
+  KR: 'South Korea', AE: 'United Arab Emirates', SA: 'Saudi Arabia', QA: 'Qatar',
+  ZA: 'South Africa', BR: 'Brazil', MX: 'Mexico', AR: 'Argentina', CL: 'Chile',
+  IN: 'India', MY: 'Malaysia', TH: 'Thailand', TW: 'Taiwan', IL: 'Israel', TR: 'Turkey',
+};
+
+// Maps the webhook's shipping_method metadata to Evri's Service column. Orders
+// placed before shipping options existed have no metadata → Standard.
+// NOTE: Evri's domestic bulk import may reject non-GB rows — international
+// orders may need booking through Evri International separately.
+const SERVICE_NAMES = { standard: 'Standard', 'next-day': 'Next Day', international: 'International' };
 
 // Evri standard bulk columns — adjust these to match your portal's template if needed.
 const HEADERS = [
@@ -118,8 +137,9 @@ export default async function handler(req, res) {
       ship.phone || '',
       '', // Weight (kg) — left blank for now
       contentsFromMetadata(meta),
-      (p.amount / 100).toFixed(2),
-      'Standard',
+      // Declared value = goods only (total charged minus shipping), for customs accuracy.
+      ((p.amount - Number(meta.shipping_amount || 0)) / 100).toFixed(2),
+      SERVICE_NAMES[meta.shipping_method] || 'Standard',
       ref,
       1, // one parcel per order
     ]);

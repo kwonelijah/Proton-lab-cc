@@ -8,11 +8,16 @@ export interface CheckoutItem {
   clubName?: string
 }
 
-export async function redirectToCheckout(items: CheckoutItem[]): Promise<void> {
+export type ShippingRegion = 'uk' | 'europe' | 'world'
+
+export async function redirectToCheckout(
+  items: CheckoutItem[],
+  shippingRegion: ShippingRegion = 'uk'
+): Promise<void> {
   const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items }),
+    body: JSON.stringify({ items, shippingRegion }),
   })
 
   const data = await res.json()

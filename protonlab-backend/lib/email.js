@@ -85,6 +85,16 @@ export async function sendInternalNotification(order) {
   const shipping = formatShipping(order.shipping);
   const itemsFmt = formatItems(order);
 
+  // Delivery service line — this is what tells us which Evri service to book.
+  const serviceNames = { standard: 'Standard', 'next-day': 'NEXT-DAY', international: 'International' };
+  const shippingCost = parseFloat(order.shippingAmount || '0');
+  const service = serviceNames[order.shippingMethod] || 'Standard';
+  const deliveryLine = `${service} (${order.shippingLabel || 'Standard Delivery'}) — ${shippingCost > 0 ? `£${shippingCost.toFixed(2)}` : 'Free'}`;
+  const discountValue = parseFloat(order.discountAmount || '0');
+  const discountLine = discountValue > 0
+    ? `−£${discountValue.toFixed(2)}${order.promoCode ? ` (code: ${order.promoCode})` : ''}`
+    : null;
+
   const label = `padding:10px 0;border-bottom:1px solid ${COLORS.light};font-family:${FONTS.body};font-size:13px;color:${COLORS.grey};`;
   const value = `padding:10px 0;border-bottom:1px solid ${COLORS.light};font-family:${FONTS.body};font-size:13px;color:${COLORS.black};`;
 
@@ -121,6 +131,15 @@ export async function sendInternalNotification(order) {
           <td style="${value}line-height:1.6;">${shipping ? shipping.html : 'No address collected'}</td>
         </tr>
         <tr>
+          <td style="${label}">Delivery service</td>
+          <td style="${value}${order.shippingMethod === 'next-day' ? 'font-weight:bold;' : ''}">${deliveryLine}</td>
+        </tr>
+        ${discountLine ? `
+        <tr>
+          <td style="${label}">Discount</td>
+          <td style="${value}">${discountLine}</td>
+        </tr>` : ''}
+        <tr>
           <td style="${label}">Stripe ref</td>
           <td style="${value}font-size:12px;color:${COLORS.grey};">${order.id}</td>
         </tr>
@@ -139,7 +158,7 @@ export async function sendInternalNotification(order) {
       to: TEAM,
       subject: `New order: ${orderRef} — ${order.name}`,
       html,
-      text: `New order\n\nOrder: ${orderRef}\nClub: ${club}\nCustomer: ${order.name} (${order.email})\nPhone: ${order.phone}\nItems:\n${itemsFmt.text}\nDeliver to:\n${shipping ? shipping.text : 'No address collected'}\nTotal: ${total}\nStripe ref: ${order.id}`,
+      text: `New order\n\nOrder: ${orderRef}\nClub: ${club}\nCustomer: ${order.name} (${order.email})\nPhone: ${order.phone}\nItems:\n${itemsFmt.text}\nDeliver to:\n${shipping ? shipping.text : 'No address collected'}\nDelivery service: ${deliveryLine}\n${discountLine ? `Discount: ${discountLine}\n` : ''}Total: ${total}\nStripe ref: ${order.id}`,
     }));
   } catch (e) {
     error = e;

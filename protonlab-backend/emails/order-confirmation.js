@@ -22,6 +22,16 @@ export function render(order) {
   const items = formatItems(order);
   const date = formatDate(order.date);
 
+  // Delivery + discount lines. Older orders (pre-shipping) won't have these fields.
+  const shippingCost = parseFloat(order.shippingAmount || '0');
+  const delivery = order.shippingLabel
+    ? `${order.shippingLabel} — ${shippingCost > 0 ? `£${shippingCost.toFixed(2)}` : 'Free'}`
+    : null;
+  const discountValue = parseFloat(order.discountAmount || '0');
+  const discount = discountValue > 0
+    ? `−£${discountValue.toFixed(2)}${order.promoCode ? ` (${order.promoCode})` : ''}`
+    : null;
+
   const html = layout(`
       ${heading('Your order is confirmed')}
 
@@ -34,6 +44,8 @@ export function render(order) {
       ${detailTable([
         { label: 'Order', value: orderRef },
         { label: 'Items', value: items.html },
+        delivery && { label: 'Delivery', value: delivery },
+        discount && { label: 'Discount', value: discount },
         { label: 'Total', value: total, bold: true },
         shipping && { label: 'Delivery Address', value: shipping.html },
         { label: 'Date', value: date },
@@ -51,7 +63,7 @@ Thank you for your order at ${club || 'Proton Lab'}. Your order is confirmed and
 Order: ${orderRef}
 Items:
 ${items.text}
-Total: ${total}
+${delivery ? `Delivery: ${delivery}\n` : ''}${discount ? `Discount: ${discount}\n` : ''}Total: ${total}
 ${shipping ? `Delivery Address:\n${shipping.text}\n` : ''}Date: ${date}
 
 Questions? Reply to this email.

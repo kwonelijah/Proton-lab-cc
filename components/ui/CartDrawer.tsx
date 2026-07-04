@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '@/stores/cart'
-import { redirectToCheckout } from '@/lib/checkout'
+import { redirectToCheckout, type ShippingRegion } from '@/lib/checkout'
+
+const FREE_SHIPPING_THRESHOLD = 100 // £ — must match protonlab-backend/config/shipping.js
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem } = useCartStore()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [region, setRegion] = useState<ShippingRegion>('uk')
 
   const drawerRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
@@ -33,7 +36,7 @@ export default function CartDrawer() {
     if (isOpen) {
       previousFocusRef.current = document.activeElement as HTMLElement
       const focusable = drawerRef.current?.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), input, a[href], [tabindex]:not([tabindex="-1"])'
+        'button:not([disabled]), input, select, a[href], [tabindex]:not([tabindex="-1"])'
       )
       focusable?.[0]?.focus()
     } else {
@@ -48,7 +51,7 @@ export default function CartDrawer() {
       if (e.key === 'Escape') { closeCart(); return }
       if (e.key !== 'Tab') return
       const focusable = drawerRef.current?.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), input, a[href], [tabindex]:not([tabindex="-1"])'
+        'button:not([disabled]), input, select, a[href], [tabindex]:not([tabindex="-1"])'
       )
       if (!focusable || focusable.length === 0) return
       const first = focusable[0]
@@ -75,7 +78,8 @@ export default function CartDrawer() {
           quantity: item.quantity,
           image: item.image,
           clubName: item.clubName,
-        }))
+        })),
+        region
       )
     } catch {
       setLoading(false)
@@ -151,25 +155,51 @@ export default function CartDrawer() {
             </div>
 
             {/* Checkout footer */}
-            <div className="px-6 py-6 border-t border-proton-light space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] uppercase tracking-widest text-proton-grey">Total</p>
-                <p className="text-sm text-proton-black">
-                  £{items.reduce((sum, i) => sum + parseFloat(i.price.replace(/[^0-9.]/g, '')) * i.quantity, 0).toFixed(2)}
-                </p>
-              </div>
-              {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-              <button
-                onClick={handleCheckout}
-                disabled={loading}
-                className="w-full bg-proton-black text-proton-white text-xs uppercase tracking-widest py-4 font-inter transition-all duration-300 hover:bg-proton-grey disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
-              >
-                {loading ? 'Redirecting…' : 'Checkout'}
-              </button>
-              <p className="text-[10px] text-proton-grey text-center">
-                Secure checkout via Stripe
-              </p>
-            </div>
+            {(() => {
+              const subtotal = items.reduce((sum, i) => sum + parseFloat(i.price.replace(/[^0-9.]/g, '')) * i.quantity, 0)
+              const remaining = FREE_SHIPPING_THRESHOLD - subtotal
+              return (
+                <div className="px-6 py-6 border-t border-proton-light space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="cart-region" className="text-[10px] uppercase tracking-widest text-proton-grey">
+                      Deliver to
+                    </label>
+                    <select
+                      id="cart-region"
+                      value={region}
+                      onChange={e => setRegion(e.target.value as ShippingRegion)}
+                      className="text-sm text-proton-black bg-transparent text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black"
+                    >
+                      <option value="uk">UK &amp; Ireland</option>
+                      <option value="europe">Europe</option>
+                      <option value="world">Rest of world</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] uppercase tracking-widest text-proton-grey">Total</p>
+                    <p className="text-sm text-proton-black">£{subtotal.toFixed(2)}</p>
+                  </div>
+                  {region === 'uk' && (
+                    <p className="text-[10px] text-proton-grey text-center">
+                      {remaining > 0
+                        ? `Add £${remaining.toFixed(2)} more for free standard delivery`
+                        : 'Free standard delivery unlocked'}
+                    </p>
+                  )}
+                  {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+                  <button
+                    onClick={handleCheckout}
+                    disabled={loading}
+                    className="w-full bg-proton-black text-proton-white text-xs uppercase tracking-widest py-4 font-inter transition-all duration-300 hover:bg-proton-grey disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
+                  >
+                    {loading ? 'Redirecting…' : 'Checkout'}
+                  </button>
+                  <p className="text-[10px] text-proton-grey text-center">
+                    Secure checkout via Stripe · Discount codes applied at checkout
+                  </p>
+                </div>
+              )
+            })()}
           </>
         )}
       </div>

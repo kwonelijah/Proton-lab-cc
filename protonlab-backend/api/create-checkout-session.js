@@ -7,6 +7,7 @@ import Stripe from 'stripe';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ZONES, resolveZone } from '../config/shipping.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -35,9 +36,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { items, customerEmail, customerName } = req.body;
+  const { items, customerEmail, customerName, shippingRegion } = req.body;
 
   // items = [{ handle: 'ss-race-jersey', size: 'M', quantity: 1, image?: '...' }]
+  // shippingRegion = 'uk' | 'europe' | 'world' — omitted by older frontends, defaults to 'uk'
+  const region = resolveZone(shippingRegion);
+  const zone = ZONES[region];
 
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'No items provided' });
@@ -67,10 +71,15 @@ export default async function handler(req, res) {
       quantity,
       priceId: entry.priceId,
       name: entry.name,
+      unitAmount: entry.unitAmount,
       image: typeof item.image === 'string' ? item.image : undefined,
       clubName: typeof item.clubName === 'string' ? item.clubName : undefined,
     });
   }
+
+  // Pre-discount subtotal in pence — decides free-shipping eligibility. Uses the
+  // server-side price map, so the client can't influence it.
+  const subtotal = resolved.reduce((sum, i) => sum + (i.unitAmount || 0) * i.quantity, 0);
 
   // Club name(s) for this order — usually one club per cart. Deduped + joined
   // so it survives into the order emails via payment_intent metadata.
@@ -85,23 +94,21 @@ export default async function handler(req, res) {
 
       // Collect a delivery address on the hosted page. Stripe copies this onto
       // the resulting PaymentIntent's `shipping` field, which the webhook reads.
+      // Countries are restricted to the zone the customer picked in the cart,
+      // so the shipping price always matches the destination.
       shipping_address_collection: {
-        allowed_countries: ['GB', 'IE'],
+        allowed_countries: zone.allowedCountries,
       },
       // Phone is required at checkout so we can reach the customer about their order.
       phone_number_collection: { enabled: true },
 
-      // Free shipping for now — shown explicitly as a £0.00 "Free shipping" method
-      // on the hosted page so the customer sees there's no delivery charge.
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: 'fixed_amount',
-            fixed_amount: { amount: 0, currency: 'gbp' },
-            display_name: 'Free shipping',
-          },
-        },
-      ],
+      // Rates come from config/shipping.js — UK & Ireland get free standard
+      // delivery at/over the threshold, next-day stays paid either way.
+      shipping_options: zone.optionsFor(subtotal),
+
+      // Customers can enter discount codes (created in the Stripe dashboard
+      // under Product catalogue → Coupons) on the hosted page.
+      allow_promotion_codes: true,
 
       line_items: resolved.map((item) => ({
         price: item.priceId,
@@ -113,7 +120,7 @@ export default async function handler(req, res) {
       // on the hosted page. Fulfillment still uses metadata.items (authoritative).
       custom_text: {
         shipping_address: {
-          message: 'Free shipping on all orders — delivered across the UK & Ireland.',
+          message: zone.customText(subtotal),
         },
         submit: {
           message: 'Sizes: ' + resolved.map(i => `${i.name} — ${i.size}`).join(', '),
@@ -125,6 +132,8 @@ export default async function handler(req, res) {
           name: customerName || '',
           email: customerEmail || '',
           club,
+          shipping_region: region,
+          subtotal: String(subtotal),
           product: resolved.map(i => i.name).join(', '),
           items: JSON.stringify(
             resolved.map(i => ({ name: i.name, handle: i.handle, size: i.size, qty: i.quantity }))
