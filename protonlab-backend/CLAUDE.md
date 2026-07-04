@@ -34,6 +34,10 @@ lib/agent.js   →  Claude API (flags/processes order, updates sheet)
 |---|---|
 | `api/webhook.js` | Receives Stripe payment events, orchestrates sheet write + agent |
 | `api/create-checkout-session.js` | Creates Stripe Hosted Checkout session for frontend |
+| `api/admin.js` | Dispatch admin page (`?key=proton_export_key`) — sends dispatch email, schedules thank-you (+5 days), stamps PaymentIntent metadata. `&format=json` mode feeds the local order dashboard's Web Shop tab (CORS open; auth via key) |
+| `api/export-evri.js` | Evri bulk-despatch CSV export, read from Stripe (`?key=proton_export_key`) |
+| `emails/theme.js` | Email design system — brand palette/type/layout, shared by all customer emails |
+| `emails/order-*.js` | Customer email templates: confirmation, dispatched, delivered thank-you |
 | `lib/sheets.js` | All Google Sheets read/write logic |
 | `lib/agent.js` | Claude agent — processes orders, flags issues, writes status back |
 | `frontend-snippet.js` | Paste into protonlab.cc to trigger checkout |
