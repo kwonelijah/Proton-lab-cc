@@ -250,5 +250,68 @@
     "currency": "gbp",
     "category": "Accessories",
     "collection": "Training"
+  },
+  "sunset-jersey": {
+    "productId": "prod_UlvWOmZzNUEB1i",
+    "priceId": "price_1TmNfK3x1N43j1ucHwsM7YGu",
+    "name": "Sunset Jersey",
+    "unitAmount": 7500,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Summer 2026"
+  },
+  "ocean-blue-jersey": {
+    "productId": "prod_UlvWEt5fuRYZ0T",
+    "priceId": "price_1TmNfM3x1N43j1ucdViK1mCf",
+    "name": "Ocean Blue Jersey",
+    "unitAmount": 7500,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Summer 2026"
+  },
+  "red-sky-jersey": {
+    "productId": "prod_UlvWWsmKvPz4Do",
+    "priceId": "price_1TmNfO3x1N43j1uccIMsUkYq",
+    "name": "Red Sky Jersey",
+    "unitAmount": 7500,
+    "currency": "gbp",
+    "category": "Jerseys",
+    "collection": "Summer 2026"
+  },
+  "black-bib-shorts": {
+    "productId": "prod_UlvWk2ATGuvMmj",
+    "priceId": "price_1TmNfP3x1N43j1ucSHM810HK",
+    "name": "Black Bib Shorts",
+    "unitAmount": 9000,
+    "currency": "gbp",
+    "category": "Shorts",
+    "collection": "Summer 2026"
+  },
+  "granite-bib-shorts": {
+    "productId": "prod_UlvWgx8Ng0YTku",
+    "priceId": "price_1TmNfR3x1N43j1ucXNLb9Jul",
+    "name": "Granite Bib Shorts",
+    "unitAmount": 9000,
+    "currency": "gbp",
+    "category": "Shorts",
+    "collection": "Summer 2026"
+  },
+  "white-bib-shorts": {
+    "productId": "prod_UlvW4LVrH3lX4v",
+    "priceId": "price_1TmNfS3x1N43j1ucFSZGUX4D",
+    "name": "White Bib Shorts",
+    "unitAmount": 9000,
+    "currency": "gbp",
+    "category": "Shorts",
+    "collection": "Summer 2026"
+  },
+  "white-cotton-socks": {
+    "productId": "prod_UlvWCdMNZjyQ82",
+    "priceId": "price_1TmNfU3x1N43j1ucrooli42Z",
+    "name": "White Cotton Socks",
+    "unitAmount": 1200,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Summer 2026"
   }
 }

@@ -30,7 +30,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           src={product.featuredImage.url}
           alt={product.featuredImage.altText ?? product.title}
           fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          sizes="(max-width: 640px) 50vw, 33vw"
           className={`${fit} transition-opacity duration-300 group-hover:opacity-90`}
           priority={priority}
         />

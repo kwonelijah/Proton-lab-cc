@@ -698,4 +698,176 @@ export const products: Product[] = [
     priceRange: { minVariantPrice: { amount: '10.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['accessories', 'headwear', 'moq-10'], availableForSale: true,
   },
+
+  // ─── SUMMER 2026 COLLECTION ─────────────────────────────────────────────────
+  // Seasonal drop. Jerseys built on the SS Training Jersey; shorts on the
+  // Training Bib Shorts. Gated live via SUMMER_2026_LIVE in lib/api.ts.
+
+  {
+    id: 'prod_029', handle: 'sunset-jersey', title: 'Sunset Jersey',
+    description: 'The jersey you reach for every time — built for the miles that matter most, the ones that don\'t make the results sheet but define the rider you become. Race-fit construction and textured arm panels keep you performing at your best, ride after ride.',
+    bullets: [
+      'Textured arm panels for enhanced performance and structure',
+      'Race-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets with secure zip pocket',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'Sunset Jersey | Summer 2026 Training Jersey | Proton Lab',
+      description: 'Race-fit, textured arm panels and breathable fabric construction. The Sunset Jersey from the Proton Lab Summer 2026 collection.',
+      keywords: 'sunset cycling jersey, summer cycling jersey, training cycling jersey, race fit jersey, breathable cycling jersey, premium cycling apparel UK',
+    },
+    featuredImage: { id: 'img-sunset-jersey-1', url: '/images/products/sunset-jersey/sunset-jersey1.jpg?v=2', altText: 'Sunset Jersey', width: 1333, height: 2000 },
+    images: { nodes: [
+      { id: 'img-sunset-jersey-1', url: '/images/products/sunset-jersey/sunset-jersey1.jpg?v=2', altText: 'Sunset Jersey', width: 1333, height: 2000 },
+      { id: 'img-sunset-jersey-2', url: '/images/products/sunset-jersey/sunset-jersey2.jpg?v=2', altText: 'Sunset Jersey', width: 1333, height: 2000 },
+    ]},
+    variants: sizes('029', '75.00'),
+    priceRange: { minVariantPrice: { amount: '75.00', currencyCode: 'GBP' } },
+    ...col('summer-2026', 'Summer 2026'), tags: ['jersey', 'training', 'short-sleeve', 'summer-2026'], availableForSale: true,
+  },
+  {
+    id: 'prod_031', handle: 'red-sky-jersey', title: 'Red Sky Jersey',
+    description: 'The jersey you reach for every time — built for the miles that matter most, the ones that don\'t make the results sheet but define the rider you become. Race-fit construction and textured arm panels keep you performing at your best, ride after ride.',
+    bullets: [
+      'Textured arm panels for enhanced performance and structure',
+      'Race-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets with secure zip pocket',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'Red Sky Jersey | Summer 2026 Training Jersey | Proton Lab',
+      description: 'Race-fit, textured arm panels and breathable fabric construction. The Red Sky Jersey from the Proton Lab Summer 2026 collection.',
+      keywords: 'red sky cycling jersey, summer cycling jersey, training cycling jersey, race fit jersey, breathable cycling jersey, premium cycling apparel UK',
+    },
+    featuredImage: { id: 'img-red-sky-jersey-1', url: '/images/products/red-sky-jersey/red-sky-jersey1.png', altText: 'Red Sky Jersey', width: 1333, height: 2000 },
+    images: { nodes: [
+      { id: 'img-red-sky-jersey-1', url: '/images/products/red-sky-jersey/red-sky-jersey1.png', altText: 'Red Sky Jersey', width: 1333, height: 2000 },
+      { id: 'img-red-sky-jersey-2', url: '/images/products/red-sky-jersey/red-sky-jersey2.jpg', altText: 'Red Sky Jersey', width: 1333, height: 2000 },
+    ]},
+    variants: sizes('031', '75.00'),
+    priceRange: { minVariantPrice: { amount: '75.00', currencyCode: 'GBP' } },
+    ...col('summer-2026', 'Summer 2026'), tags: ['jersey', 'training', 'short-sleeve', 'summer-2026'], availableForSale: true,
+  },
+  {
+    id: 'prod_030', handle: 'ocean-blue-jersey', title: 'Ocean Blue Jersey',
+    description: 'The jersey you reach for every time — built for the miles that matter most, the ones that don\'t make the results sheet but define the rider you become. Race-fit construction and textured arm panels keep you performing at your best, ride after ride.',
+    bullets: [
+      'Textured arm panels for enhanced performance and structure',
+      'Race-fit',
+      'Breathable Italian Miti fabric construction',
+      '3 rear pockets with secure zip pocket',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'Ocean Blue Jersey | Summer 2026 Training Jersey | Proton Lab',
+      description: 'Race-fit, textured arm panels and breathable fabric construction. The Ocean Blue Jersey from the Proton Lab Summer 2026 collection.',
+      keywords: 'ocean blue cycling jersey, summer cycling jersey, training cycling jersey, race fit jersey, breathable cycling jersey, premium cycling apparel UK',
+    },
+    featuredImage: { id: 'img-ocean-blue-jersey-1', url: '/images/products/ocean-blue-jersey/ocean-blue-jersey1.jpg', altText: 'Ocean Blue Jersey', width: 1333, height: 2000 },
+    images: { nodes: [
+      { id: 'img-ocean-blue-jersey-1', url: '/images/products/ocean-blue-jersey/ocean-blue-jersey1.jpg', altText: 'Ocean Blue Jersey', width: 1333, height: 2000 },
+      { id: 'img-ocean-blue-jersey-2', url: '/images/products/ocean-blue-jersey/ocean-blue-jersey2.png', altText: 'Ocean Blue Jersey', width: 1333, height: 2000 },
+    ]},
+    variants: sizes('030', '75.00'),
+    priceRange: { minVariantPrice: { amount: '75.00', currencyCode: 'GBP' } },
+    ...col('summer-2026', 'Summer 2026'), tags: ['jersey', 'training', 'short-sleeve', 'summer-2026'], availableForSale: true,
+  },
+  {
+    id: 'prod_032', handle: 'black-bib-shorts', title: 'Black Bib Shorts',
+    description: 'Built for the hours you put in before race day, delivering performance-level compression in a fabric engineered for comfort over longer efforts — supportive enough to perform, forgiving enough to train in day after day.',
+    bullets: [
+      'Performance compression fabric for sustained comfort on long efforts',
+      'Laser-cut grippers with seamless ends',
+      'Elastic Interface® chamois',
+      'Breathable Italian Miti fabric construction',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'Black Bib Shorts | Summer 2026 Training Bib Shorts | Proton Lab',
+      description: 'Performance compression, Elastic Interface® chamois and laser-cut grippers. The Black Bib Shorts from the Proton Lab Summer 2026 collection.',
+      keywords: 'black bib shorts, summer cycling shorts, training bib shorts, performance bib shorts, elastic interface chamois, premium cycling shorts UK',
+    },
+    featuredImage: { id: 'img-black-bib-shorts-1', url: '/images/products/black-bib-shorts/black-bib-shorts1.jpg', altText: 'Black Bib Shorts', width: 1333, height: 2000 },
+    images: { nodes: [
+      { id: 'img-black-bib-shorts-1', url: '/images/products/black-bib-shorts/black-bib-shorts1.jpg', altText: 'Black Bib Shorts', width: 1333, height: 2000 },
+      { id: 'img-black-bib-shorts-2', url: '/images/products/black-bib-shorts/black-bib-shorts2.jpg', altText: 'Black Bib Shorts', width: 1333, height: 2000 },
+    ]},
+    variants: sizes('032', '90.00'),
+    priceRange: { minVariantPrice: { amount: '90.00', currencyCode: 'GBP' } },
+    ...col('summer-2026', 'Summer 2026'), tags: ['shorts', 'training', 'bib', 'summer-2026'], availableForSale: true,
+  },
+  {
+    id: 'prod_033', handle: 'granite-bib-shorts', title: 'Granite Bib Shorts',
+    description: 'Built for the hours you put in before race day, delivering performance-level compression in a fabric engineered for comfort over longer efforts — supportive enough to perform, forgiving enough to train in day after day.',
+    bullets: [
+      'Performance compression fabric for sustained comfort on long efforts',
+      'Laser-cut grippers with seamless ends',
+      'Elastic Interface® chamois',
+      'Breathable Italian Miti fabric construction',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'Granite Bib Shorts | Summer 2026 Training Bib Shorts | Proton Lab',
+      description: 'Performance compression, Elastic Interface® chamois and laser-cut grippers. The Granite Bib Shorts from the Proton Lab Summer 2026 collection.',
+      keywords: 'granite bib shorts, grey cycling shorts, summer cycling shorts, training bib shorts, performance bib shorts, premium cycling shorts UK',
+    },
+    featuredImage: { id: 'img-granite-bib-shorts-1', url: '/images/products/granite-bib-shorts/granite-bib-shorts1.jpg', altText: 'Granite Bib Shorts', width: 1333, height: 2000 },
+    images: { nodes: [
+      { id: 'img-granite-bib-shorts-1', url: '/images/products/granite-bib-shorts/granite-bib-shorts1.jpg', altText: 'Granite Bib Shorts', width: 1333, height: 2000 },
+      { id: 'img-granite-bib-shorts-2', url: '/images/products/granite-bib-shorts/granite-bib-shorts2.jpg', altText: 'Granite Bib Shorts', width: 1333, height: 2000 },
+    ]},
+    variants: sizes('033', '90.00'),
+    priceRange: { minVariantPrice: { amount: '90.00', currencyCode: 'GBP' } },
+    ...col('summer-2026', 'Summer 2026'), tags: ['shorts', 'training', 'bib', 'summer-2026'], availableForSale: true,
+  },
+  {
+    id: 'prod_034', handle: 'white-bib-shorts', title: 'White Bib Shorts',
+    description: 'Built for the hours you put in before race day, delivering performance-level compression in a fabric engineered for comfort over longer efforts — supportive enough to perform, forgiving enough to train in day after day.',
+    bullets: [
+      'Performance compression fabric for sustained comfort on long efforts',
+      'Laser-cut grippers with seamless ends',
+      'Elastic Interface® chamois',
+      'Breathable Italian Miti fabric construction',
+      'Designed and developed by riders, for the demands of daily training',
+    ],
+    seo: {
+      title: 'White Bib Shorts | Summer 2026 Training Bib Shorts | Proton Lab',
+      description: 'Performance compression, Elastic Interface® chamois and laser-cut grippers. The White Bib Shorts from the Proton Lab Summer 2026 collection.',
+      keywords: 'white bib shorts, summer cycling shorts, training bib shorts, performance bib shorts, elastic interface chamois, premium cycling shorts UK',
+    },
+    featuredImage: { id: 'img-white-bib-shorts-1', url: '/images/products/white-bib-shorts/white-bib-shorts1.jpg', altText: 'White Bib Shorts', width: 1333, height: 2000 },
+    images: { nodes: [
+      { id: 'img-white-bib-shorts-1', url: '/images/products/white-bib-shorts/white-bib-shorts1.jpg', altText: 'White Bib Shorts', width: 1333, height: 2000 },
+      { id: 'img-white-bib-shorts-2', url: '/images/products/white-bib-shorts/white-bib-shorts2.jpg', altText: 'White Bib Shorts', width: 1333, height: 2000 },
+    ]},
+    variants: sizes('034', '90.00'),
+    priceRange: { minVariantPrice: { amount: '90.00', currencyCode: 'GBP' } },
+    ...col('summer-2026', 'Summer 2026'), tags: ['shorts', 'training', 'bib', 'summer-2026'], availableForSale: true,
+  },
+  {
+    id: 'prod_035', handle: 'white-cotton-socks', title: 'White Cotton Socks',
+    description: 'A summer essential. The White Cotton Socks bring everyday comfort to the collection — a soft cotton-blend construction with a clean white finish that pairs with every kit, on the bike and off it.',
+    bullets: [
+      'Soft cotton-blend construction for all-day comfort',
+      'Clean white colourway to match any kit',
+      'Designed and developed by riders, for every ride',
+    ],
+    seo: {
+      title: 'White Cotton Cycling Socks | Summer 2026 | Proton Lab',
+      description: 'Soft cotton-blend construction in a clean white finish. The White Cotton Socks from the Proton Lab Summer 2026 collection.',
+      keywords: 'white cotton cycling socks, summer cycling socks, cotton cycling socks, custom cycling socks, premium cycling socks UK',
+    },
+    featuredImage: img('white-cotton-socks', 1600, 1066), images: { nodes: [img('white-cotton-socks', 1600, 1066)] },
+    variants: {
+      nodes: [
+        { id: 'v035_sm', title: 'S/M', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S/M' }] },
+        { id: 'v035_lx', title: 'L/XL', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'L/XL' }] },
+      ],
+    },
+    priceRange: { minVariantPrice: { amount: '12.00', currencyCode: 'GBP' } },
+    ...col('summer-2026', 'Summer 2026'), tags: ['accessories', 'socks', 'summer-2026'], availableForSale: true,
+  },
 ]

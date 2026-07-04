@@ -36,6 +36,35 @@ import stockJson from '@/data/stock.json'
 type StockMap = Record<string, Record<string, number>>
 const stock = stockJson as StockMap
 
+// ─── SHOP DISPLAY GATE ───────────────────────────────────────────────────────
+// SHOP_MODE controls what the whole site shows. Products not "live" disappear
+// from the shop AND 404 on their direct /products/<handle> URL (getProductByHandle
+// returns null → notFound()).
+//   'empty'      — webshop shows NOTHING. Holding state between drops.
+//   'summer2026' — ONLY the Summer 2026 collection is live; everything else 404s.
+//   'legacy'     — the original catalogue (Summer 2026 hidden until its drop).
+// To drop the new collection: change SHOP_MODE to 'summer2026' and deploy.
+type ShopMode = 'empty' | 'summer2026' | 'legacy'
+const SHOP_MODE: ShopMode = 'empty'
+
+const SUMMER_2026_HANDLES = new Set([
+  'sunset-jersey',
+  'ocean-blue-jersey',
+  'red-sky-jersey',
+  'black-bib-shorts',
+  'granite-bib-shorts',
+  'white-bib-shorts',
+  // 'white-cotton-socks',  // hidden for now — re-add when sock photos are ready
+])
+
+function isLive(handle: string): boolean {
+  switch (SHOP_MODE) {
+    case 'empty':      return false
+    case 'summer2026': return SUMMER_2026_HANDLES.has(handle)
+    case 'legacy':     return !SUMMER_2026_HANDLES.has(handle)
+  }
+}
+
 function withStock(product: Product): Product {
   const bySize = stock[product.handle] ?? {}
   const variants = product.variants.nodes.map(v => {
@@ -54,11 +83,12 @@ function withStock(product: Product): Product {
 // ─── EXPORTED FUNCTIONS ──────────────────────────────────────────────────────
 
 export async function getProducts(): Promise<Product[]> {
-  return mockProducts.map(withStock)
+  return mockProducts.filter(p => isLive(p.handle)).map(withStock)
   // return shopifyGetProducts()
 }
 
 export async function getProductByHandle(handle: string): Promise<Product | null> {
+  if (!isLive(handle)) return null
   const p = mockProducts.find(p => p.handle === handle)
   return p ? withStock(p) : null
   // return shopifyGetProductByHandle(handle)

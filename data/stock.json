@@ -185,5 +185,51 @@
   },
   "cycling-cap": {
     "One Size": 0
+  },
+  "sunset-jersey": {
+    "XS": 2,
+    "S": 5,
+    "M": 5,
+    "L": 3,
+    "XL": 1
+  },
+  "ocean-blue-jersey": {
+    "XS": 3,
+    "S": 7,
+    "M": 7,
+    "L": 3,
+    "XL": 2
+  },
+  "red-sky-jersey": {
+    "XS": 4,
+    "S": 7,
+    "M": 7,
+    "L": 3,
+    "XL": 2
+  },
+  "black-bib-shorts": {
+    "XS": 5,
+    "S": 8,
+    "M": 8,
+    "L": 5,
+    "XL": 3
+  },
+  "granite-bib-shorts": {
+    "XS": 4,
+    "S": 7,
+    "M": 7,
+    "L": 5,
+    "XL": 3
+  },
+  "white-bib-shorts": {
+    "XS": 1,
+    "S": 2,
+    "M": 2,
+    "L": 1,
+    "XL": 1
+  },
+  "white-cotton-socks": {
+    "S/M": 10,
+    "L/XL": 10
   }
 }

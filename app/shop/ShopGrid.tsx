@@ -8,16 +8,12 @@ const filters = [
   { label: 'All', value: 'all' },
   { label: 'Jerseys', value: 'jersey' },
   { label: 'Shorts', value: 'shorts' },
-  { label: 'Outerwear', value: 'outerwear' },
-  { label: 'Skinsuits', value: 'skinsuit' },
   { label: 'Accessories', value: 'accessories' },
 ]
 
 const tagMap: Record<string, string[]> = {
   jersey:      ['jersey'],
   shorts:      ['shorts', 'tights', 'bib'],
-  outerwear:   ['jacket', 'gilet'],
-  skinsuit:    ['skinsuit', 'trisuit'],
   accessories: ['accessories', 'socks', 'mitts', 'arm-warmers', 'knee-warmers', 'leg-warmers', 'headwear'],
 }
 
@@ -60,7 +56,7 @@ export default function ShopGrid({ products }: ShopGridProps) {
 
       {/* Product grid */}
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
           {filtered.map((product, i) => (
             <ProductCard key={product.id} product={product} priority={i < 4} />
           ))}
