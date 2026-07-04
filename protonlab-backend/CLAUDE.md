@@ -96,3 +96,4 @@ Create `api/success.js` and `api/cancel.js` as Vercel functions, or handle on th
 - Do not change `SITE_URL` in code — update it in Vercel dashboard
 - Do not use `bodyParser: true` on the webhook endpoint
 - Do not modify `.github/workflows/deploy.yml` unless changing the deployment strategy
+
