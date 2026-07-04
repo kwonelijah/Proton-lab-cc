@@ -111,6 +111,20 @@ export default async function handler(req, res) {
 
     console.log('✓ Payment received:', JSON.stringify(order, null, 2));
 
+    // Stamp contact details onto the PaymentIntent so the admin listing can
+    // read them directly instead of re-fetching the checkout session later.
+    try {
+      await stripe.paymentIntents.update(payment.id, {
+        metadata: {
+          customer_email: order.email !== 'N/A' ? order.email : '',
+          customer_name: order.name !== 'N/A' ? order.name : '',
+          customer_phone: order.phone !== 'N/A' ? order.phone : '',
+        },
+      });
+    } catch (err) {
+      console.error('Could not stamp customer metadata:', err.message);
+    }
+
     await Promise.all([
       sendOrderConfirmation(order),
       sendInternalNotification(order),

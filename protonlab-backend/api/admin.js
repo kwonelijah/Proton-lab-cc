@@ -20,7 +20,12 @@
 // dashboard runs from a local file:// page whose Origin is "null".
 
 import Stripe from 'stripe';
-import { sendOrderDispatched, sendOrderDelivered, sendOrderInProduction } from '../lib/email.js';
+import {
+  sendOrderConfirmation,
+  sendOrderDispatched,
+  sendOrderDelivered,
+  sendOrderInProduction,
+} from '../lib/email.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -264,6 +269,56 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, sent, failed, matched: targets.length });
     }
 
+    // ── Manual-order emails ───────────────────────────────────────────────
+    // {action:'send', kind, order, tracking?} — sends a lifecycle email for an
+    // order that doesn't exist in Stripe (added manually on the dashboard,
+    // e.g. paid by bank transfer or at a special price). The dashboard owns
+    // the order record and its state; this endpoint only renders and sends.
+    if (req.body?.action === 'send') {
+      const { kind, order, tracking: manualTracking } = req.body;
+      if (!['confirmation', 'production', 'dispatch'].includes(kind)) {
+        return res.status(400).json({ error: 'Unknown email kind' });
+      }
+      if (!order || !order.email || !order.name) {
+        return res.status(400).json({ error: 'Order needs at least a name and an email' });
+      }
+      const o = {
+        id: order.id || 'manual',
+        ref: order.ref || (order.club ? `${order.club} (manual)` : 'Manual order'),
+        amount: order.amount || '0.00',
+        currency: 'GBP',
+        email: order.email,
+        name: order.name,
+        phone: order.phone || 'N/A',
+        club: order.club || 'N/A',
+        product: order.product || 'your order',
+        lineItems: Array.isArray(order.lineItems) ? order.lineItems : [],
+        shipping: order.shipping || null,
+        date: order.date || new Date().toISOString(),
+      };
+      let result;
+      if (kind === 'confirmation') {
+        result = await sendOrderConfirmation(o);
+      } else if (kind === 'production') {
+        result = await sendOrderInProduction(o);
+      } else {
+        const trackingNumber = (manualTracking || '').trim() || null;
+        const dispatch = trackingNumber
+          ? { trackingNumber, trackingUrl: `https://www.evri.com/track/parcel/${encodeURIComponent(trackingNumber)}` }
+          : {};
+        result = await sendOrderDispatched(o, dispatch);
+        if (result.ok) {
+          const scheduledAt = new Date(Date.now() + THANK_YOU_DELAY_DAYS * 86400000).toISOString();
+          const thankYou = await sendOrderDelivered(o, { scheduledAt });
+          if (!thankYou.ok) console.error('Thank-you scheduling failed for manual order', o.ref, thankYou);
+        }
+      }
+      if (!result.ok) {
+        return res.status(502).json({ error: `Email failed: ${result.error || result.skipped}` });
+      }
+      return res.status(200).json({ ok: true });
+    }
+
     // ── Single-order dispatch ─────────────────────────────────────────────
     const { pi, tracking } = req.body || {};
     if (!pi || typeof pi !== 'string') {
@@ -336,6 +391,7 @@ export default async function handler(req, res) {
 
   const awaiting = [];
   const dispatched = [];
+  const needLookup = [];
   for (const p of payments) {
     if (p.status !== 'succeeded') continue;
     const meta = p.metadata || {};
@@ -347,9 +403,17 @@ export default async function handler(req, res) {
       club,
       ref: club ? `${club} #${number}` : `Order #${number}`,
       date: new Date(p.created * 1000).toISOString(),
-      name: p.shipping?.name || meta.name || '—',
-      email: p.receipt_email || meta.email || '',
-      phone: p.shipping?.phone || meta.phone || '',
+      name: meta.customer_name || p.shipping?.name || meta.name || '—',
+      email: meta.customer_email || p.receipt_email || meta.email || '',
+      phone: meta.customer_phone || p.shipping?.phone || meta.phone || '',
+      addr: {
+        line1: addr.line1 || '',
+        line2: addr.line2 || '',
+        city: addr.city || '',
+        state: addr.state || '',
+        postal_code: addr.postal_code || '',
+        country: addr.country || '',
+      },
       address: [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
         .filter(Boolean)
         .join(', '),
@@ -360,7 +424,29 @@ export default async function handler(req, res) {
       dispatchedAt: meta.dispatched_at || null,
       tracking: meta.tracking || null,
     };
+    if (!entry.email || !entry.phone) needLookup.push(entry);
     (meta.dispatched_at ? dispatched : awaiting).push(entry);
+  }
+
+  // The email/phone the customer types on the Stripe hosted page live on the
+  // Checkout Session (customer_details), not the PaymentIntent — look them up
+  // for entries still missing contact details. Batched to bound latency; the
+  // webhook stamps customer_* metadata on new orders so this shrinks over time.
+  for (let i = 0; i < needLookup.length; i += 8) {
+    await Promise.all(
+      needLookup.slice(i, i + 8).map(async (entry) => {
+        try {
+          const sessions = await stripe.checkout.sessions.list({ payment_intent: entry.id, limit: 1 });
+          const cd = sessions.data[0]?.customer_details;
+          if (!cd) return;
+          if (!entry.email && cd.email) entry.email = cd.email;
+          if (!entry.phone && cd.phone) entry.phone = cd.phone;
+          if (entry.name === '—' && cd.name) entry.name = cd.name;
+        } catch (err) {
+          console.error('Session lookup failed for', entry.id, err.message);
+        }
+      })
+    );
   }
 
   res.setHeader('Cache-Control', 'no-store');
