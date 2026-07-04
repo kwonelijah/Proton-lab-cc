@@ -20,7 +20,7 @@
 // dashboard runs from a local file:// page whose Origin is "null".
 
 import Stripe from 'stripe';
-import { sendOrderDispatched, sendOrderDelivered } from '../lib/email.js';
+import { sendOrderDispatched, sendOrderDelivered, sendOrderInProduction } from '../lib/email.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -216,6 +216,55 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    // ── Club-wide production notification ─────────────────────────────────
+    // {action:'production', club} — emails every succeeded order of that club
+    // that hasn't been production-notified or dispatched yet. Idempotent:
+    // notified orders are stamped and skipped on re-runs.
+    if (req.body?.action === 'production') {
+      const clubName = (req.body.club || '').trim();
+      if (!clubName) {
+        return res.status(400).json({ error: 'Missing club name' });
+      }
+      let payments;
+      try {
+        const sinceTs = Math.floor(Date.now() / 1000) - 365 * 86400;
+        payments = await stripe.paymentIntents
+          .list({ created: { gte: sinceTs }, limit: 100 })
+          .autoPagingToArray({ limit: 1000 });
+      } catch (err) {
+        console.error('Stripe list error:', err);
+        return res.status(502).json({ error: 'Failed to read orders from Stripe' });
+      }
+      const targets = payments.filter(
+        (p) =>
+          p.status === 'succeeded' &&
+          (p.metadata?.club || '') === clubName &&
+          !p.metadata?.production_notified_at &&
+          !p.metadata?.dispatched_at
+      );
+      let sent = 0;
+      let failed = 0;
+      for (const p of targets) {
+        const order = await buildOrder(p);
+        const r = await sendOrderInProduction(order);
+        if (!r.ok) {
+          console.error('Production email failed for', p.id, r);
+          failed++;
+          continue;
+        }
+        try {
+          await stripe.paymentIntents.update(p.id, {
+            metadata: { production_notified_at: new Date().toISOString() },
+          });
+        } catch (err) {
+          console.error('Failed to stamp production metadata on', p.id, err.message);
+        }
+        sent++;
+      }
+      return res.status(200).json({ ok: true, sent, failed, matched: targets.length });
+    }
+
+    // ── Single-order dispatch ─────────────────────────────────────────────
     const { pi, tracking } = req.body || {};
     if (!pi || typeof pi !== 'string') {
       return res.status(400).json({ error: 'Missing payment id' });
@@ -300,9 +349,14 @@ export default async function handler(req, res) {
       date: new Date(p.created * 1000).toISOString(),
       name: p.shipping?.name || meta.name || '—',
       email: p.receipt_email || meta.email || '',
+      phone: p.shipping?.phone || meta.phone || '',
+      address: [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
+        .filter(Boolean)
+        .join(', '),
       items: itemsSummary(meta),
       place: [addr.city, addr.postal_code].filter(Boolean).join(', ') || '—',
       amount: (p.amount / 100).toFixed(2),
+      productionAt: meta.production_notified_at || null,
       dispatchedAt: meta.dispatched_at || null,
       tracking: meta.tracking || null,
     };

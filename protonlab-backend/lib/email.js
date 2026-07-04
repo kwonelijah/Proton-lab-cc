@@ -6,6 +6,7 @@
 import { Resend } from 'resend';
 import { COLORS, FONTS, formatShipping, formatItems } from '../emails/theme.js';
 import { render as renderConfirmation } from '../emails/order-confirmation.js';
+import { render as renderProduction } from '../emails/order-production.js';
 import { render as renderDispatched } from '../emails/order-dispatched.js';
 import { render as renderDelivered } from '../emails/order-delivered.js';
 
@@ -58,6 +59,10 @@ async function sendToCustomer(order, { subject, html, text }, options = {}) {
 
 export async function sendOrderConfirmation(order) {
   return sendToCustomer(order, renderConfirmation(order));
+}
+
+export async function sendOrderInProduction(order) {
+  return sendToCustomer(order, renderProduction(order));
 }
 
 // dispatch: { trackingNumber?, trackingUrl? }
