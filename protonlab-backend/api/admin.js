@@ -269,6 +269,38 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, sent, failed, matched: targets.length });
     }
 
+    // ── Manual status move ────────────────────────────────────────────────
+    // {action:'status', pi, status:'processing'|'dispatched'|'delivered'} —
+    // silently re-buckets a Stripe order between the dashboard's sub-tabs by
+    // rewriting metadata. Sends NO emails; the dispatch button remains the
+    // only email-sending path. Setting a metadata key to '' deletes it.
+    if (req.body?.action === 'status') {
+      const { pi: movePi, status } = req.body;
+      if (!movePi || !['processing', 'dispatched', 'delivered'].includes(status)) {
+        return res.status(400).json({ error: 'Need pi and a valid status' });
+      }
+      let payment;
+      try {
+        payment = await stripe.paymentIntents.retrieve(movePi);
+      } catch {
+        return res.status(404).json({ error: 'Order not found in Stripe' });
+      }
+      const now = new Date().toISOString();
+      const meta =
+        status === 'processing'
+          ? { dispatched_at: '', tracking: '', delivered_at: '' }
+          : status === 'dispatched'
+            ? { dispatched_at: payment.metadata?.dispatched_at || now, delivered_at: '' }
+            : { dispatched_at: payment.metadata?.dispatched_at || now, delivered_at: now };
+      try {
+        await stripe.paymentIntents.update(movePi, { metadata: meta });
+      } catch (err) {
+        console.error('Status move failed for', movePi, err.message);
+        return res.status(502).json({ error: 'Stripe metadata update failed' });
+      }
+      return res.status(200).json({ ok: true, status });
+    }
+
     // ── Manual-order emails ───────────────────────────────────────────────
     // {action:'send', kind, order, tracking?} — sends a lifecycle email for an
     // order that doesn't exist in Stripe (added manually on the dashboard,
@@ -423,6 +455,7 @@ export default async function handler(req, res) {
       service: meta.shipping_method || 'standard',
       productionAt: meta.production_notified_at || null,
       dispatchedAt: meta.dispatched_at || null,
+      deliveredAt: meta.delivered_at || null,
       tracking: meta.tracking || null,
     };
     if (!entry.email || !entry.phone) needLookup.push(entry);
