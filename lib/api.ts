@@ -45,7 +45,7 @@ const stock = stockJson as StockMap
 //   'legacy'     — the original catalogue (Summer 2026 hidden until its drop).
 // To drop the new collection: change SHOP_MODE to 'summer2026' and deploy.
 type ShopMode = 'empty' | 'summer2026' | 'legacy'
-const SHOP_MODE: ShopMode = 'empty'
+const SHOP_MODE: ShopMode = 'summer2026'
 
 const SUMMER_2026_HANDLES = new Set([
   'sunset-jersey',
