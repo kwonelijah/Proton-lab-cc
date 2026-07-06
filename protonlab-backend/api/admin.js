@@ -420,6 +420,7 @@ export default async function handler(req, res) {
       items: itemsSummary(meta),
       place: [addr.city, addr.postal_code].filter(Boolean).join(', ') || '—',
       amount: (p.amount / 100).toFixed(2),
+      service: meta.shipping_method || 'standard',
       productionAt: meta.production_notified_at || null,
       dispatchedAt: meta.dispatched_at || null,
       tracking: meta.tracking || null,
