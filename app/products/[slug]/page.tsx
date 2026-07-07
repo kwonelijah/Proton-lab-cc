@@ -20,10 +20,30 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const product = await getProductByHandle(params.slug)
   if (!product) return {}
+  const title = product.seo?.title ?? product.title
+  const description = product.seo?.description ?? product.description
+  const image = {
+    url: product.featuredImage.url,
+    width: product.featuredImage.width,
+    height: product.featuredImage.height,
+    alt: product.featuredImage.altText ?? product.title,
+  }
   return {
-    title: product.seo?.title ?? product.title,
-    description: product.seo?.description ?? product.description,
+    title,
+    description,
     keywords: product.seo?.keywords,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      images: [image],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image.url],
+    },
   }
 }
 

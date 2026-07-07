@@ -769,7 +769,7 @@ export const products: Product[] = [
     featuredImage: { id: 'img-ocean-blue-jersey-1', url: '/images/products/ocean-blue-jersey/ocean-blue-jersey1.jpg', altText: 'Ocean Blue Jersey', width: 1333, height: 2000 },
     images: { nodes: [
       { id: 'img-ocean-blue-jersey-1', url: '/images/products/ocean-blue-jersey/ocean-blue-jersey1.jpg', altText: 'Ocean Blue Jersey', width: 1333, height: 2000 },
-      { id: 'img-ocean-blue-jersey-2', url: '/images/products/ocean-blue-jersey/ocean-blue-jersey2.png', altText: 'Ocean Blue Jersey', width: 1333, height: 2000 },
+      { id: 'img-ocean-blue-jersey-2', url: '/images/products/ocean-blue-jersey/ocean-blue-jersey2.jpg', altText: 'Ocean Blue Jersey', width: 1333, height: 2000 },
     ]},
     variants: sizes('030', '75.00'),
     priceRange: { minVariantPrice: { amount: '75.00', currencyCode: 'GBP' } },

@@ -4,6 +4,8 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import VideoHero from '@/components/sections/VideoHero'
 import CTABanner from '@/components/sections/CTABanner'
+import HomeCollectionCarousel from '@/components/sections/HomeCollectionCarousel'
+import { getProducts } from '@/lib/api'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -12,7 +14,22 @@ export const metadata: Metadata = {
     'Precision-engineered cycling apparel for those who train and race without compromise.',
 }
 
+// Homepage showcase order — alternating jersey / shorts.
+const CAROUSEL_ORDER = [
+  'ocean-blue-jersey',
+  'white-bib-shorts',
+  'red-sky-jersey',
+  'granite-bib-shorts',
+  'sunset-jersey',
+  'black-bib-shorts',
+]
+
 export default async function HomePage() {
+  const products = await getProducts()
+  const carouselProducts = CAROUSEL_ORDER
+    .map(handle => products.find(p => p.handle === handle))
+    .filter((p): p is (typeof products)[number] => Boolean(p))
+
   return (
     <>
       <Navbar />
@@ -29,8 +46,11 @@ export default async function HomePage() {
         secondaryCtaHref="/custom"
       />
 
+      {/* 1b. Rotating collection showcase */}
+      <HomeCollectionCarousel products={carouselProducts} />
+
       {/* 2. Two-path CTA */}
-      <section className="py-24 md:py-32 px-6 md:px-12">
+      <section className="pt-6 md:pt-8 pb-24 md:pb-32 px-6 md:px-12">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/shop" className="group relative overflow-hidden aspect-[4/3] bg-proton-light flex items-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2">
             <Image

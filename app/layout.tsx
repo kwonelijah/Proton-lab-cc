@@ -17,6 +17,7 @@ const inter = Montserrat({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://protonlab.cc'),
   title: {
     template: '%s | Proton Lab CC',
     default: 'Proton Lab CC — Premium Cycling Apparel',
@@ -27,6 +28,17 @@ export const metadata: Metadata = {
     siteName: 'Proton Lab CC',
     type: 'website',
     locale: 'en_GB',
+    images: [
+      {
+        url: '/images/hero/Home.jpg',
+        width: 2436,
+        height: 1125,
+        alt: 'Proton Lab CC — Premium Cycling Apparel',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
   },
 }
 
