@@ -46,24 +46,33 @@ const COUNTRY_NAMES = {
 // orders may need booking through Evri International separately.
 const SERVICE_NAMES = { standard: 'Standard', 'next-day': 'Next Day', international: 'International' };
 
-// Evri standard bulk columns — adjust these to match your portal's template if needed.
+// Evri bulk-upload columns — mirrors the portal's template exactly
+// (evri_csv_template_ndd.csv). Do not reorder. The template has no Country
+// column; non-GB orders carry their country in Address_line_4 (see below).
 const HEADERS = [
-  'Name',
-  'Address Line 1',
-  'Address Line 2',
-  'Town/City',
-  'County',
+  'Address_line_1',
+  'Address_line_2',
+  'Address_line_3',
+  'Address_line_4',
   'Postcode',
-  'Country',
+  'First_name',
+  'Last_name',
   'Email',
-  'Phone',
-  'Weight (kg)',
-  'Contents',
-  'Value (GBP)',
-  'Service',
+  'Weight(Kg)',
+  'Compensation(£)',
+  'Signature(y/n)',
   'Reference',
-  'Quantity',
+  'Contents',
+  'Parcel_value(£)',
+  'Delivery_phone',
+  'Delivery_instructions',
+  'Service',
 ];
+
+function splitName(n) {
+  const parts = String(n || '').trim().split(/\s+/);
+  return { first: parts[0] || '', last: parts.slice(1).join(' ') || '' };
+}
 
 function csvCell(value) {
   const s = value == null ? '' : String(value);
@@ -125,23 +134,31 @@ export default async function handler(req, res) {
     const number = orderNumber(p.id);
     const ref = club ? `${club} #${number}` : `Order #${number}`;
 
+    const name = splitName(ship.name || meta.customer_name || meta.name || '');
+    // Template has no Country column — keep county in line 4 and append the
+    // country name for non-GB orders so the info isn't silently dropped.
+    const line4 = [addr.state, addr.country && addr.country !== 'GB' ? COUNTRY_NAMES[addr.country] || addr.country : '']
+      .filter(Boolean)
+      .join(', ');
     rows.push([
-      ship.name || meta.name || '',
       addr.line1 || '',
       addr.line2 || '',
       addr.city || '',
-      addr.state || '',
+      line4,
       addr.postal_code || '',
-      COUNTRY_NAMES[addr.country] || addr.country || '',
-      p.receipt_email || meta.email || '',
-      ship.phone || '',
-      '', // Weight (kg) — left blank for now
+      name.first,
+      name.last,
+      meta.customer_email || p.receipt_email || meta.email || '',
+      '', // Weight(Kg) — left blank for now
+      '', // Compensation(£) — included cover
+      'n', // Signature(y/n)
+      ref,
       contentsFromMetadata(meta),
       // Declared value = goods only (total charged minus shipping), for customs accuracy.
       ((p.amount - Number(meta.shipping_amount || 0)) / 100).toFixed(2),
+      ship.phone || meta.customer_phone || '',
+      '', // Delivery_instructions
       SERVICE_NAMES[meta.shipping_method] || 'Standard',
-      ref,
-      1, // one parcel per order
     ]);
   }
 
