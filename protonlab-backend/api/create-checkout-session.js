@@ -36,7 +36,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { items, customerEmail, customerName, shippingRegion } = req.body;
+  const { items, customerEmail, customerName, shippingRegion, fbp, fbc } = req.body;
+
+  // Meta ads attribution — the browser's _fbp/_fbc cookies arrive in the body;
+  // IP and user-agent are read from this request (it comes from the customer's
+  // browser, unlike the Stripe webhook later). All four are stamped onto the
+  // PaymentIntent metadata so the webhook can send a fully-attributed
+  // Conversions API Purchase event.
+  const clientIp =
+    (typeof req.headers['x-forwarded-for'] === 'string' && req.headers['x-forwarded-for'].split(',')[0].trim()) || '';
+  const clientUa = (req.headers['user-agent'] || '').slice(0, 480);
 
   // items = [{ handle: 'ss-race-jersey', size: 'M', quantity: 1, image?: '...' }]
   // shippingRegion = 'uk' | 'europe' | 'world' — omitted by older frontends, defaults to 'uk'
@@ -138,6 +147,10 @@ export default async function handler(req, res) {
           items: JSON.stringify(
             resolved.map(i => ({ name: i.name, handle: i.handle, size: i.size, qty: i.quantity }))
           ),
+          fbp: typeof fbp === 'string' ? fbp.slice(0, 100) : '',
+          fbc: typeof fbc === 'string' ? fbc.slice(0, 500) : '',
+          client_ip: clientIp,
+          client_ua: clientUa,
         },
       },
 

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ProductVariant } from '@/types/product'
 import Button from '@/components/ui/Button'
 import { useCartStore } from '@/stores/cart'
+import { trackMetaEvent, parsePrice } from '@/lib/meta'
 
 interface Props {
   variants: ProductVariant[]
@@ -22,9 +23,28 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
   const selected = variants.find(v => v.id === selectedId)
   const sizeLabel = selected?.selectedOptions.find(o => o.name === 'Size')?.value ?? selected?.title ?? ''
 
+  // Meta Pixel: club product page viewed
+  useEffect(() => {
+    trackMetaEvent('ViewContent', {
+      content_ids: [productHandle],
+      content_name: `${clubName} — ${productName}`,
+      content_type: 'product',
+      currency: 'GBP',
+      value: parsePrice(price),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productHandle])
+
   function handleAddToCart() {
     if (!selected) return
     addItem({ clubHandle, clubName, productHandle, productName, size: sizeLabel, price })
+    trackMetaEvent('AddToCart', {
+      content_ids: [productHandle],
+      content_name: `${clubName} — ${productName}`,
+      content_type: 'product',
+      currency: 'GBP',
+      value: parsePrice(price),
+    })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }

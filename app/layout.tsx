@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Playfair_Display, Montserrat } from 'next/font/google'
 import '@/styles/globals.css'
 import CartDrawer from '@/components/ui/CartDrawer'
+import MetaPixel from '@/components/analytics/MetaPixel'
+import ConsentBanner from '@/components/analytics/ConsentBanner'
 import { Analytics } from '@vercel/analytics/next'
 
 const playfair = Playfair_Display({
@@ -58,6 +60,8 @@ export default function RootLayout({
         </a>
         {children}
         <CartDrawer />
+        <MetaPixel />
+        <ConsentBanner />
         <Analytics />
       </body>
     </html>
