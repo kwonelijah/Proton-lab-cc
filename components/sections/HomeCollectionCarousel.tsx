@@ -68,7 +68,7 @@ export default function HomeCollectionCarousel({
                   </div>
                   <div className="pt-3">
                     <h3 className="font-inter text-sm leading-snug text-proton-black">{product.title}</h3>
-                    <p className="mt-1 text-sm text-proton-grey">{formatPrice(amount, currencyCode)}</p>
+                    <p className="mt-1 text-sm text-proton-black">{formatPrice(amount, currencyCode)}</p>
                   </div>
                 </Link>
               </li>

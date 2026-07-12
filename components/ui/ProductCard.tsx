@@ -55,7 +55,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         <h3 className="font-inter text-sm text-proton-black leading-snug group-hover:opacity-60 transition-opacity duration-200">
           {product.title}
         </h3>
-        <p className="text-sm text-proton-grey mt-1">
+        <p className="text-sm text-proton-black mt-1">
           {formatPrice(amount, currencyCode)}
         </p>
       </div>

@@ -19,9 +19,10 @@ export default function Navbar() {
   const isShop = pathname.startsWith('/shop') || pathname.startsWith('/products')
   const isClubShop = pathname.startsWith('/custom/club')
 
-  // The club shop sits on a white background, so keep the header in its white
-  // state with black text at all times here — no scroll transition.
-  const isLight = scrolled || mobileOpen || isClubShop
+  // The club shop, main shop and product pages sit on light backgrounds (the
+  // shop's dark hero is gone), so keep the header in its white state with
+  // black text at all times there — no scroll transition.
+  const isLight = scrolled || mobileOpen || isClubShop || isShop
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)

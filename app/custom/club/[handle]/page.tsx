@@ -60,7 +60,7 @@ export default function ClubShopPage() {
                   />
                 </div>
                 <h3 className="font-inter text-sm text-proton-black">{product.name}</h3>
-                <p className="text-sm text-proton-grey mt-1">{product.price}</p>
+                <p className="text-sm text-proton-black mt-1">{product.price}</p>
               </Link>
             ))}
           </div>
