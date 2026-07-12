@@ -45,13 +45,37 @@ export interface MetaEventParams {
   num_items?: number
 }
 
-// No-ops until the pixel has been initialised (i.e. before consent).
-export function trackMetaEvent(event: MetaEventName, params: MetaEventParams, eventId?: string): void {
-  if (typeof window === 'undefined' || !window.fbq) return
+// Events fired before the pixel is initialised are queued and flushed by
+// MetaPixel.tsx right after init. This matters on direct page loads (e.g. an
+// ad click landing on a product page): the page's ViewContent effect runs
+// before the pixel loader's effect, and without the queue the event is lost.
+// If consent is never granted the queue is simply never flushed.
+let pixelReady = false
+const pendingEvents: Array<[MetaEventName, MetaEventParams, string | undefined]> = []
+
+function sendEvent(event: MetaEventName, params: MetaEventParams, eventId?: string): void {
+  if (!window.fbq) return
   if (eventId) {
     window.fbq('track', event, params, { eventID: eventId })
   } else {
     window.fbq('track', event, params)
+  }
+}
+
+export function trackMetaEvent(event: MetaEventName, params: MetaEventParams, eventId?: string): void {
+  if (typeof window === 'undefined') return
+  if (!pixelReady || !window.fbq) {
+    if (pendingEvents.length < 20) pendingEvents.push([event, params, eventId])
+    return
+  }
+  sendEvent(event, params, eventId)
+}
+
+// Called by MetaPixel.tsx once fbq('init') has run.
+export function markPixelReady(): void {
+  pixelReady = true
+  for (const [event, params, eventId] of pendingEvents.splice(0)) {
+    sendEvent(event, params, eventId)
   }
 }
 

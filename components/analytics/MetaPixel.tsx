@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { META_PIXEL_ID, CONSENT_EVENT, getConsent } from '@/lib/meta'
+import { META_PIXEL_ID, CONSENT_EVENT, getConsent, markPixelReady } from '@/lib/meta'
 
 // Loads the Meta Pixel base code once the visitor has granted cookie consent,
 // then reports PageView on every client-side route change. Rendered globally
@@ -46,6 +46,7 @@ function initPixel() {
   window.fbq!('init', META_PIXEL_ID)
   window.fbq!('track', 'PageView')
   lastTrackedPath = window.location.pathname
+  markPixelReady()
 }
 
 export default function MetaPixel() {
