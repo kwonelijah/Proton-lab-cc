@@ -5,6 +5,7 @@ import CartDrawer from '@/components/ui/CartDrawer'
 import MetaPixel from '@/components/analytics/MetaPixel'
 import ConsentBanner from '@/components/analytics/ConsentBanner'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -68,6 +69,7 @@ export default function RootLayout({
         <MetaPixel />
         <ConsentBanner />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
