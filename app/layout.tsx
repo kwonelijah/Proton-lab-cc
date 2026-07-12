@@ -3,7 +3,6 @@ import { Playfair_Display, Montserrat } from 'next/font/google'
 import '@/styles/globals.css'
 import CartDrawer from '@/components/ui/CartDrawer'
 import MetaPixel from '@/components/analytics/MetaPixel'
-import ConsentBanner from '@/components/analytics/ConsentBanner'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
@@ -67,7 +66,6 @@ export default function RootLayout({
         {children}
         <CartDrawer />
         <MetaPixel />
-        <ConsentBanner />
         <Analytics />
         <SpeedInsights />
       </body>

@@ -2,11 +2,10 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { META_PIXEL_ID, CONSENT_EVENT, getConsent, markPixelReady } from '@/lib/meta'
+import { META_PIXEL_ID, markPixelReady } from '@/lib/meta'
 
-// Loads the Meta Pixel base code once the visitor has granted cookie consent,
-// then reports PageView on every client-side route change. Rendered globally
-// from app/layout.tsx.
+// Loads the Meta Pixel base code on first mount, then reports PageView on
+// every client-side route change. Rendered globally from app/layout.tsx.
 
 let initialised = false
 let lastTrackedPath: string | null = null
@@ -52,15 +51,8 @@ function initPixel() {
 export default function MetaPixel() {
   const pathname = usePathname()
 
-  // Initialise immediately if consent was granted on a previous visit,
-  // otherwise wait for the banner's accept event.
   useEffect(() => {
-    if (getConsent() === 'granted') initPixel()
-    const onConsentChange = (e: Event) => {
-      if ((e as CustomEvent).detail === 'granted') initPixel()
-    }
-    window.addEventListener(CONSENT_EVENT, onConsentChange)
-    return () => window.removeEventListener(CONSENT_EVENT, onConsentChange)
+    initPixel()
   }, [])
 
   // PageView on client-side navigation (init covers the initial load)

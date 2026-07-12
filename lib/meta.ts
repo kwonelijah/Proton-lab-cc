@@ -1,28 +1,9 @@
-// Meta (Facebook) Pixel helpers — cookie consent state + typed fbq wrappers.
-// The pixel itself is loaded by components/analytics/MetaPixel.tsx, and only
-// after the visitor accepts cookies (components/analytics/ConsentBanner.tsx).
-// Server-side Purchase events are sent independently by protonlab-backend
+// Meta (Facebook) Pixel helpers — typed fbq wrappers. The pixel itself is
+// loaded by components/analytics/MetaPixel.tsx on first mount. Server-side
+// Purchase events are sent independently by protonlab-backend
 // (lib/meta-capi.js) and deduplicated against the browser event via eventID.
 
 export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? ''
-
-// ─── Consent ──────────────────────────────────────────────────────────────────
-
-export type ConsentState = 'granted' | 'denied' | null
-
-const CONSENT_KEY = 'pl-cookie-consent'
-export const CONSENT_EVENT = 'pl-consent-change'
-
-export function getConsent(): ConsentState {
-  if (typeof window === 'undefined') return null
-  const value = window.localStorage.getItem(CONSENT_KEY)
-  return value === 'granted' || value === 'denied' ? value : null
-}
-
-export function setConsent(value: 'granted' | 'denied'): void {
-  window.localStorage.setItem(CONSENT_KEY, value)
-  window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: value }))
-}
 
 // ─── Event tracking ───────────────────────────────────────────────────────────
 
@@ -49,7 +30,6 @@ export interface MetaEventParams {
 // MetaPixel.tsx right after init. This matters on direct page loads (e.g. an
 // ad click landing on a product page): the page's ViewContent effect runs
 // before the pixel loader's effect, and without the queue the event is lost.
-// If consent is never granted the queue is simply never flushed.
 let pixelReady = false
 const pendingEvents: Array<[MetaEventName, MetaEventParams, string | undefined]> = []
 
