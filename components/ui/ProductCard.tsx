@@ -18,6 +18,16 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const isLandscape = product.featuredImage.width > product.featuredImage.height
   const fit = isLandscape ? 'object-contain' : 'object-cover'
 
+  // Second gallery image fades in on hover; products with a single photo keep
+  // the plain card.
+  const hoverImage = product.images.nodes.find(
+    (img) => img.url !== product.featuredImage.url
+  )
+  const hoverFit =
+    hoverImage && hoverImage.width > hoverImage.height
+      ? 'object-contain'
+      : 'object-cover'
+
   return (
     <Link
       href={`/products/${product.handle}`}
@@ -30,10 +40,23 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           src={product.featuredImage.url}
           alt={product.featuredImage.altText ?? product.title}
           fill
-          sizes="(max-width: 640px) 50vw, 33vw"
-          className={`${fit} transition-opacity duration-300 group-hover:opacity-90`}
+          sizes="(max-width: 640px) 50vw, 45vw"
+          quality={90}
+          className={`${fit} transition-opacity duration-300 ${
+            hoverImage ? 'group-hover:opacity-0' : 'group-hover:opacity-90'
+          }`}
           priority={priority}
         />
+        {hoverImage && (
+          <Image
+            src={hoverImage.url}
+            alt={hoverImage.altText ?? product.title}
+            fill
+            sizes="(max-width: 640px) 50vw, 45vw"
+            quality={90}
+            className={`${hoverFit} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+          />
+        )}
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-proton-black/0 group-hover:bg-proton-black/8 transition-colors duration-300" />
 

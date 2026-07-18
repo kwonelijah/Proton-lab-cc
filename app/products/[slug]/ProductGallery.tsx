@@ -14,7 +14,29 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   const active = images[activeIndex] ?? images[0]
 
   return (
-    <div className="flex flex-col gap-3">
+    <div>
+      {/* Desktop: Rapha-style 2-up grid — all images shown, page scrolls through them */}
+      <div className="hidden md:grid grid-cols-2 gap-2 content-start">
+        {images.map((img, i) => (
+          <div
+            key={img.id}
+            className="relative overflow-hidden aspect-[2/3] bg-proton-light"
+          >
+            <Image
+              src={img.url}
+              alt={img.altText ?? `${productTitle} image ${i + 1}`}
+              fill
+              sizes="40vw"
+              quality={90}
+              className={img.width > img.height ? 'object-contain' : 'object-cover'}
+              priority={i < 2}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile: main image + thumbnails (unchanged) */}
+      <div className="flex flex-col gap-3 md:hidden">
       {/* Main image — frame takes the photo's own aspect ratio (no letterbox) */}
       <div
         className="relative overflow-hidden bg-proton-light"
@@ -25,6 +47,7 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           alt={active.altText ?? productTitle}
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
+          quality={90}
           className="object-contain transition-opacity duration-300"
           priority
         />
@@ -53,6 +76,7 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }

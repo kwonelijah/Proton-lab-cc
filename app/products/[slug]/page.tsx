@@ -56,7 +56,7 @@ export default async function ProductPage({ params }: PageProps) {
 
   return (
     <PageWrapper>
-      <div className="max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-16">
+      <div className="max-w-7xl md:max-w-none mx-auto px-6 md:px-8 py-10 md:py-16">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-proton-grey mb-8">
           <Link href="/shop" className="hover:text-proton-black transition-colors duration-200">
@@ -66,19 +66,20 @@ export default async function ProductPage({ params }: PageProps) {
           <span className="text-proton-black">{product.title}</span>
         </nav>
 
-        {/* Main content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 lg:gap-20">
+        {/* Main content — Rapha-style split: 2-up scrolling gallery left, sticky details right */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-10 lg:gap-12">
           {/* Gallery */}
-          <ProductGallery
-            images={[
-              product.featuredImage,
-              ...product.images.nodes.filter(img => img.url !== product.featuredImage.url),
-            ]}
-            productTitle={product.title}
-          />
+          <div className="md:col-span-3">
+            {/* Gallery shows the images array only — featuredImage is the card/hero
+                shot and may not belong in the product gallery (e.g. Red Sky) */}
+            <ProductGallery
+              images={product.images.nodes}
+              productTitle={product.title}
+            />
+          </div>
 
           {/* Product details */}
-          <div className="md:sticky md:top-24 md:self-start space-y-8">
+          <div className="md:col-span-2 md:sticky md:top-24 md:self-start space-y-8">
             {/* Title + price */}
             <div>
               {collectionRef && (
