@@ -36,8 +36,6 @@ lib/agent.js   →  Claude API (flags/processes order, updates sheet)
 | `api/create-checkout-session.js` | Creates Stripe Hosted Checkout session for frontend |
 | `api/admin.js` | Dispatch admin page (`?key=proton_export_key`) — sends dispatch email, schedules thank-you (+5 days), stamps PaymentIntent metadata. `&format=json` mode feeds the local order dashboard's Web Shop tab (CORS open; auth via key). POST `{action:'production', club}` emails all un-notified customers of a club that their order is in production. POST `{action:'send', kind, order, tracking?}` sends lifecycle emails for dashboard-managed manual (non-Stripe) orders |
 | `api/export-evri.js` | Evri bulk-despatch CSV export, read from Stripe (`?key=proton_export_key`) |
-| `api/checkout-session.js` | Non-PII order summary (value/currency/handles) for a paid session — the frontend `/success` page uses it to fire the browser Meta Purchase event |
-| `lib/meta-capi.js` | Meta Conversions API sender — hashed user data + attribution; used by webhook for server-side Purchase events |
 | `emails/theme.js` | Email design system — brand palette/type/layout, shared by all customer emails |
 | `emails/order-*.js` | Customer email templates: confirmation, dispatched, delivered thank-you |
 | `lib/sheets.js` | All Google Sheets read/write logic |
@@ -58,9 +56,6 @@ Never hardcode these. They live in Vercel dashboard → Settings → Environment
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | Full JSON contents of Google service account key |
 | `ANTHROPIC_API_KEY` | Claude API key for the agent |
 | `SITE_URL` | `https://protonlab.cc` — used for Stripe redirect URLs |
-| `META_PIXEL_ID` | Meta pixel/dataset ID (Events Manager) — Conversions API events |
-| `META_CAPI_ACCESS_TOKEN` | Meta Conversions API access token (Events Manager → pixel Settings) |
-| `META_TEST_EVENT_CODE` | Optional — routes CAPI events to Test Events while set; remove in production |
 
 ## Google Sheet structure
 

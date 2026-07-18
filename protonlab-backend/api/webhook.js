@@ -5,7 +5,6 @@
 
 import Stripe from 'stripe';
 import { sendOrderConfirmation, sendInternalNotification } from '../lib/email.js';
-import { sendMetaEvent, buildUserData } from '../lib/meta-capi.js';
 // import { appendOrder } from '../lib/sheets.js';     // Phase 2
 // import { processNewOrders } from '../lib/agent.js'; // Phase 2
 
@@ -166,39 +165,9 @@ export default async function handler(req, res) {
       console.error('Could not stamp customer metadata:', err.message);
     }
 
-    // Meta Conversions API Purchase — server-side, so it lands even if the
-    // customer never returns to /success or has blocked the browser pixel.
-    // event_id is the Checkout Session id, matching the browser event's eventID
-    // (app/success/PurchaseTracker.tsx on the frontend) for deduplication.
-    const metaPurchase = sendMetaEvent({
-      eventName: 'Purchase',
-      eventId: session?.id || payment.id,
-      eventTime: payment.created,
-      eventSourceUrl: `${process.env.SITE_URL || 'https://protonlab.cc'}/success`,
-      userData: buildUserData({
-        email: order.email,
-        phone: order.phone,
-        name: order.name,
-        address: shipping?.address || null,
-        fbp: payment.metadata?.fbp || undefined,
-        fbc: payment.metadata?.fbc || undefined,
-        clientIp: payment.metadata?.client_ip || undefined,
-        clientUa: payment.metadata?.client_ua || undefined,
-      }),
-      customData: {
-        value: payment.amount / 100,
-        currency: payment.currency.toUpperCase(),
-        content_ids: lineItems.map(i => i.handle),
-        contents: lineItems.map(i => ({ id: i.handle, quantity: i.qty || 1 })),
-        content_type: 'product',
-        num_items: lineItems.reduce((sum, i) => sum + (i.qty || 1), 0),
-      },
-    });
-
     await Promise.all([
       sendOrderConfirmation(order),
       sendInternalNotification(order),
-      metaPurchase,
     ]);
 
     // Phase 2: uncomment these once Google Sheets is configured

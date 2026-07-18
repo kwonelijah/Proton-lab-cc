@@ -1,14 +1,9 @@
-import { Suspense } from 'react'
 import Link from 'next/link'
 import PageWrapper from '@/components/layout/PageWrapper'
-import PurchaseTracker from './PurchaseTracker'
 
 export default function SuccessPage() {
   return (
     <PageWrapper>
-      <Suspense fallback={null}>
-        <PurchaseTracker />
-      </Suspense>
       <div className="max-w-lg mx-auto px-6 py-32 text-center">
         <p className="font-playfair text-4xl text-proton-black mb-4">Order confirmed.</p>
         <p className="text-sm text-proton-grey leading-relaxed mb-10">

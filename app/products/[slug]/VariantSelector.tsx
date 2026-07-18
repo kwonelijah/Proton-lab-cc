@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { ProductVariant } from '@/types/product'
 import Button from '@/components/ui/Button'
 import { useCartStore } from '@/stores/cart'
-import { trackMetaEvent, parsePrice } from '@/lib/meta'
 
 interface VariantSelectorProps {
   variants: ProductVariant[]
@@ -21,18 +20,6 @@ export default function VariantSelector({ variants, productTitle, productHandle,
   const { addItem, openCart, items } = useCartStore()
 
   const selected = variants.find(v => v.id === selectedId)
-
-  // Meta Pixel: product page viewed
-  useEffect(() => {
-    trackMetaEvent('ViewContent', {
-      content_ids: [productHandle],
-      content_name: productTitle,
-      content_type: 'product',
-      currency: 'GBP',
-      value: parsePrice(variants[0]?.price.amount ?? '0'),
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productHandle])
 
   const alreadyInCart = useMemo(() => {
     if (!selected) return 0
@@ -67,13 +54,6 @@ export default function VariantSelector({ variants, productTitle, productHandle,
       return
     }
     setNote(null)
-    trackMetaEvent('AddToCart', {
-      content_ids: [productHandle],
-      content_name: productTitle,
-      content_type: 'product',
-      currency: 'GBP',
-      value: parsePrice(selected.price.amount),
-    })
     openCart()
   }
 
