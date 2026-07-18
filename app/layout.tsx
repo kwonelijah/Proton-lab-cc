@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Playfair_Display, Montserrat } from 'next/font/google'
 import '@/styles/globals.css'
 import CartDrawer from '@/components/ui/CartDrawer'
+import MetaPixel from '@/components/analytics/MetaPixel'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
@@ -64,6 +65,7 @@ export default function RootLayout({
         </a>
         {children}
         <CartDrawer />
+        <MetaPixel />
         <Analytics />
         <SpeedInsights />
       </body>

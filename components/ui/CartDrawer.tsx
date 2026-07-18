@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '@/stores/cart'
 import { redirectToCheckout, type ShippingRegion } from '@/lib/checkout'
+import { trackMetaEvent, parsePrice } from '@/lib/meta'
 
 const FREE_SHIPPING_THRESHOLD = 100 // £ — must match protonlab-backend/config/shipping.js
 
@@ -70,6 +71,14 @@ export default function CartDrawer() {
     if (items.length === 0) return
     setLoading(true)
     setError(null)
+    trackMetaEvent('InitiateCheckout', {
+      content_ids: items.map(i => i.productHandle),
+      contents: items.map(i => ({ id: i.productHandle, quantity: i.quantity })),
+      content_type: 'product',
+      currency: 'GBP',
+      value: items.reduce((sum, i) => sum + parsePrice(i.price) * i.quantity, 0),
+      num_items: items.reduce((sum, i) => sum + i.quantity, 0),
+    })
     try {
       await redirectToCheckout(
         items.map(item => ({
