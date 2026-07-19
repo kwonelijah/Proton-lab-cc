@@ -88,7 +88,7 @@ export default function NewsletterPopup() {
         role="dialog"
         aria-modal="true"
         aria-label="Newsletter signup"
-        className="fixed z-50 bg-proton-white shadow-2xl inset-x-0 bottom-0 max-h-[30vh] overflow-y-auto p-5 border-t border-proton-light md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[calc(100%-3rem)] md:max-w-md md:max-h-none md:overflow-visible md:border-t-0 md:p-10"
+        className="fixed z-50 bg-proton-white shadow-2xl inset-x-0 bottom-0 min-h-[33vh] max-h-[40vh] overflow-y-auto p-6 border-t border-proton-light md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[calc(100%-3rem)] md:max-w-md md:min-h-0 md:max-h-none md:overflow-visible md:border-t-0 md:p-10"
       >
         <button
           onClick={dismiss}
@@ -115,7 +115,7 @@ export default function NewsletterPopup() {
         ) : (
           <>
             <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">Get 10% off your first order</h2>
-            <p className="hidden md:block text-sm text-proton-grey leading-relaxed mb-6">
+            <p className="text-xs md:text-sm text-proton-grey leading-relaxed mb-4 md:mb-6">
               Join the list and we’ll email you a single-use code for 10% off
               your first order.
             </p>
