@@ -14,7 +14,6 @@
 // Bot submissions get a silent 200 and nothing happens.
 
 import Stripe from 'stripe';
-import { Resend } from 'resend';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -122,23 +121,26 @@ export default async function handler(req, res) {
       metadata: { source: src, email },
     });
 
-    // Add to the Resend audience (the actual mailing list — unsubscribes are
-    // managed there). Not configured yet → log and carry on; the signup is
-    // still recorded in the sheet.
-    if (process.env.RESEND_AUDIENCE_ID) {
-      try {
-        const resendKey = process.env.proton_resend_key || process.env.Resend_Backend_Key;
-        const resend = new Resend(resendKey);
-        await resend.contacts.create({
-          audienceId: process.env.RESEND_AUDIENCE_ID,
-          email,
-          unsubscribed: false,
-        });
-      } catch (err) {
-        console.error('Resend audience add failed (continuing):', err);
+    // Add to the Resend audience — the actual mailing list; unsubscribes are
+    // managed there. This account is on Resend's single-audience model, so
+    // contacts are created directly (no audienceId). Uses the HTTP API rather
+    // than the SDK, whose pinned version predates the new model. Failure here
+    // shouldn't lose the signup — it's still in the sheet.
+    try {
+      const resendKey = process.env.proton_resend_key || process.env.Resend_Backend_Key;
+      const contactRes = await fetch('https://api.resend.com/contacts', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, unsubscribed: false }),
+      });
+      if (!contactRes.ok) {
+        console.error('Resend contact add failed (continuing):', await contactRes.text());
       }
-    } else {
-      console.warn('RESEND_AUDIENCE_ID not set — subscriber not added to audience');
+    } catch (err) {
+      console.error('Resend contact add failed (continuing):', err);
     }
 
     await appendSubscriber({
