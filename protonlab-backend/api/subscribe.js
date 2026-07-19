@@ -1,8 +1,10 @@
 // api/subscribe.js
-// Newsletter signup: adds the address to the Resend audience, issues a unique
-// single-use 10% welcome code (retail range only), logs the signup to the
-// Subscribers sheet tab, and emails the code. The code is only ever delivered
-// by email — that's what proves the address is real.
+// Newsletter signup: adds the address to the Resend contact list, issues a
+// unique single-use 10% welcome code (retail range only), and emails the
+// code. The code is only ever delivered by email — that's what proves the
+// address is real. The subscriber log lives in Resend (Audience → Contacts);
+// each issued code is also visible in Stripe (promotion code metadata carries
+// the email + source).
 //
 // POST { email, source } — source is 'popup' | 'footer' (display only).
 // Responses are deliberately shaped for the frontend forms:
@@ -17,7 +19,6 @@ import Stripe from 'stripe';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { appendSubscriber, getSubscriberEmails } from '../lib/sheets.js';
 import { sendWelcome } from '../lib/email.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -101,11 +102,20 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
   const src = source === 'footer' ? 'footer' : 'popup';
+  const resendKey = process.env.proton_resend_key || process.env.Resend_Backend_Key;
+  const resendHeaders = {
+    Authorization: `Bearer ${resendKey}`,
+    'Content-Type': 'application/json',
+  };
 
   try {
-    // Dedupe against the Subscribers sheet — one welcome code per address, ever.
-    const existing = await getSubscriberEmails();
-    if (existing.includes(email)) {
+    // Dedupe against the Resend contact list — one welcome code per address,
+    // ever. (Contacts also serve as the mailing list; codes are additionally
+    // logged on each Stripe promotion code's metadata.)
+    const lookup = await fetch(`https://api.resend.com/contacts/${encodeURIComponent(email)}`, {
+      headers: resendHeaders,
+    });
+    if (lookup.ok) {
       return res.status(200).json({ ok: true, already: true });
     }
 
@@ -121,34 +131,18 @@ export default async function handler(req, res) {
       metadata: { source: src, email },
     });
 
-    // Add to the Resend audience — the actual mailing list; unsubscribes are
-    // managed there. This account is on Resend's single-audience model, so
-    // contacts are created directly (no audienceId). Uses the HTTP API rather
-    // than the SDK, whose pinned version predates the new model. Failure here
-    // shouldn't lose the signup — it's still in the sheet.
-    try {
-      const resendKey = process.env.proton_resend_key || process.env.Resend_Backend_Key;
-      const contactRes = await fetch('https://api.resend.com/contacts', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, unsubscribed: false }),
-      });
-      if (!contactRes.ok) {
-        console.error('Resend contact add failed (continuing):', await contactRes.text());
-      }
-    } catch (err) {
-      console.error('Resend contact add failed (continuing):', err);
-    }
-
-    await appendSubscriber({
-      email,
-      code,
-      date: new Date().toISOString(),
-      source: src,
+    // Add to the Resend contact list — the actual mailing list; unsubscribes
+    // are managed there. This account is on Resend's single-audience model,
+    // so contacts are created directly (no audienceId). Uses the HTTP API
+    // rather than the SDK, whose pinned version predates the new model.
+    const contactRes = await fetch('https://api.resend.com/contacts', {
+      method: 'POST',
+      headers: resendHeaders,
+      body: JSON.stringify({ email, unsubscribed: false }),
     });
+    if (!contactRes.ok) {
+      console.error('Resend contact add failed (continuing):', await contactRes.text());
+    }
 
     const sent = await sendWelcome(email, { code, expiresAt: expiresAt.toISOString() });
     if (!sent.ok) {

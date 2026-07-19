@@ -20,13 +20,25 @@ function getSheetsClient(auth) {
   return google.sheets({ version: 'v4', auth });
 }
 
-// ─── Write a new order row to the sheet ────────────────────────────────────
+// ─── Generic row append ────────────────────────────────────────────────────
 
-export async function appendOrder(order) {
+async function appendRow(range, row) {
   const auth = await getAuth();
   const sheets = getSheetsClient(auth);
 
-  const row = [
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range,
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: [row] },
+  });
+}
+
+// ─── Write a new order row to the sheet ────────────────────────────────────
+
+export async function appendOrder(order) {
+  await appendRow('Orders!A:I', [
     order.id,
     order.amount,
     order.currency,
@@ -36,16 +48,9 @@ export async function appendOrder(order) {
     order.date,
     order.status,
     order.notes,
-  ];
-
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Orders!A:I',         // sheet tab named "Orders", columns A through I
-    valueInputOption: 'USER_ENTERED',
-    insertDataOption: 'INSERT_ROWS',
-    requestBody: { values: [row] },
-  });
+  ]);
 }
+
 
 // ─── Read all orders from the sheet ────────────────────────────────────────
 
