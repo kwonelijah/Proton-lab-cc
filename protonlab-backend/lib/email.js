@@ -9,6 +9,7 @@ import { render as renderConfirmation } from '../emails/order-confirmation.js';
 import { render as renderProduction } from '../emails/order-production.js';
 import { render as renderDispatched } from '../emails/order-dispatched.js';
 import { render as renderDelivered } from '../emails/order-delivered.js';
+import { render as renderWelcome } from '../emails/welcome.js';
 
 const FROM = 'Proton Lab CC <noreply@protonlab.cc>';
 const TEAM = 'info@protonlab.cc';
@@ -74,6 +75,11 @@ export async function sendOrderDispatched(order, dispatch = {}) {
 // few days after handover — Resend supports scheduling up to 30 days ahead.
 export async function sendOrderDelivered(order, options = {}) {
   return sendToCustomer(order, renderDelivered(order), options);
+}
+
+// Newsletter welcome with the subscriber's unique 10% code.
+export async function sendWelcome(email, { code, expiresAt }) {
+  return sendToCustomer({ email }, renderWelcome({ code, expiresAt }));
 }
 
 // ─── Internal team notification ─────────────────────────────────────────────
