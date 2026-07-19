@@ -181,20 +181,20 @@ export default function CartDrawer() {
                     >
                       <option value="uk">UK &amp; Ireland</option>
                       <option value="europe">Europe</option>
-                      <option value="world">Rest of world</option>
                     </select>
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] uppercase tracking-widest text-proton-grey">Total</p>
                     <p className="text-sm text-proton-black">£{subtotal.toFixed(2)}</p>
                   </div>
-                  {region === 'uk' && (
-                    <p className="text-[10px] text-proton-grey text-center">
-                      {remaining > 0
-                        ? `Add £${remaining.toFixed(2)} more for free standard delivery`
-                        : 'Free standard delivery unlocked'}
-                    </p>
-                  )}
+                  <p className="text-[10px] text-proton-grey text-center">
+                    {remaining > 0
+                      ? `Add £${remaining.toFixed(2)} more for free standard delivery`
+                      : 'Free standard delivery unlocked'}
+                  </p>
+                  <p className="text-[10px] text-proton-grey text-center">
+                    We currently ship to the UK, Ireland &amp; Europe only
+                  </p>
                   {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
                   <button
                     onClick={handleCheckout}

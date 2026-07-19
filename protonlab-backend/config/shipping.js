@@ -9,7 +9,7 @@
 // service to book ('standard' | 'next-day' | 'international').
 
 // Orders with a subtotal at or above this (pence, before any discount code)
-// get free standard delivery in the UK & Ireland zone.
+// get free standard delivery in the UK & Ireland and Europe zones.
 export const FREE_SHIPPING_THRESHOLD = 10000; // £100.00
 
 function rate(displayName, amount, evriService, minDays, maxDays) {
@@ -34,12 +34,6 @@ const EUROPE_COUNTRIES = [
   'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK',
 ];
 
-// Broad rest-of-world list (common destinations; extend as needed).
-const WORLD_COUNTRIES = [
-  'US', 'CA', 'AU', 'NZ', 'JP', 'SG', 'HK', 'KR', 'AE', 'SA', 'QA', 'ZA',
-  'BR', 'MX', 'AR', 'CL', 'IN', 'MY', 'TH', 'TW', 'IL', 'TR',
-];
-
 export const ZONES = {
   uk: {
     label: 'UK & Ireland',
@@ -58,14 +52,15 @@ export const ZONES = {
   europe: {
     label: 'Europe',
     allowedCountries: EUROPE_COUNTRIES,
-    optionsFor: () => [rate('European Delivery', 999, 'international', 5, 10)],
-    customText: () => 'European delivery — £9.99, 5–10 working days.',
-  },
-  world: {
-    label: 'Rest of world',
-    allowedCountries: WORLD_COUNTRIES,
-    optionsFor: () => [rate('International Delivery', 1499, 'international', 7, 14)],
-    customText: () => 'International delivery — £14.99, 7–14 working days.',
+    optionsFor: (subtotal) => [
+      subtotal >= FREE_SHIPPING_THRESHOLD
+        ? rate('Free European Delivery', 0, 'international', 5, 10)
+        : rate('European Delivery', 599, 'international', 5, 10),
+    ],
+    customText: (subtotal) =>
+      subtotal >= FREE_SHIPPING_THRESHOLD
+        ? 'You qualify for free European delivery.'
+        : 'European delivery — £5.99, 5–10 working days. Free on orders over £100.',
   },
 };
 

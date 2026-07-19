@@ -10,7 +10,7 @@ export interface CheckoutItem {
   clubName?: string
 }
 
-export type ShippingRegion = 'uk' | 'europe' | 'world'
+export type ShippingRegion = 'uk' | 'europe'
 
 export async function redirectToCheckout(
   items: CheckoutItem[],
