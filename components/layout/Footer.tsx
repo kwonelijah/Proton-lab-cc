@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import FooterNewsletter from '@/components/ui/FooterNewsletter'
 
 export default function Footer() {
   return (
@@ -33,6 +34,9 @@ export default function Footer() {
             Instagram
           </a>
         </div>
+
+        {/* Newsletter signup */}
+        <FooterNewsletter />
 
         {/* Copyright */}
         <p className="text-xs text-proton-grey uppercase tracking-widest">

@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-export type MetaEventName = 'ViewContent' | 'AddToCart' | 'InitiateCheckout' | 'Purchase'
+export type MetaEventName = 'ViewContent' | 'AddToCart' | 'InitiateCheckout' | 'Purchase' | 'Lead'
 
 export interface MetaEventParams {
   value?: number
