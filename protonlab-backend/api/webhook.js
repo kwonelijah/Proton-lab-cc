@@ -4,7 +4,7 @@
 // Phase 2: uncomment the sheets + agent lines once Google is set up
 
 import Stripe from 'stripe';
-import { sendOrderConfirmation, sendInternalNotification } from '../lib/email.js';
+import { sendOrderConfirmation, sendInternalNotification, addToMailingList } from '../lib/email.js';
 import { sendMetaEvent, buildUserData } from '../lib/meta-capi.js';
 // import { appendOrder } from '../lib/sheets.js';     // Phase 2
 // import { processNewOrders } from '../lib/agent.js'; // Phase 2
@@ -198,6 +198,7 @@ export default async function handler(req, res) {
     await Promise.all([
       sendOrderConfirmation(order),
       sendInternalNotification(order),
+      addToMailingList(order),
       metaPurchase,
     ]);
 

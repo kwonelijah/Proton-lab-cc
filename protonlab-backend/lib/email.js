@@ -82,6 +82,39 @@ export async function sendWelcome(email, { code, expiresAt }) {
   return sendToCustomer({ email }, renderWelcome({ code, expiresAt }));
 }
 
+// Adds a customer to the Resend contact list (single-audience model — no
+// audienceId). Called by the webhook on every paid order so buyers land on
+// the mailing list automatically; no email is sent and no welcome code is
+// issued. Existing contacts and failures are non-fatal — never let this
+// break order processing.
+export async function addToMailingList(order) {
+  if (!order.email || order.email === 'N/A') return { ok: false, skipped: 'no-customer-email' };
+  const name = order.name && order.name !== 'N/A' ? order.name : '';
+  const [firstName, ...rest] = name.split(' ').filter(Boolean);
+  try {
+    const key = process.env.proton_resend_key || process.env.Resend_Backend_Key;
+    const res = await fetch('https://api.resend.com/contacts', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: order.email.toLowerCase(),
+        firstName: firstName || undefined,
+        lastName: rest.join(' ') || undefined,
+        unsubscribed: false,
+      }),
+    });
+    if (!res.ok) {
+      console.warn(`Mailing-list add skipped for ${order.email}:`, await res.text());
+      return { ok: false };
+    }
+    console.log(`Added ${order.email} to mailing list`);
+    return { ok: true };
+  } catch (err) {
+    console.error('Mailing-list add failed (continuing):', err);
+    return { ok: false };
+  }
+}
+
 // ─── Internal team notification ─────────────────────────────────────────────
 
 export async function sendInternalNotification(order) {
