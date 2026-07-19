@@ -92,7 +92,6 @@ export default function NewsletterPopup() {
 
         {status === 'done' || status === 'already' ? (
           <div className="text-center py-4">
-            <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">Newsletter</p>
             <h2 className="font-playfair text-3xl leading-tight mb-4">
               {status === 'already' ? 'You’re already on the list' : 'Check your inbox'}
             </h2>
@@ -104,11 +103,10 @@ export default function NewsletterPopup() {
           </div>
         ) : (
           <>
-            <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">Newsletter</p>
             <h2 className="font-playfair text-3xl leading-tight mb-3">Get 10% off your first order</h2>
             <p className="text-sm text-proton-grey leading-relaxed mb-6">
               Join the list and we’ll email you a single-use code for 10% off
-              the retail range.
+              your first order.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -145,7 +143,7 @@ export default function NewsletterPopup() {
 
             <p className="text-[10px] text-proton-grey leading-relaxed mt-4">
               By signing up you agree to receive marketing emails from Proton
-              Lab. Unsubscribe anytime. Code valid on the retail range only.
+              Lab. Unsubscribe anytime.
             </p>
           </>
         )}
