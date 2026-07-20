@@ -126,10 +126,10 @@ export default function NewsletterPopup() {
           </div>
         ) : (
           <>
-            <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">Get 10% off your first order</h2>
+            <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">We’re working on something new.</h2>
             <p className="text-xs md:text-sm text-proton-white/60 leading-relaxed mb-4 md:mb-6">
-              Join the list and we’ll email you a single-use code for 10% off
-              your first order.
+              Join the list for first access to new releases — plus a
+              single-use code for 10% off your first order.
             </p>
 
             <form onSubmit={handleSubmit} className="flex gap-2 md:block md:space-y-3">
