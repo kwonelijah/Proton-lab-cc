@@ -4,13 +4,16 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { subscribeToNewsletter } from '@/lib/newsletter'
 
-// Newsletter capture popup. Shows once per visitor when they scroll half way
-// down the page — dismissing or subscribing writes a localStorage flag and it
-// never returns. Desktop: centered dialog with backdrop (CartDrawer overlay
-// conventions). Mobile: non-blocking bottom sheet capped at 30% of the screen.
+// Newsletter capture popup. Shows once per visitor — dismissing or subscribing
+// writes a localStorage flag and it never returns. Desktop: centered dialog
+// with backdrop, appearing 8s after load. Mobile: non-blocking bottom sheet
+// capped at 40% of the screen, triggered at half scroll depth so it never
+// lands on top of the hero. The card is black — the one dark surface on an
+// otherwise light site — with the email field as the white highlight.
 
 const STORAGE_KEY = 'pl_newsletter'
 const SCROLL_DEPTH = 0.5
+const DESKTOP_DELAY_MS = 8000
 
 export default function NewsletterPopup() {
   const pathname = usePathname()
@@ -23,11 +26,20 @@ export default function NewsletterPopup() {
 
   useEffect(() => {
     if (localStorage.getItem(STORAGE_KEY)) return
+    // Don't interrupt someone mid-purchase or on the order success page.
+    const canOpen = () => !window.location.pathname.startsWith('/success')
+
+    if (window.matchMedia('(min-width: 768px)').matches) {
+      const timer = setTimeout(() => {
+        if (canOpen()) setIsOpen(true)
+      }, DESKTOP_DELAY_MS)
+      return () => clearTimeout(timer)
+    }
+
     const onScroll = () => {
       const depth =
         (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight
-      // Don't interrupt someone mid-purchase or on the order success page.
-      if (depth >= SCROLL_DEPTH && !window.location.pathname.startsWith('/success')) {
+      if (depth >= SCROLL_DEPTH && canOpen()) {
         setIsOpen(true)
         window.removeEventListener('scroll', onScroll)
       }
@@ -88,12 +100,12 @@ export default function NewsletterPopup() {
         role="dialog"
         aria-modal="true"
         aria-label="Newsletter signup"
-        className="fixed z-50 bg-proton-white shadow-2xl inset-x-0 bottom-0 min-h-[33vh] max-h-[40vh] overflow-y-auto p-6 border-t border-proton-light md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[calc(100%-3rem)] md:max-w-md md:min-h-0 md:max-h-none md:overflow-visible md:border-t-0 md:p-10"
+        className="fixed z-50 bg-proton-black text-proton-white shadow-2xl inset-x-0 bottom-0 min-h-[33vh] max-h-[40vh] overflow-y-auto p-6 border-t border-proton-white/10 md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[calc(100%-3rem)] md:max-w-md md:min-h-0 md:max-h-none md:overflow-visible md:border-t-0 md:p-10"
       >
         <button
           onClick={dismiss}
           aria-label="Close"
-          className="absolute top-4 right-4 p-2 text-proton-grey hover:text-proton-black transition-colors duration-200"
+          className="absolute top-4 right-4 p-2 text-proton-white/50 hover:text-proton-white transition-colors duration-200"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -106,7 +118,7 @@ export default function NewsletterPopup() {
             <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-4">
               {status === 'already' ? 'You’re already on the list' : 'Check your inbox'}
             </h2>
-            <p className="text-sm text-proton-grey leading-relaxed">
+            <p className="text-sm text-proton-white/60 leading-relaxed">
               {status === 'already'
                 ? 'Your welcome code was sent when you first signed up.'
                 : 'Your 10% code is on its way to your email.'}
@@ -115,7 +127,7 @@ export default function NewsletterPopup() {
         ) : (
           <>
             <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">Get 10% off your first order</h2>
-            <p className="text-xs md:text-sm text-proton-grey leading-relaxed mb-4 md:mb-6">
+            <p className="text-xs md:text-sm text-proton-white/60 leading-relaxed mb-4 md:mb-6">
               Join the list and we’ll email you a single-use code for 10% off
               your first order.
             </p>
@@ -140,19 +152,19 @@ export default function NewsletterPopup() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="Email address"
                 aria-label="Email address"
-                className="flex-1 min-w-0 md:w-full border border-proton-mid bg-transparent px-4 py-2.5 md:py-3 text-sm text-proton-black placeholder:text-proton-grey focus:outline-none focus:border-proton-black transition-colors duration-200"
+                className="flex-1 min-w-0 md:w-full bg-proton-white border border-proton-white px-4 py-2.5 md:py-3 text-sm text-proton-black placeholder:text-proton-grey focus:outline-none focus:ring-2 focus:ring-proton-white/50 focus:ring-offset-2 focus:ring-offset-proton-black transition-shadow duration-200"
               />
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="shrink-0 md:w-full bg-proton-black text-proton-white text-xs uppercase tracking-widest px-4 md:px-0 py-2.5 md:py-4 font-inter transition-all duration-300 hover:bg-proton-grey disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
+                className="shrink-0 md:w-full border border-proton-white bg-transparent text-proton-white text-xs uppercase tracking-widest px-4 md:px-0 py-2.5 md:py-4 font-inter transition-all duration-300 hover:bg-proton-white hover:text-proton-black disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-proton-black"
               >
                 {status === 'sending' ? 'Signing up…' : 'Get my code'}
               </button>
             </form>
-            {error && <p role="alert" className="text-xs text-red-600 mt-2">{error}</p>}
+            {error && <p role="alert" className="text-xs text-red-400 mt-2">{error}</p>}
 
-            <p className="text-[9px] md:text-[10px] text-proton-grey leading-relaxed mt-2 md:mt-4">
+            <p className="text-[9px] md:text-[10px] text-proton-white/40 leading-relaxed mt-2 md:mt-4">
               By signing up you agree to receive marketing emails from Proton
               Lab. Unsubscribe anytime.
             </p>
