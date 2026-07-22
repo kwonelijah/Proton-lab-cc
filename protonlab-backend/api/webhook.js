@@ -191,6 +191,9 @@ export default async function handler(req, res) {
         content_ids: lineItems.map(i => i.handle),
         contents: lineItems.map(i => ({ id: i.handle, quantity: i.qty || 1 })),
         content_type: 'product',
+        // Retail orders carry club "Proton Lab"; anything else is a club store.
+        // Must match the browser event's content_category for clean dedup.
+        content_category: club !== 'N/A' && club !== 'Proton Lab' ? 'club-shop' : 'retail',
         num_items: lineItems.reduce((sum, i) => sum + (i.qty || 1), 0),
       },
     });

@@ -16,12 +16,18 @@ declare global {
 
 export type MetaEventName = 'ViewContent' | 'AddToCart' | 'InitiateCheckout' | 'Purchase' | 'Lead'
 
+// Storefront channel — set on every commerce event so Events Manager custom
+// conversions can split retail traffic/orders from club-shop ones. Retail cart
+// items carry clubHandle 'protonlab'; anything else is a club store.
+export type MetaChannel = 'retail' | 'club-shop'
+
 export interface MetaEventParams {
   value?: number
   currency?: string
   content_ids?: string[]
   content_name?: string
   content_type?: 'product'
+  content_category?: MetaChannel
   contents?: { id: string; quantity: number }[]
   num_items?: number
 }

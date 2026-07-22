@@ -75,6 +75,7 @@ export default function CartDrawer() {
       content_ids: items.map(i => i.productHandle),
       contents: items.map(i => ({ id: i.productHandle, quantity: i.quantity })),
       content_type: 'product',
+      content_category: items.some(i => i.clubHandle !== 'protonlab') ? 'club-shop' : 'retail',
       currency: 'GBP',
       value: items.reduce((sum, i) => sum + parsePrice(i.price) * i.quantity, 0),
       num_items: items.reduce((sum, i) => sum + i.quantity, 0),

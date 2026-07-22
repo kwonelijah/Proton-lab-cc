@@ -41,11 +41,16 @@ export default async function handler(req, res) {
       items = [];
     }
 
+    // Storefront channel — retail orders carry club metadata "Proton Lab";
+    // any other club name means the order came through a club store.
+    const club = session.payment_intent?.metadata?.club || '';
+
     return res.status(200).json({
       value: (session.amount_total ?? 0) / 100,
       currency: (session.currency || 'gbp').toUpperCase(),
       contentIds: items.map(i => i.handle).filter(Boolean),
       numItems: items.reduce((sum, i) => sum + (i.qty || 1), 0),
+      channel: club && club !== 'Proton Lab' ? 'club-shop' : 'retail',
     });
   } catch {
     return res.status(404).json({ error: 'Not found' });

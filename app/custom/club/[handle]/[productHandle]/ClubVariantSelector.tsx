@@ -29,6 +29,7 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
       content_ids: [productHandle],
       content_name: `${clubName} — ${productName}`,
       content_type: 'product',
+      content_category: 'club-shop',
       currency: 'GBP',
       value: parsePrice(price),
     })
@@ -42,6 +43,7 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
       content_ids: [productHandle],
       content_name: `${clubName} — ${productName}`,
       content_type: 'product',
+      content_category: 'club-shop',
       currency: 'GBP',
       value: parsePrice(price),
     })

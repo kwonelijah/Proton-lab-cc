@@ -35,6 +35,7 @@ export default function PurchaseTracker() {
             currency: order.currency,
             content_ids: order.contentIds,
             content_type: 'product',
+            content_category: order.channel,
             num_items: order.numItems,
           },
           sessionId
