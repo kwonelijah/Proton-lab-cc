@@ -3,6 +3,7 @@
 
 import { BACKEND_URL } from '@/lib/checkout'
 import { trackMetaEvent } from '@/lib/meta'
+import { trackGaEvent } from '@/lib/ga'
 
 export type SubscribeResult =
   | { ok: true; already: boolean }
@@ -23,7 +24,10 @@ export async function subscribeToNewsletter(
     if (!res.ok || data.error) {
       return { ok: false, error: data.error || 'Something went wrong — please try again.' }
     }
-    if (!data.already) trackMetaEvent('Lead', {})
+    if (!data.already) {
+      trackMetaEvent('Lead', {})
+      trackGaEvent('generate_lead', {})
+    }
     return { ok: true, already: Boolean(data.already) }
   } catch {
     return { ok: false, error: 'Something went wrong — please try again.' }

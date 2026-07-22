@@ -4,6 +4,7 @@ import '@/styles/globals.css'
 import CartDrawer from '@/components/ui/CartDrawer'
 import NewsletterPopup from '@/components/ui/NewsletterPopup'
 import MetaPixel from '@/components/analytics/MetaPixel'
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
@@ -68,6 +69,7 @@ export default function RootLayout({
         <CartDrawer />
         <NewsletterPopup />
         <MetaPixel />
+        <GoogleAnalytics />
         <Analytics />
         <SpeedInsights />
       </body>

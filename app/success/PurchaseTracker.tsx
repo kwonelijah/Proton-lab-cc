@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { BACKEND_URL } from '@/lib/checkout'
 import { trackMetaEvent } from '@/lib/meta'
+import { trackGaEvent } from '@/lib/ga'
 
 // Fires the browser-side Meta Purchase event when the customer lands back from
 // Stripe. The order total is fetched from the backend (the client never knew
@@ -40,6 +41,16 @@ export default function PurchaseTracker() {
           },
           sessionId
         )
+        // GA4 also dedupes on transaction_id, on top of the sessionStorage guard
+        trackGaEvent('purchase', {
+          transaction_id: sessionId,
+          value: order.value,
+          currency: order.currency,
+          items: (order.contentIds ?? []).map((id: string) => ({
+            item_id: id,
+            item_category: order.channel,
+          })),
+        })
         sessionStorage.setItem(guardKey, '1')
       })
       .catch(() => {

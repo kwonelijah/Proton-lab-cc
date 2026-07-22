@@ -5,6 +5,7 @@ import type { ProductVariant } from '@/types/product'
 import Button from '@/components/ui/Button'
 import { useCartStore } from '@/stores/cart'
 import { trackMetaEvent, parsePrice } from '@/lib/meta'
+import { trackGaEvent } from '@/lib/ga'
 
 interface VariantSelectorProps {
   variants: ProductVariant[]
@@ -31,6 +32,19 @@ export default function VariantSelector({ variants, productTitle, productHandle,
       content_category: 'retail',
       currency: 'GBP',
       value: parsePrice(variants[0]?.price.amount ?? '0'),
+    })
+    trackGaEvent('view_item', {
+      currency: 'GBP',
+      value: parsePrice(variants[0]?.price.amount ?? '0'),
+      items: [
+        {
+          item_id: productHandle,
+          item_name: productTitle,
+          item_category: 'retail',
+          price: parsePrice(variants[0]?.price.amount ?? '0'),
+          quantity: 1,
+        },
+      ],
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productHandle])
@@ -75,6 +89,19 @@ export default function VariantSelector({ variants, productTitle, productHandle,
       content_category: 'retail',
       currency: 'GBP',
       value: parsePrice(selected.price.amount),
+    })
+    trackGaEvent('add_to_cart', {
+      currency: 'GBP',
+      value: parsePrice(selected.price.amount),
+      items: [
+        {
+          item_id: productHandle,
+          item_name: productTitle,
+          item_category: 'retail',
+          price: parsePrice(selected.price.amount),
+          quantity: 1,
+        },
+      ],
     })
     openCart()
   }

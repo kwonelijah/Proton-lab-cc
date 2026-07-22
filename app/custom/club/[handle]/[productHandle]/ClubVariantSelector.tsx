@@ -5,6 +5,7 @@ import type { ProductVariant } from '@/types/product'
 import Button from '@/components/ui/Button'
 import { useCartStore } from '@/stores/cart'
 import { trackMetaEvent, parsePrice } from '@/lib/meta'
+import { trackGaEvent } from '@/lib/ga'
 
 interface Props {
   variants: ProductVariant[]
@@ -33,6 +34,19 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
       currency: 'GBP',
       value: parsePrice(price),
     })
+    trackGaEvent('view_item', {
+      currency: 'GBP',
+      value: parsePrice(price),
+      items: [
+        {
+          item_id: productHandle,
+          item_name: `${clubName} — ${productName}`,
+          item_category: 'club-shop',
+          price: parsePrice(price),
+          quantity: 1,
+        },
+      ],
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productHandle])
 
@@ -46,6 +60,19 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
       content_category: 'club-shop',
       currency: 'GBP',
       value: parsePrice(price),
+    })
+    trackGaEvent('add_to_cart', {
+      currency: 'GBP',
+      value: parsePrice(price),
+      items: [
+        {
+          item_id: productHandle,
+          item_name: `${clubName} — ${productName}`,
+          item_category: 'club-shop',
+          price: parsePrice(price),
+          quantity: 1,
+        },
+      ],
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
