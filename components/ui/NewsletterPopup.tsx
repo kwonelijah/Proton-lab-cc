@@ -5,15 +5,59 @@ import { usePathname } from 'next/navigation'
 import { subscribeToNewsletter } from '@/lib/newsletter'
 
 // Newsletter capture popup. Shows once per visitor — dismissing or subscribing
-// writes a localStorage flag and it never returns. Desktop: centered dialog
-// with backdrop, appearing 8s after load. Mobile: non-blocking bottom sheet
-// capped at 40% of the screen, triggered at half scroll depth so it never
-// lands on top of the hero. The card is black — the one dark surface on an
-// otherwise light site — with the email field as the white highlight.
+// writes a localStorage flag and it never returns. Page-scoped: only the
+// homepage, /shop and product pages trigger it, each with its own copy and
+// desktop delay (the countdown restarts on navigation, so it measures time on
+// the current page). Desktop: centered dialog with backdrop. Mobile:
+// non-blocking bottom sheet capped at 40% of the screen, fired at half scroll
+// depth or 15s, whichever comes first. The card is black — the one dark
+// surface on an otherwise light site — with the email field as the highlight.
 
 const STORAGE_KEY = 'pl_newsletter'
 const SCROLL_DEPTH = 0.5
-const DESKTOP_DELAY_MS = 8000
+const MOBILE_DELAY_MS = 15000
+
+interface PopupCopy {
+  headline: string
+  sub: string
+}
+
+// Per-page trigger config. Copy is resolved at fire time: product headlines
+// read the page h1 (the product title), which avoids shipping the product
+// catalogue to the client just for a title lookup.
+function pagePopup(pathname: string): { delayMs: number; copy: () => PopupCopy } | null {
+  if (pathname === '/') {
+    return {
+      delayMs: 8000,
+      copy: () => ({
+        headline: 'We’re working on something new.',
+        sub: 'Join the list for first access to new releases, plus a single-use code for 10% off your first order.',
+      }),
+    }
+  }
+  if (pathname === '/shop') {
+    return {
+      delayMs: 12000,
+      copy: () => ({
+        headline: 'Get 10% off your first order',
+        sub: 'Join the list and we’ll email you a single-use code to use at checkout.',
+      }),
+    }
+  }
+  if (pathname.startsWith('/products/')) {
+    return {
+      delayMs: 15000,
+      copy: () => {
+        const title = document.querySelector('main h1')?.textContent?.trim()
+        return {
+          headline: title ? `Like the look of the ${title}?` : 'Like what you see?',
+          sub: 'Get 10% off your first order and join our mailing list.',
+        }
+      },
+    }
+  }
+  return null
+}
 
 export default function NewsletterPopup() {
   const pathname = usePathname()
@@ -22,25 +66,34 @@ export default function NewsletterPopup() {
   const [honeypot, setHoneypot] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'already'>('idle')
   const [error, setError] = useState<string | null>(null)
+  const [copy, setCopy] = useState<PopupCopy | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (localStorage.getItem(STORAGE_KEY)) return
-    // Don't interrupt someone mid-purchase or on the order success page.
-    const canOpen = () => !window.location.pathname.startsWith('/success')
+    if (isOpen || localStorage.getItem(STORAGE_KEY)) return
+    const config = pagePopup(pathname)
+    if (!config) return
+
+    let fired = false
+    const open = () => {
+      if (fired) return
+      fired = true
+      setCopy(config.copy())
+      setIsOpen(true)
+    }
 
     if (window.matchMedia('(min-width: 768px)').matches) {
-      const timer = setTimeout(() => {
-        if (canOpen()) setIsOpen(true)
-      }, DESKTOP_DELAY_MS)
+      const timer = setTimeout(open, config.delayMs)
       return () => clearTimeout(timer)
     }
 
+    // Mobile: half scroll depth or the flat fallback delay, first one wins.
+    const timer = setTimeout(open, MOBILE_DELAY_MS)
     const onScroll = () => {
       const depth =
         (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight
-      if (depth >= SCROLL_DEPTH && canOpen()) {
-        setIsOpen(true)
+      if (depth >= SCROLL_DEPTH) {
+        open()
         window.removeEventListener('scroll', onScroll)
       }
     }
@@ -48,8 +101,11 @@ export default function NewsletterPopup() {
     // Browsers restore scroll position before React attaches the listener —
     // a reload mid-page would otherwise never trigger. Check once on mount.
     onScroll()
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [pathname, isOpen])
 
   // Escape to close; focus the field on desktop only — on mobile the sheet is
   // non-blocking and auto-focus would throw the keyboard over the page.
@@ -84,7 +140,7 @@ export default function NewsletterPopup() {
     setStatus(result.already ? 'already' : 'done')
   }
 
-  if (!isOpen || pathname.startsWith('/success')) return null
+  if (!isOpen || !copy) return null
 
   return (
     <>
@@ -126,10 +182,9 @@ export default function NewsletterPopup() {
           </div>
         ) : (
           <>
-            <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">We’re working on something new.</h2>
+            <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">{copy.headline}</h2>
             <p className="text-xs md:text-sm text-proton-white/60 leading-relaxed mb-4 md:mb-6">
-              Join the list for first access to new releases — plus a
-              single-use code for 10% off your first order.
+              {copy.sub}
             </p>
 
             <form onSubmit={handleSubmit} className="flex gap-2 md:block md:space-y-3">
