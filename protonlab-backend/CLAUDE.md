@@ -36,6 +36,8 @@ lib/agent.js   →  Claude API (flags/processes order, updates sheet)
 | `api/create-checkout-session.js` | Creates Stripe Hosted Checkout session for frontend |
 | `api/admin.js` | Dispatch admin page (`?key=proton_export_key`) — sends dispatch email, schedules thank-you (+5 days), stamps PaymentIntent metadata. `&format=json` mode feeds the local order dashboard's Web Shop tab (CORS open; auth via key). POST `{action:'production', club}` emails all un-notified customers of a club that their order is in production. POST `{action:'send', kind, order, tracking?}` sends lifecycle emails for dashboard-managed manual (non-Stripe) orders |
 | `api/export-evri.js` | Evri bulk-despatch CSV export, read from Stripe (`?key=proton_export_key`) |
+| `api/stock-sync.js` | Nightly stock sync (Vercel cron 20:00 UTC) — tallies un-synced paid orders from PI `metadata.items`, commits decremented `inventory/stock.csv` to the website repo via GitHub API, stamps PIs `stock_synced`. `?dryRun=1&key=...` for a report-only run |
+| `lib/stock.js` | All stock CSV + GitHub Contents API logic. Quantity-only invariant: never adds/removes/renames rows, so a commit can never break the site build. Signed-delta movements, clamp at 0, skip unknown handle::size (club kit), 3× sha-conflict retry |
 | `api/checkout-session.js` | Non-PII order summary (value/currency/handles) for a paid session — the frontend `/success` page uses it to fire the browser Meta Purchase event |
 | `lib/meta-capi.js` | Meta Conversions API sender — hashed user data + attribution; used by webhook for server-side Purchase events |
 | `emails/theme.js` | Email design system — brand palette/type/layout, shared by all customer emails |
@@ -61,6 +63,9 @@ Never hardcode these. They live in Vercel dashboard → Settings → Environment
 | `META_PIXEL_ID` | Meta pixel/dataset ID (Events Manager) — Conversions API events |
 | `META_CAPI_ACCESS_TOKEN` | Meta Conversions API access token (Events Manager → pixel Settings) |
 | `META_TEST_EVENT_CODE` | Optional — routes CAPI events to Test Events while set; remove in production |
+| `GITHUB_TOKEN` | Fine-grained PAT, Contents R/W on `kwonelijah/Proton-lab-cc` only — stock.csv commits |
+| `CRON_SECRET` | Vercel sends `Authorization: Bearer <CRON_SECRET>` on cron invocations of `/api/stock-sync` |
+| `STOCK_SYNC_EMAIL` | Optional — nightly stock-sync summary email recipient (e.g. `info@protonlab.cc`) |
 
 ## Google Sheet structure
 
