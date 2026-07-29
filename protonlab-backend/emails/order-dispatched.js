@@ -37,7 +37,7 @@ export function render(order, dispatch = {}) {
         shipping && { label: 'Delivery Address', value: shipping.html },
       ])}
 
-      ${trackingUrl ? button('Track Your Delivery', trackingUrl, 'right') : ''}
+      ${trackingUrl ? button('Track Your Delivery', trackingUrl, 'center') : ''}
 
       <p style="${bodyStyle}margin:0 0 32px 0;">
         Questions? Reply to this email and we'll get back to you.

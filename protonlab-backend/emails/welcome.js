@@ -40,7 +40,7 @@ export function render({ code, expiresAt }) {
 
       ${codeBlock}
 
-      ${button('Shop the range', 'https://protonlab.cc/shop')}
+      ${button('Shop the range', 'https://protonlab.cc/shop', 'center')}
 
       ${divider()}
 
