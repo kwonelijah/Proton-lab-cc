@@ -101,9 +101,15 @@ export function divider() {
 // The footer uses the pre-made halves in the site's public/email/ folder
 // (720px + 480px wide = a 60/40 split of the black band): the logo lockup
 // links to protonlab.cc, the Instagram icon links to @protonlabcc.
+// The outer full-width table paints the off-white across the client's whole
+// viewport (Gmail strips body styles, so a wrapper table is the only reliable
+// way) with the 600px column centered inside it.
 export function layout(bodyHtml) {
   return `
-    <div style="background:${COLORS.white};margin:0 auto;max-width:600px;">
+    <table role="presentation" width="100%" bgcolor="${COLORS.white}" style="width:100%;border-collapse:collapse;background:${COLORS.white};margin:0;padding:0;">
+      <tr>
+        <td align="center" style="padding:0;">
+    <div style="background:${COLORS.white};margin:0 auto;max-width:600px;text-align:left;">
 
       <div style="background:${COLORS.white};text-align:center;padding:18px 20px;border-bottom:1px solid ${COLORS.light};">
         <img src="https://protonlab.cc/email/logo-black.png" alt="Proton Lab CC" width="190" style="display:inline-block;width:190px;max-width:62%;height:auto;border:0;" />
@@ -129,6 +135,9 @@ ${bodyHtml}
       </table>
 
     </div>
+        </td>
+      </tr>
+    </table>
   `;
 }
 
