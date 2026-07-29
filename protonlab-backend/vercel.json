@@ -6,6 +6,15 @@
     },
     "api/admin.js": {
       "maxDuration": 60
+    },
+    "api/stock-sync.js": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/stock-sync",
+      "schedule": "0 20 * * *"
+    }
+  ]
 }

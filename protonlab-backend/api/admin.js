@@ -26,6 +26,7 @@ import {
   sendOrderDelivered,
   sendOrderInProduction,
 } from '../lib/email.js';
+import { readStock, applyAndCommit } from '../lib/stock.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -221,6 +222,27 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    // ── Stock movement ────────────────────────────────────────────────────
+    // {action:'stock-move', movements:[{handle,size,qty}], reason, source} —
+    // signed deltas (negative = stock out) against inventory/stock.csv in the
+    // website repo, committed via lib/stock.js (quantity-only invariant,
+    // conflict retry). One commit → the site redeploys with fresh stock.
+    if (req.body?.action === 'stock-move') {
+      const { movements, reason, source } = req.body;
+      if (!Array.isArray(movements) || !movements.length || movements.length > 500) {
+        return res.status(400).json({ error: 'movements must be a non-empty array (max 500)' });
+      }
+      const label = String(reason || 'manual adjustment').slice(0, 80);
+      const src = String(source || 'dashboard').slice(0, 60);
+      try {
+        const result = await applyAndCommit(movements, `stock: ${label} [${src}]`);
+        return res.status(200).json({ ok: true, ...result });
+      } catch (err) {
+        console.error('stock-move failed:', err);
+        return res.status(502).json({ error: `Stock update failed: ${err.message}` });
+      }
+    }
+
     // ── Club-wide production notification ─────────────────────────────────
     // {action:'production', club} — emails every succeeded order of that club
     // that hasn't been production-notified or dispatched yet. Idempotent:
@@ -406,6 +428,20 @@ export default async function handler(req, res) {
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // ── Current stock levels ──────────────────────────────────────────────
+  // ?action=stock — reads inventory/stock.csv straight from GitHub (the repo
+  // is private, so the dashboard can't fetch it directly).
+  if (req.query.action === 'stock') {
+    try {
+      const { rows, sha } = await readStock();
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ ok: true, rows, sha, fetchedAt: new Date().toISOString() });
+    } catch (err) {
+      console.error('stock read failed:', err);
+      return res.status(502).json({ error: `Stock read failed: ${err.message}` });
+    }
   }
 
   const days = /^\d+$/.test(req.query.since || '') ? Number(req.query.since) : 60;
