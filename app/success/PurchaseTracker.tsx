@@ -29,26 +29,39 @@ export default function PurchaseTracker() {
       .then(res => (res.ok ? res.json() : null))
       .then(order => {
         if (cancelled || !order) return
+        // Full line items from the backend; fall back to bare handles for
+        // orders fetched from a backend deployed before `items` existed.
+        type OrderItem = { id: string; name?: string; quantity?: number; price?: number }
+        const items: OrderItem[] =
+          order.items?.length
+            ? order.items
+            : (order.contentIds ?? []).map((id: string) => ({ id }))
         trackMetaEvent(
           'Purchase',
           {
             value: order.value,
             currency: order.currency,
-            content_ids: order.contentIds,
+            content_ids: items.map(i => i.id),
+            contents: items.map(i => ({ id: i.id, quantity: i.quantity ?? 1 })),
             content_type: 'product',
             content_category: order.channel,
             num_items: order.numItems,
           },
           sessionId
         )
-        // GA4 also dedupes on transaction_id, on top of the sessionStorage guard
+        // GA4 also dedupes on transaction_id, on top of the sessionStorage
+        // guard. item_name is what the default e-commerce reports key on —
+        // without it purchases land under "(not set)".
         trackGaEvent('purchase', {
           transaction_id: sessionId,
           value: order.value,
           currency: order.currency,
-          items: (order.contentIds ?? []).map((id: string) => ({
-            item_id: id,
+          items: items.map(i => ({
+            item_id: i.id,
+            item_name: i.name,
             item_category: order.channel,
+            price: i.price,
+            quantity: i.quantity ?? 1,
           })),
         })
         sessionStorage.setItem(guardKey, '1')
