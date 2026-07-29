@@ -69,8 +69,8 @@ export function detailTable(rows) {
 
 // Primary button — black fill, white text, uppercase tracked label
 // (Button.tsx primary variant). Padding keeps a 44px+ touch target.
-// align: 'left' | 'right'. The nested table with an align attribute is the
-// email-safe way to align a shrink-wrapped block (works in Outlook).
+// align: 'left' | 'center' | 'right'. The nested table with an align attribute
+// is the email-safe way to align a shrink-wrapped block (works in Outlook).
 export function button(label, href, align = 'left') {
   return `
       <table role="presentation" style="width:100%;border-collapse:collapse;margin:0 0 32px 0;">
