@@ -29,6 +29,27 @@ export function render({ code, expiresAt }) {
         </tr>
       </table>`;
 
+  // Two product shots under the code — the same hero imagery as the shop
+  // grid, both clicking through to the range. Fixed width attrs for Outlook;
+  // both heroes share the 2:3 aspect so the row stays level.
+  const productShots = `
+      <table role="presentation" style="width:100%;border-collapse:collapse;margin:0 0 32px 0;">
+        <tr>
+          <td style="width:50%;padding:0 6px 0 0;vertical-align:top;">
+            <a href="https://protonlab.cc/shop" style="display:block;">
+              <img src="https://protonlab.cc/images/products/red-sky-jersey/red-sky-jerseyhero.png" alt="Red Sky Jersey" width="270" style="display:block;width:100%;height:auto;border:0;" />
+            </a>
+            <p style="${eyebrowStyle}margin:10px 0 0 0;text-align:center;">Red Sky Jersey</p>
+          </td>
+          <td style="width:50%;padding:0 0 0 6px;vertical-align:top;">
+            <a href="https://protonlab.cc/shop" style="display:block;">
+              <img src="https://protonlab.cc/images/products/sunset-jersey/sunset-jerseyhero.jpg" alt="Sunset Jersey" width="270" style="display:block;width:100%;height:auto;border:0;" />
+            </a>
+            <p style="${eyebrowStyle}margin:10px 0 0 0;text-align:center;">Sunset Jersey</p>
+          </td>
+        </tr>
+      </table>`;
+
   const html = layout(`
       ${heading('Welcome — here’s 10% off')}
 
@@ -39,6 +60,8 @@ export function render({ code, expiresAt }) {
       </p>
 
       ${codeBlock}
+
+      ${productShots}
 
       ${button('Shop the range', 'https://protonlab.cc/shop', 'center')}
 
