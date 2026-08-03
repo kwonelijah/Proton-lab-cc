@@ -58,9 +58,10 @@ export const ZONES = {
         : rate('European Delivery', 599, 'international', 5, 10),
     ],
     customText: (subtotal) =>
-      subtotal >= FREE_SHIPPING_THRESHOLD
+      (subtotal >= FREE_SHIPPING_THRESHOLD
         ? 'You qualify for free European delivery.'
-        : 'European delivery — £5.99, 5–10 working days. Free on orders over £100.',
+        : 'European delivery — £5.99, 5–10 working days. Free on orders over £100.') +
+      ' Please note: customs charges and import duties are not covered — EU orders may incur local VAT or duties on arrival.',
   },
 };
 

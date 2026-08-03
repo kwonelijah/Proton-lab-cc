@@ -99,6 +99,7 @@ async function buildOrder(payment) {
     product: meta.product || 'N/A',
     lineItems: parseLineItems(meta),
     shipping,
+    shippingMethod: meta.shipping_method || 'standard',
     date: new Date(payment.created * 1000).toISOString(),
   };
 }
@@ -348,6 +349,7 @@ export default async function handler(req, res) {
         product: order.product || 'your order',
         lineItems: Array.isArray(order.lineItems) ? order.lineItems : [],
         shipping: order.shipping || null,
+        shippingMethod: order.shippingMethod || 'standard',
         date: order.date || new Date().toISOString(),
       };
       let result;

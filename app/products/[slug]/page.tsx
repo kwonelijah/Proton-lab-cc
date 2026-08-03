@@ -5,6 +5,7 @@ import PageWrapper from '@/components/layout/PageWrapper'
 import ProductGallery from './ProductGallery'
 import VariantSelector from './VariantSelector'
 import Accordion from '@/components/ui/Accordion'
+import DeliveryNote from '@/components/ui/DeliveryNote'
 import { getProducts, getProductByHandle } from '@/lib/api'
 import { formatPrice } from '@/lib/utils'
 
@@ -102,6 +103,8 @@ export default async function ProductPage({ params }: PageProps) {
               productHandle={product.handle}
               productImage={product.featuredImage.url}
             />
+
+            <DeliveryNote />
 
             {/* Description */}
             <div className="pt-4 border-t border-proton-light">

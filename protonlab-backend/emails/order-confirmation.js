@@ -32,6 +32,12 @@ export function render(order) {
     ? `−£${discountValue.toFixed(2)}${order.promoCode ? ` (${order.promoCode})` : ''}`
     : null;
 
+  // International (non-UK) orders may be charged VAT/duties on import — the
+  // customer covers those, so say it plainly on the order record.
+  const customsNote = order.shippingMethod === 'international'
+    ? 'Please note: customs charges and import duties are not covered by Proton Lab — your order may incur local VAT or duties on arrival.'
+    : null;
+
   const html = layout(`
       ${heading('Your order is confirmed')}
 
@@ -51,6 +57,8 @@ export function render(order) {
         { label: 'Date', value: date },
       ])}
 
+      ${customsNote ? `<p style="${bodyStyle}margin:0 0 32px 0;">${customsNote}</p>` : ''}
+
       <p style="${bodyStyle}margin:0 0 32px 0;">
         Questions? Reply to this email and we'll get back to you.
       </p>
@@ -65,7 +73,7 @@ Items:
 ${items.text}
 ${delivery ? `Delivery: ${delivery}\n` : ''}${discount ? `Discount: ${discount}\n` : ''}Total: ${total}
 ${shipping ? `Delivery Address:\n${shipping.text}\n` : ''}Date: ${date}
-
+${customsNote ? `\n${customsNote}\n` : ''}
 Questions? Reply to this email.
 
 — Proton Lab CC

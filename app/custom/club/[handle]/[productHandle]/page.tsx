@@ -11,6 +11,7 @@ import type { Product, ProductImage } from '@/types/product'
 import ProductGallery from '@/app/products/[slug]/ProductGallery'
 import ClubVariantSelector from './ClubVariantSelector'
 import Accordion from '@/components/ui/Accordion'
+import DeliveryNote from '@/components/ui/DeliveryNote'
 
 export default function ClubProductPage() {
   const { handle, productHandle } = useParams<{ handle: string; productHandle: string }>()
@@ -112,6 +113,8 @@ export default function ClubProductPage() {
                 clubName={club.name}
                 price={clubProduct.price}
               />
+
+              <DeliveryNote />
 
               {product?.description && (
                 <div className="pt-4 border-t border-proton-light">
