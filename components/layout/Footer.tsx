@@ -17,10 +17,12 @@ export default function Footer() {
         />
 
         {/* Nav links */}
-        <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-proton-white/60">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs uppercase tracking-widest text-proton-white/60">
           <Link href="/shop" className="hover:text-proton-white transition-colors duration-200">Shop</Link>
           <span aria-hidden="true">|</span>
           <Link href="/custom" className="hover:text-proton-white transition-colors duration-200">Custom</Link>
+          <span aria-hidden="true">|</span>
+          <Link href="/delivery" className="hover:text-proton-white transition-colors duration-200">Delivery</Link>
           <span aria-hidden="true">|</span>
           <Link href="/contact" className="hover:text-proton-white transition-colors duration-200">Contact</Link>
           <span aria-hidden="true">|</span>
