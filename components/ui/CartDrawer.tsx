@@ -208,6 +208,11 @@ export default function CartDrawer() {
                   <p className="text-[10px] text-proton-grey text-center">
                     We currently ship to the UK, Ireland &amp; Europe only
                   </p>
+                  {region === 'europe' && (
+                    <p className="text-[10px] text-proton-grey text-center">
+                      Customs charges &amp; import duties are not covered — EU orders may incur local VAT or duties on arrival
+                    </p>
+                  )}
                   {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
                   <button
                     onClick={handleCheckout}
