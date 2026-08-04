@@ -95,6 +95,7 @@ export default function ContactForm() {
           <option value="general">General Enquiry</option>
           <option value="sizing">Sizing & Fit</option>
           <option value="team-store">Team Store</option>
+          <option value="custom-pricelist">Custom Pricelist</option>
           <option value="press">Press & Media</option>
           <option value="other">Other</option>
         </select>

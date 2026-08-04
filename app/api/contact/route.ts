@@ -14,6 +14,7 @@ export async function POST(req: Request) {
     general: 'General Enquiry',
     sizing: 'Sizing & Fit',
     'team-store': 'Team Store',
+    'custom-pricelist': 'Custom Pricelist',
     press: 'Press & Media',
     other: 'Other',
   }
