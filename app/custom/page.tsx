@@ -21,62 +21,6 @@ export const metadata: Metadata = {
   title: 'Custom Kit',
 }
 
-const categories = [
-  {
-    name: 'Jerseys',
-    items: [
-      { name: 'SS Race Jersey', price: '£80' },
-      { name: 'SS Training Jersey', price: '£65' },
-      { name: 'SS Club Jersey', price: '£50' },
-      { name: 'SS Zipperless Jersey', price: '£65' },
-      { name: 'LS Training Jersey', price: '£70' },
-      { name: 'LS Fleece Jersey', price: '£85' },
-      { name: 'MTB Jersey', price: '£30' },
-    ],
-  },
-  {
-    name: 'Shorts',
-    items: [
-      { name: 'Race Bib Shorts', price: '£90' },
-      { name: 'Training Bib Shorts', price: '£80' },
-      { name: 'Club Bib Shorts', price: '£65' },
-      { name: 'Training Bib Tights', price: '£110' },
-    ],
-  },
-  {
-    name: 'Jackets & Gilets',
-    items: [
-      { name: 'Winter Jacket', price: '£100' },
-      { name: 'Summer Gilet', price: '£55' },
-      { name: 'Winter Gilet', price: '£70' },
-    ],
-  },
-  {
-    name: 'Skinsuits',
-    items: [
-      { name: 'SS Roadsuit', price: '£120' },
-      { name: 'SS Aerosuit', price: '£140' },
-      { name: 'LS Speedsuit', price: '£150' },
-      { name: 'SS Trisuit', price: '£135' },
-      { name: 'Sleeveless Trisuit', price: '£135' },
-    ],
-  },
-  {
-    name: 'Accessories',
-    items: [
-      { name: 'Aero Socks', price: '£20' },
-      { name: 'Aero Mitts', price: '£25' },
-      { name: 'Aero Arm Warmers', price: '£25' },
-      { name: 'Knee Warmers', price: '£25' },
-      { name: 'Leg Warmers', price: '£25' },
-      { name: 'Training Mitts', price: '£20' },
-      { name: 'Arm Warmers', price: '£20' },
-      { name: 'Buff', price: '£10' },
-      { name: 'Cycling Cap', price: '£10' },
-    ],
-  },
-]
-
 const process = [
   { step: '01', title: 'Enquire', description: 'Tell us about your club, team size, and what you need. We\'ll come back to you within 48 hours.' },
   { step: '02', title: 'Design', description: 'Our team works with you to develop a kit identity. We handle the design process from brief to approval.' },
@@ -150,36 +94,18 @@ export default function CustomPage() {
         </div>
       </div>
 
-      {/* Pricelist */}
+      {/* Pricing — available on request */}
       <div className="border-t border-proton-light py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
-            <div>
-              <h2 className="font-playfair text-4xl md:text-5xl leading-none">
-                Pricing
-              </h2>
-            </div>
-          </div>
-
-          <div className="space-y-0">
-            {categories.map((cat, ci) => (
-              <div key={cat.name} className={`border-t border-proton-light ${ci === categories.length - 1 ? 'border-b' : ''}`}>
-                {/* Category header */}
-                <div className="py-5">
-                  <p className="text-[10px] uppercase tracking-widest text-proton-grey">{cat.name}</p>
-                </div>
-                {/* Items */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 pb-6">
-                  {cat.items.map(item => (
-                    <div key={item.name} className="flex justify-between items-center py-3 border-t border-proton-light/60 pr-8">
-                      <span className="text-sm text-proton-black">{item.name}</span>
-                      <span className="text-sm font-inter text-proton-black ml-4 shrink-0">{item.price}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <h2 className="font-playfair text-4xl md:text-5xl leading-none mb-6">
+            Pricing
+          </h2>
+          <p className="font-playfair text-2xl md:text-3xl leading-snug mb-8">
+            Available on request.
+          </p>
+          <Button href="/contact" variant="primary" size="lg">
+            Contact Us for Pricing
+          </Button>
         </div>
       </div>
 
