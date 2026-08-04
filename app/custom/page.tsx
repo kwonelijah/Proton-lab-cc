@@ -97,12 +97,14 @@ export default function CustomPage() {
       {/* Pricing — available on request */}
       <div className="border-t border-proton-light py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <h2 className="font-playfair text-4xl md:text-5xl leading-none mb-8">
-            Pricing Available on Request
-          </h2>
-          <Button href="/contact" variant="primary" size="lg">
-            Contact Us for Pricing
-          </Button>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <h2 className="font-playfair text-4xl md:text-5xl leading-none">
+              Pricing Available on Request
+            </h2>
+            <Button href="/contact" variant="primary" size="lg">
+              Contact Us for Pricing
+            </Button>
+          </div>
         </div>
       </div>
 
