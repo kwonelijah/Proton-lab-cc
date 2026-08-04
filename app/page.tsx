@@ -36,7 +36,7 @@ export default async function HomePage() {
 
       {/* 1. Hero */}
       <VideoHero
-        imageSrc="/images/hero/Home.jpg"
+        imageSrc="/images/hero/Home2.jpeg"
         eyebrow="Proton Lab CC"
         headline="No Compromise."
         subheadline="Premium cycling apparel precision-engineered for those who train and race."

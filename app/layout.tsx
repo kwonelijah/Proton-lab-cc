@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     locale: 'en_GB',
     images: [
       {
-        url: '/images/hero/Home.jpg',
-        width: 2436,
-        height: 1125,
+        url: '/images/hero/Home2.jpeg',
+        width: 1920,
+        height: 1080,
         alt: 'Proton Lab CC — Premium Cycling Apparel',
       },
     ],
