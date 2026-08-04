@@ -54,7 +54,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/shop" className="group relative overflow-hidden aspect-[4/3] bg-proton-light flex items-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2">
             <Image
-              src="/images/homepage/homepagecollection.JPG"
+              src="/images/homepage/homepagecollection.jpeg"
               alt="Shop"
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
