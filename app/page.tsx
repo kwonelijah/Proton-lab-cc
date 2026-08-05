@@ -6,6 +6,7 @@ import VideoHero from '@/components/sections/VideoHero'
 import CTABanner from '@/components/sections/CTABanner'
 import HomeCollectionCarousel from '@/components/sections/HomeCollectionCarousel'
 import { getProducts } from '@/lib/api'
+import { getDisplayCurrency } from '@/lib/currency-server'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ const CAROUSEL_ORDER = [
 ]
 
 export default async function HomePage() {
-  const products = await getProducts()
+  const products = await getProducts(getDisplayCurrency())
   const carouselProducts = CAROUSEL_ORDER
     .map(handle => products.find(p => p.handle === handle))
     .filter((p): p is (typeof products)[number] => Boolean(p))

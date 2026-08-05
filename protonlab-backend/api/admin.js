@@ -113,7 +113,7 @@ export function renderPage({ awaiting, dispatched, key, since }) {
         <td>${esc(o.name)}<br><span class="sub">${esc(o.email)}</span></td>
         <td>${esc(o.items)}</td>
         <td>${esc(o.place)}</td>
-        <td>£${esc(o.amount)}</td>
+        <td>${o.symbol || '£'}${esc(o.amount)}</td>
         <td>${controls}</td>
       </tr>`;
 
@@ -490,6 +490,7 @@ export default async function handler(req, res) {
       items: itemsSummary(meta),
       place: [addr.city, addr.postal_code].filter(Boolean).join(', ') || '—',
       amount: (p.amount / 100).toFixed(2),
+      symbol: p.currency === 'eur' ? '€' : '£',
       service: meta.shipping_method || 'standard',
       productionAt: meta.production_notified_at || null,
       dispatchedAt: meta.dispatched_at || null,

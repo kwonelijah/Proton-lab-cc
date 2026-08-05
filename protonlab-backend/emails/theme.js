@@ -185,3 +185,9 @@ export function formatDate(iso) {
     year: 'numeric',
   });
 }
+
+// £ for GBP orders, € for EUR — order.currency comes from Stripe via the
+// webhook, so amounts and symbol always agree.
+export function currencySymbol(currency) {
+  return String(currency || 'GBP').toUpperCase() === 'EUR' ? '€' : '£';
+}

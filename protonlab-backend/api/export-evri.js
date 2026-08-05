@@ -154,8 +154,12 @@ export default async function handler(req, res) {
       'n', // Signature(y/n)
       ref,
       contentsFromMetadata(meta),
-      // Declared value = goods only (total charged minus shipping), for customs accuracy.
-      ((p.amount - Number(meta.shipping_amount || 0)) / 100).toFixed(2),
+      // Declared value = goods only (total charged minus shipping), for customs
+      // accuracy. EUR orders write the EUR figure — Evri's template column is
+      // GBP-labelled, so international EUR rows need review when booked
+      // manually through Evri International (see note at the top of the file).
+      ((p.amount - Number(meta.shipping_amount || 0)) / 100).toFixed(2) +
+        (p.currency === 'eur' ? ' EUR' : ''),
       ship.phone || meta.customer_phone || '',
       '', // Delivery_instructions
       SERVICE_NAMES[meta.shipping_method] || 'Standard',

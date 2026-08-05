@@ -37,16 +37,16 @@ export default function DeliveryPage() {
                 <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">
                   Standard Delivery
                 </p>
-                <p className="text-sm text-proton-black">£2.99 — 2–4 working days</p>
+                <p className="text-sm text-proton-black">£2.99 / €3.49 — 2–4 working days</p>
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">
                   Next-Day Delivery
                 </p>
-                <p className="text-sm text-proton-black">£4.99 — 1 working day</p>
+                <p className="text-sm text-proton-black">£4.99 / €5.99 — 1 working day</p>
               </div>
               <p className="text-sm text-proton-grey leading-relaxed">
-                Standard delivery is free on orders over £100.
+                Standard delivery is free on orders over £110 (€150 when paying in euros).
               </p>
             </div>
           </div>
@@ -59,10 +59,10 @@ export default function DeliveryPage() {
                 <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">
                   European Delivery
                 </p>
-                <p className="text-sm text-proton-black">£5.99 — 5–10 working days</p>
+                <p className="text-sm text-proton-black">€6.99 — 5–10 working days</p>
               </div>
               <p className="text-sm text-proton-grey leading-relaxed">
-                Delivery is free on orders over £100. European orders may incur customs
+                Delivery is free on orders over €150. European orders may incur customs
                 charges on arrival — see below.
               </p>
             </div>
@@ -78,7 +78,9 @@ export default function DeliveryPage() {
             <p className="text-sm text-proton-black leading-relaxed">
               We deliver to the United Kingdom, Ireland and the rest of Europe — every EU
               member state, plus Switzerland, Norway, Iceland, Liechtenstein and Monaco.
-              Ireland is served by our UK &amp; Ireland rates.
+              Ireland is served by our UK &amp; Ireland rates. European customers —
+              including Ireland — are shown and charged prices in euros; UK customers
+              pay in pounds.
             </p>
           </div>
         </div>

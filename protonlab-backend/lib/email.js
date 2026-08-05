@@ -4,7 +4,7 @@
 // brand theme (emails/theme.js) — do not inline ad-hoc styles here.
 
 import { Resend } from 'resend';
-import { COLORS, FONTS, formatShipping, formatItems } from '../emails/theme.js';
+import { COLORS, FONTS, formatShipping, formatItems, currencySymbol } from '../emails/theme.js';
 import { render as renderConfirmation } from '../emails/order-confirmation.js';
 import { render as renderProduction } from '../emails/order-production.js';
 import { render as renderDispatched } from '../emails/order-dispatched.js';
@@ -118,7 +118,8 @@ export async function addToMailingList(order) {
 // ─── Internal team notification ─────────────────────────────────────────────
 
 export async function sendInternalNotification(order) {
-  const total = `£${parseFloat(order.amount).toFixed(2)}`;
+  const sym = currencySymbol(order.currency);
+  const total = `${sym}${parseFloat(order.amount).toFixed(2)}`;
   const club = order.club && order.club !== 'N/A' ? order.club : '—';
   const orderRef = order.ref || order.id;
   const shipping = formatShipping(order.shipping);
@@ -128,10 +129,10 @@ export async function sendInternalNotification(order) {
   const serviceNames = { standard: 'Standard', 'next-day': 'NEXT-DAY', international: 'International' };
   const shippingCost = parseFloat(order.shippingAmount || '0');
   const service = serviceNames[order.shippingMethod] || 'Standard';
-  const deliveryLine = `${service} (${order.shippingLabel || 'Standard Delivery'}) — ${shippingCost > 0 ? `£${shippingCost.toFixed(2)}` : 'Free'}`;
+  const deliveryLine = `${service} (${order.shippingLabel || 'Standard Delivery'}) — ${shippingCost > 0 ? `${sym}${shippingCost.toFixed(2)}` : 'Free'}`;
   const discountValue = parseFloat(order.discountAmount || '0');
   const discountLine = discountValue > 0
-    ? `−£${discountValue.toFixed(2)}${order.promoCode ? ` (code: ${order.promoCode})` : ''}`
+    ? `−${sym}${discountValue.toFixed(2)}${order.promoCode ? ` (code: ${order.promoCode})` : ''}`
     : null;
 
   const label = `padding:10px 0;border-bottom:1px solid ${COLORS.light};font-family:${FONTS.body};font-size:13px;color:${COLORS.grey};`;

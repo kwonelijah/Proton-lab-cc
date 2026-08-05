@@ -1,5 +1,7 @@
 export function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat('en-GB', {
+  // en-IE keeps the symbol-first style (€110) for EUR; en-GB would too, but
+  // being explicit keeps the rendering deliberate per currency.
+  return new Intl.NumberFormat(currencyCode === 'EUR' ? 'en-IE' : 'en-GB', {
     style: 'currency',
     currency: currencyCode,
     minimumFractionDigits: 0,

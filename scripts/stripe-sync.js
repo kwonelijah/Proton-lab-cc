@@ -3,7 +3,9 @@
 // Reads PLPricelist.csv at the repo root and idempotently creates a Stripe
 // Product + Price per row, plus club legacy Prices from data/club-prices.json
 // (tagged metadata.club — existing club shops keep their agreed price when
-// retail moves). Writes handle -> { productId, priceId, clubPrices? } to:
+// retail moves) and EUR retail Prices from data/eur-prices.json (separate
+// European pricing, distinguished by Stripe's native price.currency).
+// Writes handle -> { productId, priceId, clubPrices?, eur? } to:
 //   - data/stripe-products.json                 (repo root, source of truth)
 //   - protonlab-backend/data/stripe-products.json  (bundled with backend deploy)
 //
@@ -16,9 +18,9 @@
 // Idempotency:
 //   - Products are matched via metadata.handle (Stripe Search API).
 //   - Existing products have their name/metadata/active flag reconciled.
-//   - A price is reused only on an exact amount match with the same tag:
-//     retail reuses only untagged prices, club prices only those whose
-//     metadata.club matches. Retail and club prices never cross over.
+//   - A price is reused only on an exact amount match with the same tag AND
+//     the same currency: retail reuses only untagged prices, club prices only
+//     those whose metadata.club matches. GBP/EUR and retail/club never cross.
 
 const fs = require('fs');
 const path = require('path');
@@ -69,6 +71,7 @@ const stripe = new Stripe(key);
 const REPO_ROOT = path.resolve(__dirname, '..');
 const CSV_PATH = path.join(REPO_ROOT, 'PLPricelist.csv');
 const CLUB_PRICES_PATH = path.join(REPO_ROOT, 'data', 'club-prices.json');
+const EUR_PRICES_PATH = path.join(REPO_ROOT, 'data', 'eur-prices.json');
 const OUT_ROOT = path.join(REPO_ROOT, 'data', 'stripe-products.json');
 const OUT_BACKEND = path.join(REPO_ROOT, 'protonlab-backend', 'data', 'stripe-products.json');
 const PRUNE = process.argv.includes('--prune');
@@ -125,6 +128,24 @@ function loadClubPrices(rows) {
   return overrides;
 }
 
+// data/eur-prices.json: { "<productHandle>": priceEUR }. Products without an
+// entry simply have no EUR price — the backend falls the whole session back
+// to GBP if a EUR cart contains one, so partial coverage is safe.
+function loadEurPrices(rows) {
+  if (!fs.existsSync(EUR_PRICES_PATH)) return {};
+  const overrides = JSON.parse(fs.readFileSync(EUR_PRICES_PATH, 'utf8'));
+  const handles = new Set(rows.map(r => r.handle));
+  for (const [handle, priceEur] of Object.entries(overrides)) {
+    if (!handles.has(handle)) {
+      throw new Error(`eur-prices.json: unknown product handle '${handle}'`);
+    }
+    if (typeof priceEur !== 'number' || !(priceEur > 0)) {
+      throw new Error(`eur-prices.json: invalid price for '${handle}': ${priceEur}`);
+    }
+  }
+  return overrides;
+}
+
 async function findProductByHandle(handle) {
   const res = await stripe.products.search({
     query: `metadata['handle']:'${handle}'`,
@@ -166,28 +187,31 @@ async function upsertProduct(spec) {
   return { product: created, created: true, updated: false };
 }
 
-async function upsertPrice(productId, unitAmount, clubHandle) {
+async function upsertPrice(productId, unitAmount, { clubHandle, currency = 'gbp' } = {}) {
   const prices = await stripe.prices.list({ product: productId, active: true, limit: 100 });
   const match = prices.data.find(
-    p => p.currency === 'gbp' && p.unit_amount === unitAmount && p.type === 'one_time' &&
+    p => p.currency === currency && p.unit_amount === unitAmount && p.type === 'one_time' &&
       (clubHandle ? (p.metadata && p.metadata.club) === clubHandle : !(p.metadata && p.metadata.club))
   );
   if (match) return { price: match, created: false };
 
   const price = await stripe.prices.create({
     product: productId,
-    currency: 'gbp',
+    currency,
     unit_amount: unitAmount,
     ...(clubHandle ? { metadata: { club: clubHandle } } : {}),
   });
   return { price, created: true };
 }
 
-// Archive prices superseded by the mapping just synced. Untagged prices are
-// stale unless they are the current retail priceId; club-tagged prices are
-// stale unless they are that club's current override. Tags for clubs absent
-// from club-prices.json are left alone — they may belong to a shop this
-// checkout of the repo doesn't know about.
+const SYMBOLS = { gbp: '£', eur: '€' };
+
+// Archive prices superseded by the mapping just synced. Staleness is judged
+// per currency: an untagged GBP price is stale unless it is the current retail
+// priceId, an untagged EUR price unless it is the current entry.eur priceId.
+// Club-tagged prices are stale unless they are that club's current override.
+// Unknown currencies and tags for clubs absent from club-prices.json are left
+// alone — they may belong to state this checkout of the repo doesn't know about.
 async function prunePrices(mapping, clubOverrides) {
   let archived = 0;
   for (const [handle, entry] of Object.entries(mapping)) {
@@ -195,18 +219,25 @@ async function prunePrices(mapping, clubOverrides) {
     for (const p of prices.data) {
       const club = p.metadata && p.metadata.club;
       let stale;
-      if (!club) {
-        stale = p.id !== entry.priceId;
-      } else if (clubOverrides[club]) {
+      if (club) {
+        if (p.currency !== 'gbp' || !clubOverrides[club]) {
+          console.log(`  [SKIP    ] ${handle.padEnd(22)} leaving price ${p.id} (club '${club}', ${p.currency})`);
+          continue;
+        }
         const current = entry.clubPrices && entry.clubPrices[club];
         stale = !current || p.id !== current.priceId;
+      } else if (p.currency === 'gbp') {
+        stale = p.id !== entry.priceId;
+      } else if (p.currency === 'eur') {
+        stale = !entry.eur || p.id !== entry.eur.priceId;
       } else {
-        console.log(`  [SKIP    ] ${handle.padEnd(22)} leaving price ${p.id} tagged with unknown club '${club}'`);
+        console.log(`  [SKIP    ] ${handle.padEnd(22)} leaving price ${p.id} (unknown currency '${p.currency}')`);
         continue;
       }
       if (stale) {
         await stripe.prices.update(p.id, { active: false }).catch(() => null);
-        console.log(`  [ARCHIVED] ${handle.padEnd(22)} £${(p.unit_amount / 100).toFixed(2).padStart(7)}  ${p.id}${club ? `  (club ${club})` : ''}`);
+        const sym = SYMBOLS[p.currency] || p.currency + ' ';
+        console.log(`  [ARCHIVED] ${handle.padEnd(22)} ${sym}${(p.unit_amount / 100).toFixed(2).padStart(7)}  ${p.id}${club ? `  (club ${club})` : ''}`);
         archived++;
       }
     }
@@ -223,8 +254,9 @@ async function main() {
   const csv = fs.readFileSync(CSV_PATH, 'utf8');
   const rows = parseCsv(csv).map(rowToProduct);
   const clubOverrides = loadClubPrices(rows);
+  const eurOverrides = loadEurPrices(rows);
   const overrideCount = Object.values(clubOverrides).reduce((n, m) => n + Object.keys(m).length, 0);
-  console.log(`Loaded ${rows.length} products from PLPricelist.csv, ${overrideCount} club price overrides`);
+  console.log(`Loaded ${rows.length} products from PLPricelist.csv, ${overrideCount} club price overrides, ${Object.keys(eurOverrides).length} EUR prices`);
 
   const mapping = {};
   let createdCount = 0;
@@ -233,7 +265,7 @@ async function main() {
 
   for (const spec of rows) {
     const { product, created, updated } = await upsertProduct(spec);
-    const { price, created: priceCreated } = await upsertPrice(product.id, spec.unitAmount);
+    const { price, created: priceCreated } = await upsertPrice(product.id, spec.unitAmount, {});
 
     const entry = {
       productId: product.id,
@@ -256,10 +288,18 @@ async function main() {
       const clubGbp = products[spec.handle];
       if (clubGbp === undefined) continue;
       const clubUnitAmount = Math.round(clubGbp * 100);
-      const { price: clubPrice, created: clubCreated } = await upsertPrice(product.id, clubUnitAmount, club);
+      const { price: clubPrice, created: clubCreated } = await upsertPrice(product.id, clubUnitAmount, { clubHandle: club });
       entry.clubPrices = entry.clubPrices || {};
       entry.clubPrices[club] = { priceId: clubPrice.id, unitAmount: clubUnitAmount };
       console.log(`     [CLUB ] ${club.padEnd(28)} £${(clubUnitAmount / 100).toFixed(2).padStart(7)}  ${clubPrice.id}  (${clubCreated ? 'new price' : 'reused price'})`);
+    }
+
+    const eurGbp = eurOverrides[spec.handle];
+    if (eurGbp !== undefined) {
+      const eurUnitAmount = Math.round(eurGbp * 100);
+      const { price: eurPrice, created: eurCreated } = await upsertPrice(product.id, eurUnitAmount, { currency: 'eur' });
+      entry.eur = { priceId: eurPrice.id, unitAmount: eurUnitAmount };
+      console.log(`     [EUR  ] ${''.padEnd(28)} €${(eurUnitAmount / 100).toFixed(2).padStart(7)}  ${eurPrice.id}  (${eurCreated ? 'new price' : 'reused price'})`);
     }
 
     mapping[spec.handle] = entry;

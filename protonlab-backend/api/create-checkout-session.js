@@ -7,7 +7,7 @@ import Stripe from 'stripe';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ZONES, resolveZone } from '../config/shipping.js';
+import { ZONES, resolveZone, resolveCurrency } from '../config/shipping.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { items, customerEmail, customerName, shippingRegion, fbp, fbc } = req.body;
+  const { items, customerEmail, customerName, shippingRegion, currency, fbp, fbc } = req.body;
 
   // Meta ads attribution — the browser's _fbp/_fbc cookies arrive in the body;
   // IP and user-agent are read from this request (it comes from the customer's
@@ -64,7 +64,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Product catalog unavailable' });
   }
 
-  const resolved = [];
+  // First pass: validate items and look up map entries.
+  const looked = [];
   for (const item of items) {
     if (!item || typeof item.handle !== 'string' || typeof item.size !== 'string') {
       return res.status(400).json({ error: 'Invalid cart item' });
@@ -74,26 +75,40 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: `Unknown product: ${item.handle}` });
     }
     const quantity = Number.isFinite(item.quantity) && item.quantity > 0 ? Math.floor(item.quantity) : 1;
+    const clubHandle = typeof item.clubHandle === 'string' ? item.clubHandle : undefined;
     // Club shops keep the price agreed when the shop opened. Overrides live in
     // the server-side map (baked in by stripe-sync from data/club-prices.json),
     // so the client can only ever select a price we created for that club.
-    const clubHandle = typeof item.clubHandle === 'string' ? item.clubHandle : undefined;
     const override = entry.clubPrices && clubHandle ? entry.clubPrices[clubHandle] : undefined;
-    resolved.push({
+    looked.push({ item, entry, quantity, clubHandle, override });
+  }
+
+  // A Stripe session is single-currency, so EUR is all-or-nothing: if any line
+  // can't be priced in EUR (no EUR price, or a club item — club prices are GBP
+  // agreements) the whole session falls back to GBP.
+  const sessionCurrency =
+    resolveCurrency(currency) === 'eur' && looked.every(l => l.entry.eur && !l.override)
+      ? 'eur'
+      : 'gbp';
+
+  const resolved = looked.map(({ item, entry, quantity, clubHandle, override }) => {
+    const eur = sessionCurrency === 'eur' ? entry.eur : undefined;
+    return {
       handle: item.handle,
       size: item.size,
       quantity,
-      priceId: override ? override.priceId : entry.priceId,
+      priceId: override ? override.priceId : eur ? eur.priceId : entry.priceId,
       name: entry.name,
-      unitAmount: override ? override.unitAmount : entry.unitAmount,
+      unitAmount: override ? override.unitAmount : eur ? eur.unitAmount : entry.unitAmount,
       image: typeof item.image === 'string' ? item.image : undefined,
       clubName: typeof item.clubName === 'string' ? item.clubName : undefined,
       clubHandle,
-    });
-  }
+    };
+  });
 
-  // Pre-discount subtotal in pence — decides free-shipping eligibility. Uses the
-  // server-side price map, so the client can't influence it.
+  // Pre-discount subtotal in minor units of the session currency — decides
+  // free-shipping eligibility. Uses the server-side price map, so the client
+  // can't influence it.
   const subtotal = resolved.reduce((sum, i) => sum + (i.unitAmount || 0) * i.quantity, 0);
 
   // Club name(s) for this order — usually one club per cart. Deduped + joined
@@ -125,7 +140,7 @@ export default async function handler(req, res) {
 
       // Rates come from config/shipping.js — UK & Ireland get free standard
       // delivery at/over the threshold, next-day stays paid either way.
-      shipping_options: zone.optionsFor(subtotal),
+      shipping_options: zone.optionsFor(subtotal, sessionCurrency),
 
       // Customers can enter discount codes (created in the Stripe dashboard
       // under Product catalogue → Coupons) on the hosted page.
@@ -141,7 +156,7 @@ export default async function handler(req, res) {
       // on the hosted page. Fulfillment still uses metadata.items (authoritative).
       custom_text: {
         shipping_address: {
-          message: zone.customText(subtotal),
+          message: zone.customText(subtotal, sessionCurrency),
         },
         submit: {
           message: 'Sizes: ' + resolved.map(i => `${i.name} — ${i.size}`).join(', '),
@@ -155,6 +170,7 @@ export default async function handler(req, res) {
           club,
           club_handle: clubHandleMeta,
           shipping_region: region,
+          currency: sessionCurrency,
           subtotal: String(subtotal),
           product: resolved.map(i => i.name).join(', '),
           items: JSON.stringify(

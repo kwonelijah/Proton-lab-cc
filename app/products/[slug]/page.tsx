@@ -7,6 +7,7 @@ import VariantSelector from './VariantSelector'
 import Accordion from '@/components/ui/Accordion'
 import DeliveryNote from '@/components/ui/DeliveryNote'
 import { getProducts, getProductByHandle } from '@/lib/api'
+import { getDisplayCurrency } from '@/lib/currency-server'
 import { formatPrice } from '@/lib/utils'
 
 interface PageProps {
@@ -49,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProductPage({ params }: PageProps) {
-  const product = await getProductByHandle(params.slug)
+  const product = await getProductByHandle(params.slug, getDisplayCurrency())
   if (!product) notFound()
 
   const collectionRef = product.collections?.nodes[0]

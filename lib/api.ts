@@ -14,11 +14,13 @@
 
 import type { Product } from '@/types/product'
 import type { JournalPost } from '@/types/journal'
+import type { Currency } from '@/lib/currency'
 
 // ─── MOCK DATA MODE (active) ─────────────────────────────────────────────────
 import { products as mockProducts } from '@/data/products'
 import { journalPosts as mockJournalPosts } from '@/data/journal'
 import stockJson from '@/data/stock.json'
+import stripeProducts from '@/data/stripe-products.json'
 
 // ─── SHOPIFY MODE (swap to this later) ───────────────────────────────────────
 // import {
@@ -65,6 +67,33 @@ function isLive(handle: string): boolean {
   }
 }
 
+// ─── EUR PRICE OVERLAY ───────────────────────────────────────────────────────
+// EUR display prices come from the same file the backend charges from
+// (data/stripe-products.json `eur` entries, created by scripts/stripe-sync.js
+// from data/eur-prices.json) — products.ts stays GBP-only, so display and
+// charge can never drift. A product without a EUR price keeps GBP; checkout
+// then falls the whole session back to GBP too.
+
+type PriceMapEntry = { unitAmount: number; eur?: { unitAmount: number } }
+const priceMap = stripeProducts as unknown as Record<string, PriceMapEntry>
+
+function withCurrency(product: Product, currency: Currency): Product {
+  if (currency !== 'EUR') return product
+  const eur = priceMap[product.handle]?.eur
+  if (!eur) return product
+  const amount = (eur.unitAmount / 100).toFixed(2)
+  return {
+    ...product,
+    priceRange: { minVariantPrice: { amount, currencyCode: 'EUR' } },
+    variants: {
+      nodes: product.variants.nodes.map(v => ({
+        ...v,
+        price: { amount, currencyCode: 'EUR' },
+      })),
+    },
+  }
+}
+
 function withStock(product: Product): Product {
   const bySize = stock[product.handle] ?? {}
   const variants = product.variants.nodes.map(v => {
@@ -82,15 +111,15 @@ function withStock(product: Product): Product {
 
 // ─── EXPORTED FUNCTIONS ──────────────────────────────────────────────────────
 
-export async function getProducts(): Promise<Product[]> {
-  return mockProducts.filter(p => isLive(p.handle)).map(withStock)
+export async function getProducts(currency: Currency = 'GBP'): Promise<Product[]> {
+  return mockProducts.filter(p => isLive(p.handle)).map(p => withCurrency(withStock(p), currency))
   // return shopifyGetProducts()
 }
 
-export async function getProductByHandle(handle: string): Promise<Product | null> {
+export async function getProductByHandle(handle: string, currency: Currency = 'GBP'): Promise<Product | null> {
   if (!isLive(handle)) return null
   const p = mockProducts.find(p => p.handle === handle)
-  return p ? withStock(p) : null
+  return p ? withCurrency(withStock(p), currency) : null
   // return shopifyGetProductByHandle(handle)
 }
 

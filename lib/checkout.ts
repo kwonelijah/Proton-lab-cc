@@ -15,7 +15,8 @@ export type ShippingRegion = 'uk' | 'europe'
 
 export async function redirectToCheckout(
   items: CheckoutItem[],
-  shippingRegion: ShippingRegion = 'uk'
+  shippingRegion: ShippingRegion = 'uk',
+  currency: 'gbp' | 'eur' = 'gbp'
 ): Promise<void> {
   // Meta attribution cookies ride along so the backend can stamp them onto the
   // PaymentIntent and send a fully-attributed Conversions API Purchase event.
@@ -24,7 +25,7 @@ export async function redirectToCheckout(
   const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items, shippingRegion, fbp, fbc }),
+    body: JSON.stringify({ items, shippingRegion, currency, fbp, fbc }),
   })
 
   const data = await res.json()

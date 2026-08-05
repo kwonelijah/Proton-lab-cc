@@ -2,13 +2,14 @@ import type { Metadata } from 'next'
 import PageWrapper from '@/components/layout/PageWrapper'
 import ShopGrid from './ShopGrid'
 import { getProducts } from '@/lib/api'
+import { getDisplayCurrency } from '@/lib/currency-server'
 
 export const metadata: Metadata = {
   title: 'Shop',
 }
 
 export default async function ShopPage() {
-  const products = await getProducts()
+  const products = await getProducts(getDisplayCurrency())
   const inStock = products.filter(p => p.availableForSale)
 
   return (

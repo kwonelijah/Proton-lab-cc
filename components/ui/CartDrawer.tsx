@@ -2,17 +2,46 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '@/stores/cart'
+import { useCurrencyStore } from '@/stores/region'
+import { COUNTRY_COOKIE, CURRENCY_SYMBOL, FREE_SHIPPING_THRESHOLD, type Currency } from '@/lib/currency'
 import { redirectToCheckout, type ShippingRegion } from '@/lib/checkout'
 import { trackMetaEvent, parsePrice } from '@/lib/meta'
 import { trackGaEvent } from '@/lib/ga'
+import stripeProducts from '@/data/stripe-products.json'
 
-const FREE_SHIPPING_THRESHOLD = 100 // £ — must match protonlab-backend/config/shipping.js
+// Cart line prices are recomputed from the price map at render time so a £/€
+// toggle can never leave stale amounts in the drawer. Club items are exempt —
+// club prices are GBP agreements, and a cart containing one renders (and is
+// charged) entirely in GBP, mirroring the backend's fallback rule.
+type PriceMapEntry = { unitAmount: number; eur?: { unitAmount: number } }
+const priceMap = stripeProducts as unknown as Record<string, PriceMapEntry>
+
+function unitPrice(handle: string, fallback: string, currency: Currency): number {
+  const entry = priceMap[handle]
+  if (currency === 'EUR' && entry?.eur) return entry.eur.unitAmount / 100
+  if (entry) return entry.unitAmount / 100
+  return parsePrice(fallback)
+}
+
+// Geo default for the delivery selector: EU countries ship under the Europe
+// zone; GB and IE stay UK & Ireland (Irish customers pay EUR on UK rates).
+function defaultRegion(): ShippingRegion {
+  if (typeof document === 'undefined') return 'uk'
+  const country = document.cookie.match(new RegExp(`(?:^|; )${COUNTRY_COOKIE}=([^;]+)`))?.[1]
+  if (!country || country === 'GB' || country === 'IE') return 'uk'
+  return useCurrencyStore.getState().currency === 'EUR' ? 'europe' : 'uk'
+}
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem } = useCartStore()
+  const currency = useCurrencyStore(s => s.currency)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [region, setRegion] = useState<ShippingRegion>('uk')
+  const [region, setRegion] = useState<ShippingRegion>(defaultRegion)
+
+  // A club item pins the whole cart to GBP (club prices are GBP agreements).
+  const cartCurrency: Currency = items.some(i => i.clubHandle !== 'protonlab') ? 'GBP' : currency
+  const symbol = CURRENCY_SYMBOL[cartCurrency]
 
   const drawerRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
@@ -68,6 +97,9 @@ export default function CartDrawer() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, closeCart])
 
+  const lineAmount = (i: (typeof items)[number]) =>
+    i.clubHandle !== 'protonlab' ? parsePrice(i.price) : unitPrice(i.productHandle, i.price, cartCurrency)
+
   async function handleCheckout() {
     if (items.length === 0) return
     setLoading(true)
@@ -77,18 +109,18 @@ export default function CartDrawer() {
       contents: items.map(i => ({ id: i.productHandle, quantity: i.quantity })),
       content_type: 'product',
       content_category: items.some(i => i.clubHandle !== 'protonlab') ? 'club-shop' : 'retail',
-      currency: 'GBP',
-      value: items.reduce((sum, i) => sum + parsePrice(i.price) * i.quantity, 0),
+      currency: cartCurrency,
+      value: items.reduce((sum, i) => sum + lineAmount(i) * i.quantity, 0),
       num_items: items.reduce((sum, i) => sum + i.quantity, 0),
     })
     trackGaEvent('begin_checkout', {
-      currency: 'GBP',
-      value: items.reduce((sum, i) => sum + parsePrice(i.price) * i.quantity, 0),
+      currency: cartCurrency,
+      value: items.reduce((sum, i) => sum + lineAmount(i) * i.quantity, 0),
       items: items.map(i => ({
         item_id: i.productHandle,
         item_name: i.productName,
         item_category: i.clubHandle !== 'protonlab' ? ('club-shop' as const) : ('retail' as const),
-        price: parsePrice(i.price),
+        price: lineAmount(i),
         quantity: i.quantity,
       })),
     })
@@ -102,7 +134,8 @@ export default function CartDrawer() {
           clubName: item.clubName,
           clubHandle: item.clubHandle,
         })),
-        region
+        region,
+        cartCurrency.toLowerCase() as 'gbp' | 'eur'
       )
     } catch {
       setLoading(false)
@@ -161,7 +194,7 @@ export default function CartDrawer() {
                       Size: {item.size}
                       {item.quantity > 1 && <span className="ml-2">× {item.quantity}</span>}
                     </p>
-                    <p className="text-sm text-proton-black mt-1">{item.price}</p>
+                    <p className="text-sm text-proton-black mt-1">{symbol}{lineAmount(item).toFixed(2)}</p>
                   </div>
                   <button
                     onClick={() => removeItem(item.id)}
@@ -179,8 +212,8 @@ export default function CartDrawer() {
 
             {/* Checkout footer */}
             {(() => {
-              const subtotal = items.reduce((sum, i) => sum + parseFloat(i.price.replace(/[^0-9.]/g, '')) * i.quantity, 0)
-              const remaining = FREE_SHIPPING_THRESHOLD - subtotal
+              const subtotal = items.reduce((sum, i) => sum + lineAmount(i) * i.quantity, 0)
+              const remaining = FREE_SHIPPING_THRESHOLD[cartCurrency] - subtotal
               return (
                 <div className="px-6 py-6 border-t border-proton-light space-y-4">
                   <div className="flex items-center justify-between">
@@ -199,11 +232,11 @@ export default function CartDrawer() {
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] uppercase tracking-widest text-proton-grey">Total</p>
-                    <p className="text-sm text-proton-black">£{subtotal.toFixed(2)}</p>
+                    <p className="text-sm text-proton-black">{symbol}{subtotal.toFixed(2)}</p>
                   </div>
                   <p className="text-[10px] text-proton-grey text-center">
                     {remaining > 0
-                      ? `Add £${remaining.toFixed(2)} more for free standard delivery`
+                      ? `Add ${symbol}${remaining.toFixed(2)} more for free standard delivery`
                       : 'Free standard delivery unlocked'}
                   </p>
                   <p className="text-[10px] text-proton-grey text-center">

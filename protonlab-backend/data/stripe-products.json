@@ -300,7 +300,11 @@
     "unitAmount": 8500,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Summer 2026"
+    "collection": "Summer 2026",
+    "eur": {
+      "priceId": "price_1U1Bq43x1N43j1uchxH9CcWi",
+      "unitAmount": 11000
+    }
   },
   "ocean-blue-jersey": {
     "productId": "prod_UlvWEt5fuRYZ0T",
@@ -309,7 +313,11 @@
     "unitAmount": 8500,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Summer 2026"
+    "collection": "Summer 2026",
+    "eur": {
+      "priceId": "price_1U1Bq43x1N43j1ucmql9q3tZ",
+      "unitAmount": 11000
+    }
   },
   "red-sky-jersey": {
     "productId": "prod_UlvWWsmKvPz4Do",
@@ -318,7 +326,11 @@
     "unitAmount": 8500,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Summer 2026"
+    "collection": "Summer 2026",
+    "eur": {
+      "priceId": "price_1U1Bq53x1N43j1ucb78Iijc7",
+      "unitAmount": 11000
+    }
   },
   "black-bib-shorts": {
     "productId": "prod_UlvWk2ATGuvMmj",
@@ -327,7 +339,11 @@
     "unitAmount": 10000,
     "currency": "gbp",
     "category": "Shorts",
-    "collection": "Summer 2026"
+    "collection": "Summer 2026",
+    "eur": {
+      "priceId": "price_1U1Bq63x1N43j1ucfzosnOpT",
+      "unitAmount": 13000
+    }
   },
   "granite-bib-shorts": {
     "productId": "prod_UlvWgx8Ng0YTku",
@@ -336,7 +352,11 @@
     "unitAmount": 10000,
     "currency": "gbp",
     "category": "Shorts",
-    "collection": "Summer 2026"
+    "collection": "Summer 2026",
+    "eur": {
+      "priceId": "price_1U1Bq63x1N43j1ucUdzT413B",
+      "unitAmount": 13000
+    }
   },
   "white-bib-shorts": {
     "productId": "prod_UlvW4LVrH3lX4v",
@@ -345,7 +365,11 @@
     "unitAmount": 10000,
     "currency": "gbp",
     "category": "Shorts",
-    "collection": "Summer 2026"
+    "collection": "Summer 2026",
+    "eur": {
+      "priceId": "price_1U1Bq73x1N43j1uc1vOTVZar",
+      "unitAmount": 13000
+    }
   },
   "white-cotton-socks": {
     "productId": "prod_UlvWCdMNZjyQ82",

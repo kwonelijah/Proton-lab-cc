@@ -10,6 +10,7 @@ import {
   formatItems,
   firstName,
   formatDate,
+  currencySymbol,
 } from './theme.js';
 
 export function render(order) {
@@ -17,7 +18,8 @@ export function render(order) {
   const products = order.product || 'your order';
   const club = order.club && order.club !== 'N/A' ? order.club : null;
   const orderRef = order.ref || order.id;
-  const total = `£${parseFloat(order.amount).toFixed(2)}`;
+  const sym = currencySymbol(order.currency);
+  const total = `${sym}${parseFloat(order.amount).toFixed(2)}`;
   const shipping = formatShipping(order.shipping);
   const items = formatItems(order);
   const date = formatDate(order.date);
@@ -25,11 +27,11 @@ export function render(order) {
   // Delivery + discount lines. Older orders (pre-shipping) won't have these fields.
   const shippingCost = parseFloat(order.shippingAmount || '0');
   const delivery = order.shippingLabel
-    ? `${order.shippingLabel} — ${shippingCost > 0 ? `£${shippingCost.toFixed(2)}` : 'Free'}`
+    ? `${order.shippingLabel} — ${shippingCost > 0 ? `${sym}${shippingCost.toFixed(2)}` : 'Free'}`
     : null;
   const discountValue = parseFloat(order.discountAmount || '0');
   const discount = discountValue > 0
-    ? `−£${discountValue.toFixed(2)}${order.promoCode ? ` (${order.promoCode})` : ''}`
+    ? `−${sym}${discountValue.toFixed(2)}${order.promoCode ? ` (${order.promoCode})` : ''}`
     : null;
 
   // International (non-UK) orders may be charged VAT/duties on import — the

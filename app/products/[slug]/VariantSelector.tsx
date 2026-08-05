@@ -23,18 +23,21 @@ export default function VariantSelector({ variants, productTitle, productHandle,
 
   const selected = variants.find(v => v.id === selectedId)
 
-  // Meta Pixel: product page viewed
+  // Meta Pixel: product page viewed. Currency rides with the variant data —
+  // lib/api.ts already overlays EUR amounts for EUR visitors, so value and
+  // currency can never disagree.
   useEffect(() => {
+    const currency = variants[0]?.price.currencyCode ?? 'GBP'
     trackMetaEvent('ViewContent', {
       content_ids: [productHandle],
       content_name: productTitle,
       content_type: 'product',
       content_category: 'retail',
-      currency: 'GBP',
+      currency,
       value: parsePrice(variants[0]?.price.amount ?? '0'),
     })
     trackGaEvent('view_item', {
-      currency: 'GBP',
+      currency,
       value: parsePrice(variants[0]?.price.amount ?? '0'),
       items: [
         {
@@ -87,11 +90,11 @@ export default function VariantSelector({ variants, productTitle, productHandle,
       content_name: productTitle,
       content_type: 'product',
       content_category: 'retail',
-      currency: 'GBP',
+      currency: selected.price.currencyCode,
       value: parsePrice(selected.price.amount),
     })
     trackGaEvent('add_to_cart', {
-      currency: 'GBP',
+      currency: selected.price.currencyCode,
       value: parsePrice(selected.price.amount),
       items: [
         {

@@ -68,6 +68,8 @@ export default async function handler(req, res) {
     // that in the reported item prices (orders predating club_handle fall
     // back to retail amounts).
     const clubHandle = session.payment_intent?.metadata?.club_handle || '';
+    // EUR sessions charged EUR prices — report item prices in the same currency.
+    const isEur = (session.currency || 'gbp').toLowerCase() === 'eur';
     const map = loadProductMap();
 
     return res.status(200).json({
@@ -82,7 +84,10 @@ export default async function handler(req, res) {
         .filter(i => i.handle)
         .map(i => {
           const entry = map[i.handle];
-          const unitAmount = entry?.clubPrices?.[clubHandle]?.unitAmount ?? entry?.unitAmount;
+          const unitAmount =
+            entry?.clubPrices?.[clubHandle]?.unitAmount ??
+            (isEur ? entry?.eur?.unitAmount : undefined) ??
+            entry?.unitAmount;
           return {
             id: i.handle,
             name: i.name || entry?.name || i.handle,
