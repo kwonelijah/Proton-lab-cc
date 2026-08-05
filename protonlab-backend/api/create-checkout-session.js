@@ -74,15 +74,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: `Unknown product: ${item.handle}` });
     }
     const quantity = Number.isFinite(item.quantity) && item.quantity > 0 ? Math.floor(item.quantity) : 1;
+    // Club shops keep the price agreed when the shop opened. Overrides live in
+    // the server-side map (baked in by stripe-sync from data/club-prices.json),
+    // so the client can only ever select a price we created for that club.
+    const clubHandle = typeof item.clubHandle === 'string' ? item.clubHandle : undefined;
+    const override = entry.clubPrices && clubHandle ? entry.clubPrices[clubHandle] : undefined;
     resolved.push({
       handle: item.handle,
       size: item.size,
       quantity,
-      priceId: entry.priceId,
+      priceId: override ? override.priceId : entry.priceId,
       name: entry.name,
-      unitAmount: entry.unitAmount,
+      unitAmount: override ? override.unitAmount : entry.unitAmount,
       image: typeof item.image === 'string' ? item.image : undefined,
       clubName: typeof item.clubName === 'string' ? item.clubName : undefined,
+      clubHandle,
     });
   }
 
@@ -93,6 +99,12 @@ export default async function handler(req, res) {
   // Club name(s) for this order — usually one club per cart. Deduped + joined
   // so it survives into the order emails via payment_intent metadata.
   const club = [...new Set(resolved.map(i => i.clubName).filter(Boolean))].join(', ');
+
+  // Club handle(s) — machine key for the price override, kept separate from the
+  // display name above ('protonlab' is the retail sentinel, not a club).
+  const clubHandleMeta = [...new Set(
+    resolved.map(i => i.clubHandle).filter(h => h && h !== 'protonlab')
+  )].join(', ');
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -141,6 +153,7 @@ export default async function handler(req, res) {
           name: customerName || '',
           email: customerEmail || '',
           club,
+          club_handle: clubHandleMeta,
           shipping_region: region,
           subtotal: String(subtotal),
           product: resolved.map(i => i.name).join(', '),

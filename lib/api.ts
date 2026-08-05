@@ -94,6 +94,14 @@ export async function getProductByHandle(handle: string): Promise<Product | null
   // return shopifyGetProductByHandle(handle)
 }
 
+// Club shops bypass the SHOP_MODE gate: they are password-protected and sell
+// made-to-order kit, so their catalogue must stay reachable even when the
+// retail shop hides those handles (the club PDP overrides availability itself).
+export async function getClubProductByHandle(handle: string): Promise<Product | null> {
+  const p = mockProducts.find(p => p.handle === handle)
+  return p ? withStock(p) : null
+}
+
 export async function getJournalPosts(): Promise<JournalPost[]> {
   return mockJournalPosts
   // return shopifyGetJournalPosts()

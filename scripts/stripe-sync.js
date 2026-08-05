@@ -1,17 +1,24 @@
 /* eslint-disable */
 // scripts/stripe-sync.js
 // Reads PLPricelist.csv at the repo root and idempotently creates a Stripe
-// Product + single Price per row. Writes handle -> { productId, priceId } to:
+// Product + Price per row, plus club legacy Prices from data/club-prices.json
+// (tagged metadata.club — existing club shops keep their agreed price when
+// retail moves). Writes handle -> { productId, priceId, clubPrices? } to:
 //   - data/stripe-products.json                 (repo root, source of truth)
 //   - protonlab-backend/data/stripe-products.json  (bundled with backend deploy)
 //
-// Run: STRIPE_SECRET_KEY=sk_live_xxxxx node scripts/stripe-sync.js
+// Run:   STRIPE_SECRET_KEY=sk_live_xxxxx node scripts/stripe-sync.js
+// Prune: node scripts/stripe-sync.js --prune
+//   Run prune only AFTER the regenerated JSON is deployed. The sync itself
+//   never deactivates anything, so a backend still running the previous JSON
+//   keeps charging valid price IDs; prune then archives the superseded ones.
 //
 // Idempotency:
 //   - Products are matched via metadata.handle (Stripe Search API).
 //   - Existing products have their name/metadata/active flag reconciled.
-//   - If the current active price already has the target unit_amount, it is reused.
-//     Otherwise a new price is created and the old one is deactivated.
+//   - A price is reused only on an exact amount match with the same tag:
+//     retail reuses only untagged prices, club prices only those whose
+//     metadata.club matches. Retail and club prices never cross over.
 
 const fs = require('fs');
 const path = require('path');
@@ -61,8 +68,10 @@ const stripe = new Stripe(key);
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const CSV_PATH = path.join(REPO_ROOT, 'PLPricelist.csv');
+const CLUB_PRICES_PATH = path.join(REPO_ROOT, 'data', 'club-prices.json');
 const OUT_ROOT = path.join(REPO_ROOT, 'data', 'stripe-products.json');
 const OUT_BACKEND = path.join(REPO_ROOT, 'protonlab-backend', 'data', 'stripe-products.json');
+const PRUNE = process.argv.includes('--prune');
 
 function parseCsv(text) {
   // Minimal parser — the pricelist has no quoted commas.
@@ -94,6 +103,26 @@ function rowToProduct(row) {
     unitAmount: Math.round(priceGbp * 100),
     notes,
   };
+}
+
+// data/club-prices.json: { "<clubHandle>": { "<productHandle>": priceGBP } }.
+// Every handle must exist in the CSV — validated up front so a typo fails the
+// run before any Stripe call is made.
+function loadClubPrices(rows) {
+  if (!fs.existsSync(CLUB_PRICES_PATH)) return {};
+  const overrides = JSON.parse(fs.readFileSync(CLUB_PRICES_PATH, 'utf8'));
+  const handles = new Set(rows.map(r => r.handle));
+  for (const [club, products] of Object.entries(overrides)) {
+    for (const [handle, priceGbp] of Object.entries(products)) {
+      if (!handles.has(handle)) {
+        throw new Error(`club-prices.json: unknown product handle '${handle}' (club '${club}')`);
+      }
+      if (typeof priceGbp !== 'number' || !(priceGbp > 0)) {
+        throw new Error(`club-prices.json: invalid price for '${club}' / '${handle}': ${priceGbp}`);
+      }
+    }
+  }
+  return overrides;
 }
 
 async function findProductByHandle(handle) {
@@ -137,10 +166,11 @@ async function upsertProduct(spec) {
   return { product: created, created: true, updated: false };
 }
 
-async function upsertPrice(productId, unitAmount) {
+async function upsertPrice(productId, unitAmount, clubHandle) {
   const prices = await stripe.prices.list({ product: productId, active: true, limit: 100 });
   const match = prices.data.find(
-    p => p.currency === 'gbp' && p.unit_amount === unitAmount && p.type === 'one_time'
+    p => p.currency === 'gbp' && p.unit_amount === unitAmount && p.type === 'one_time' &&
+      (clubHandle ? (p.metadata && p.metadata.club) === clubHandle : !(p.metadata && p.metadata.club))
   );
   if (match) return { price: match, created: false };
 
@@ -148,15 +178,40 @@ async function upsertPrice(productId, unitAmount) {
     product: productId,
     currency: 'gbp',
     unit_amount: unitAmount,
+    ...(clubHandle ? { metadata: { club: clubHandle } } : {}),
   });
-
-  // Deactivate any stale active prices with a different amount.
-  await Promise.all(
-    prices.data
-      .filter(p => p.id !== price.id)
-      .map(p => stripe.prices.update(p.id, { active: false }).catch(() => null))
-  );
   return { price, created: true };
+}
+
+// Archive prices superseded by the mapping just synced. Untagged prices are
+// stale unless they are the current retail priceId; club-tagged prices are
+// stale unless they are that club's current override. Tags for clubs absent
+// from club-prices.json are left alone — they may belong to a shop this
+// checkout of the repo doesn't know about.
+async function prunePrices(mapping, clubOverrides) {
+  let archived = 0;
+  for (const [handle, entry] of Object.entries(mapping)) {
+    const prices = await stripe.prices.list({ product: entry.productId, active: true, limit: 100 });
+    for (const p of prices.data) {
+      const club = p.metadata && p.metadata.club;
+      let stale;
+      if (!club) {
+        stale = p.id !== entry.priceId;
+      } else if (clubOverrides[club]) {
+        const current = entry.clubPrices && entry.clubPrices[club];
+        stale = !current || p.id !== current.priceId;
+      } else {
+        console.log(`  [SKIP    ] ${handle.padEnd(22)} leaving price ${p.id} tagged with unknown club '${club}'`);
+        continue;
+      }
+      if (stale) {
+        await stripe.prices.update(p.id, { active: false }).catch(() => null);
+        console.log(`  [ARCHIVED] ${handle.padEnd(22)} £${(p.unit_amount / 100).toFixed(2).padStart(7)}  ${p.id}${club ? `  (club ${club})` : ''}`);
+        archived++;
+      }
+    }
+  }
+  console.log(`Prune done. archived=${archived}`);
 }
 
 function writeJson(filePath, data) {
@@ -167,7 +222,9 @@ function writeJson(filePath, data) {
 async function main() {
   const csv = fs.readFileSync(CSV_PATH, 'utf8');
   const rows = parseCsv(csv).map(rowToProduct);
-  console.log(`Loaded ${rows.length} products from PLPricelist.csv`);
+  const clubOverrides = loadClubPrices(rows);
+  const overrideCount = Object.values(clubOverrides).reduce((n, m) => n + Object.keys(m).length, 0);
+  console.log(`Loaded ${rows.length} products from PLPricelist.csv, ${overrideCount} club price overrides`);
 
   const mapping = {};
   let createdCount = 0;
@@ -178,7 +235,7 @@ async function main() {
     const { product, created, updated } = await upsertProduct(spec);
     const { price, created: priceCreated } = await upsertPrice(product.id, spec.unitAmount);
 
-    mapping[spec.handle] = {
+    const entry = {
       productId: product.id,
       priceId: price.id,
       name: spec.name,
@@ -194,6 +251,18 @@ async function main() {
     else { tag = 'REUSED '; reusedCount++; }
     const priceTag = priceCreated ? 'new price' : 'reused price';
     console.log(`  [${tag}] ${spec.handle.padEnd(22)} £${(spec.unitAmount / 100).toFixed(2).padStart(7)}  ${product.id}  ${price.id}  (${priceTag})`);
+
+    for (const [club, products] of Object.entries(clubOverrides)) {
+      const clubGbp = products[spec.handle];
+      if (clubGbp === undefined) continue;
+      const clubUnitAmount = Math.round(clubGbp * 100);
+      const { price: clubPrice, created: clubCreated } = await upsertPrice(product.id, clubUnitAmount, club);
+      entry.clubPrices = entry.clubPrices || {};
+      entry.clubPrices[club] = { priceId: clubPrice.id, unitAmount: clubUnitAmount };
+      console.log(`     [CLUB ] ${club.padEnd(28)} £${(clubUnitAmount / 100).toFixed(2).padStart(7)}  ${clubPrice.id}  (${clubCreated ? 'new price' : 'reused price'})`);
+    }
+
+    mapping[spec.handle] = entry;
   }
 
   writeJson(OUT_ROOT, mapping);
@@ -203,6 +272,12 @@ async function main() {
   console.log(`Done. created=${createdCount} updated=${updatedCount} reused=${reusedCount} total=${rows.length}`);
   console.log(`Wrote ${OUT_ROOT}`);
   console.log(`Wrote ${OUT_BACKEND}`);
+
+  if (PRUNE) {
+    console.log('');
+    console.log('Pruning superseded prices...');
+    await prunePrices(mapping, clubOverrides);
+  }
 }
 
 main().catch(err => {

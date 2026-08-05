@@ -8,6 +8,7 @@ export interface CheckoutItem {
   quantity: number
   image?: string
   clubName?: string
+  clubHandle?: string // keys the server-side club price override; retail sends 'protonlab'
 }
 
 export type ShippingRegion = 'uk' | 'europe'

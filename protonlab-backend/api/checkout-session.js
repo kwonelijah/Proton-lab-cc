@@ -64,6 +64,10 @@ export default async function handler(req, res) {
     // Storefront channel — retail orders carry club metadata "Proton Lab";
     // any other club name means the order came through a club store.
     const club = session.payment_intent?.metadata?.club || '';
+    // Club orders are charged their club override price, not retail — mirror
+    // that in the reported item prices (orders predating club_handle fall
+    // back to retail amounts).
+    const clubHandle = session.payment_intent?.metadata?.club_handle || '';
     const map = loadProductMap();
 
     return res.status(200).json({
@@ -76,12 +80,16 @@ export default async function handler(req, res) {
       // Still no PII — names/prices are public catalogue data.
       items: items
         .filter(i => i.handle)
-        .map(i => ({
-          id: i.handle,
-          name: i.name || map[i.handle]?.name || i.handle,
-          quantity: i.qty || 1,
-          price: map[i.handle]?.unitAmount != null ? map[i.handle].unitAmount / 100 : undefined,
-        })),
+        .map(i => {
+          const entry = map[i.handle];
+          const unitAmount = entry?.clubPrices?.[clubHandle]?.unitAmount ?? entry?.unitAmount;
+          return {
+            id: i.handle,
+            name: i.name || entry?.name || i.handle,
+            quantity: i.qty || 1,
+            price: unitAmount != null ? unitAmount / 100 : undefined,
+          };
+        }),
     });
   } catch {
     return res.status(404).json({ error: 'Not found' });

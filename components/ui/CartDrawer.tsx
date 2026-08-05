@@ -100,6 +100,7 @@ export default function CartDrawer() {
           quantity: item.quantity,
           image: item.image,
           clubName: item.clubName,
+          clubHandle: item.clubHandle,
         })),
         region
       )

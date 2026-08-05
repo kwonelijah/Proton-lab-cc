@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { getClubByHandle, type Club, type ClubProduct } from '@/data/clubs'
-import { getProductByHandle } from '@/lib/api'
+import { getClubProductByHandle } from '@/lib/api'
 import type { Product, ProductImage } from '@/types/product'
 import ProductGallery from '@/app/products/[slug]/ProductGallery'
 import ClubVariantSelector from './ClubVariantSelector'
@@ -36,7 +36,7 @@ export default function ClubProductPage() {
     setClubProduct(cp)
     setAuthed(true)
 
-    getProductByHandle(productHandle).then(p => {
+    getClubProductByHandle(productHandle).then(p => {
       if (p) setProduct(p)
     })
   }, [handle, productHandle, router])
