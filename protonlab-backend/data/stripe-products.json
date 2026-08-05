@@ -1,18 +1,24 @@
 {
   "ss-race-jersey": {
     "productId": "prod_UNYWcgAUQ5PcDw",
-    "priceId": "price_1TOnPe3x1N43j1ucwUOaFzOu",
+    "priceId": "price_1U17n63x1N43j1uc0ElCdPBQ",
     "name": "SS Race Jersey",
-    "unitAmount": 8000,
+    "unitAmount": 9500,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "edinburgh-bike-fitting-club": {
+        "priceId": "price_1U17n63x1N43j1ucQwZyts0m",
+        "unitAmount": 8000
+      }
+    }
   },
   "ss-training-jersey": {
     "productId": "prod_UNYWosFs4xhzP0",
-    "priceId": "price_1TOnPf3x1N43j1uc1n1EVyzM",
+    "priceId": "price_1U17n73x1N43j1ucq2m59W1F",
     "name": "SS Training Jersey",
-    "unitAmount": 6500,
+    "unitAmount": 7000,
     "currency": "gbp",
     "category": "Jerseys",
     "collection": "Training"
@@ -28,30 +34,36 @@
   },
   "ss-zipperless-jersey": {
     "productId": "prod_UNYWdNCHUs7xLP",
-    "priceId": "price_1TOnPg3x1N43j1ucKvRsvKs6",
+    "priceId": "price_1U17n83x1N43j1ucvrzeEiie",
     "name": "SS Zipperless Jersey",
-    "unitAmount": 6500,
+    "unitAmount": 8000,
     "currency": "gbp",
     "category": "Jerseys",
     "collection": "Race"
   },
   "ls-training-jersey": {
     "productId": "prod_UNYWSdCUPrVA2K",
-    "priceId": "price_1TOnPi3x1N43j1ucxsktjJBf",
+    "priceId": "price_1U17n83x1N43j1ucFTUYHxLR",
     "name": "LS Training Jersey",
-    "unitAmount": 7000,
+    "unitAmount": 7500,
     "currency": "gbp",
     "category": "Jerseys",
     "collection": "Training"
   },
   "ls-fleece-jersey": {
     "productId": "prod_UNYWh74Q45TEJ1",
-    "priceId": "price_1TOnPj3x1N43j1uct8sqJZ8U",
+    "priceId": "price_1U17n93x1N43j1ucdTOTSwdv",
     "name": "LS Fleece Jersey",
-    "unitAmount": 8500,
+    "unitAmount": 9000,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "edinburgh-bike-fitting-club": {
+        "priceId": "price_1U17n93x1N43j1ucoMVZ3lco",
+        "unitAmount": 8500
+      }
+    }
   },
   "mtb-jersey": {
     "productId": "prod_UNYWjIZqcRt34u",
@@ -64,21 +76,33 @@
   },
   "race-bib-shorts": {
     "productId": "prod_UNYWBZi4CP2irA",
-    "priceId": "price_1TOnPk3x1N43j1ucgRPcGvHy",
+    "priceId": "price_1U17nA3x1N43j1uceMr9L2AA",
     "name": "Race Bib Shorts",
-    "unitAmount": 9000,
+    "unitAmount": 11000,
     "currency": "gbp",
     "category": "Shorts",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "edinburgh-bike-fitting-club": {
+        "priceId": "price_1U17nB3x1N43j1uceokhW1si",
+        "unitAmount": 9000
+      }
+    }
   },
   "training-bib-shorts": {
     "productId": "prod_UNYW77LhFq5UO3",
-    "priceId": "price_1TOnPm3x1N43j1ucKPZICpUB",
+    "priceId": "price_1U17nB3x1N43j1ucjIO7vasX",
     "name": "Training Bib Shorts",
-    "unitAmount": 8000,
+    "unitAmount": 9000,
     "currency": "gbp",
     "category": "Shorts",
-    "collection": "Training"
+    "collection": "Training",
+    "clubPrices": {
+      "hamish-mayes": {
+        "priceId": "price_1U17nC3x1N43j1uc8XZXAvXV",
+        "unitAmount": 7000
+      }
+    }
   },
   "club-bib-shorts": {
     "productId": "prod_UNYWWuZwpqrDSP",
@@ -91,18 +115,18 @@
   },
   "training-bib-tights": {
     "productId": "prod_UNYWMMea2adexg",
-    "priceId": "price_1TOnPo3x1N43j1uct7hT7eXB",
+    "priceId": "price_1U17nD3x1N43j1ucEWR6ZE0Z",
     "name": "Training Bib Tights",
-    "unitAmount": 11000,
+    "unitAmount": 12000,
     "currency": "gbp",
     "category": "Shorts",
     "collection": "Race"
   },
   "winter-jacket": {
     "productId": "prod_UNYWXIgdqgKqng",
-    "priceId": "price_1TOnPo3x1N43j1ucxOIr0Umr",
+    "priceId": "price_1U17nD3x1N43j1ucQ5z81ECr",
     "name": "Winter Jacket",
-    "unitAmount": 10000,
+    "unitAmount": 11000,
     "currency": "gbp",
     "category": "Jackets & Gilets",
     "collection": "Race"
@@ -251,56 +275,74 @@
     "category": "Accessories",
     "collection": "Training"
   },
+  "aero-overshoes": {
+    "productId": "prod_V1A76sUa0q0dWc",
+    "priceId": "price_1U17nL3x1N43j1ucMhsi6OoD",
+    "name": "Aero Overshoes",
+    "unitAmount": 3000,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Race"
+  },
+  "rain-overshoes": {
+    "productId": "prod_V1A7XodxNOBqH1",
+    "priceId": "price_1U17nL3x1N43j1ucql08vDI9",
+    "name": "Rain Overshoes",
+    "unitAmount": 4000,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Training"
+  },
   "sunset-jersey": {
     "productId": "prod_UlvWOmZzNUEB1i",
-    "priceId": "price_1TmNfK3x1N43j1ucHwsM7YGu",
+    "priceId": "price_1U17nM3x1N43j1ucmMmquYHh",
     "name": "Sunset Jersey",
-    "unitAmount": 7500,
+    "unitAmount": 8500,
     "currency": "gbp",
     "category": "Jerseys",
     "collection": "Summer 2026"
   },
   "ocean-blue-jersey": {
     "productId": "prod_UlvWEt5fuRYZ0T",
-    "priceId": "price_1TmNfM3x1N43j1ucdViK1mCf",
+    "priceId": "price_1U17nN3x1N43j1ucxrWoiBzp",
     "name": "Ocean Blue Jersey",
-    "unitAmount": 7500,
+    "unitAmount": 8500,
     "currency": "gbp",
     "category": "Jerseys",
     "collection": "Summer 2026"
   },
   "red-sky-jersey": {
     "productId": "prod_UlvWWsmKvPz4Do",
-    "priceId": "price_1TmNfO3x1N43j1uccIMsUkYq",
+    "priceId": "price_1U17nN3x1N43j1ucreQx9NwT",
     "name": "Red Sky Jersey",
-    "unitAmount": 7500,
+    "unitAmount": 8500,
     "currency": "gbp",
     "category": "Jerseys",
     "collection": "Summer 2026"
   },
   "black-bib-shorts": {
     "productId": "prod_UlvWk2ATGuvMmj",
-    "priceId": "price_1TmNfP3x1N43j1ucSHM810HK",
+    "priceId": "price_1U17nO3x1N43j1uctfdtvu7E",
     "name": "Black Bib Shorts",
-    "unitAmount": 9000,
+    "unitAmount": 10000,
     "currency": "gbp",
     "category": "Shorts",
     "collection": "Summer 2026"
   },
   "granite-bib-shorts": {
     "productId": "prod_UlvWgx8Ng0YTku",
-    "priceId": "price_1TmNfR3x1N43j1ucXNLb9Jul",
+    "priceId": "price_1U17nP3x1N43j1ucAemYi1R3",
     "name": "Granite Bib Shorts",
-    "unitAmount": 9000,
+    "unitAmount": 10000,
     "currency": "gbp",
     "category": "Shorts",
     "collection": "Summer 2026"
   },
   "white-bib-shorts": {
     "productId": "prod_UlvW4LVrH3lX4v",
-    "priceId": "price_1TmNfS3x1N43j1ucFSZGUX4D",
+    "priceId": "price_1U17nP3x1N43j1uc2VVmMJcY",
     "name": "White Bib Shorts",
-    "unitAmount": 9000,
+    "unitAmount": 10000,
     "currency": "gbp",
     "category": "Shorts",
     "collection": "Summer 2026"
