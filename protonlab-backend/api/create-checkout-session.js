@@ -7,7 +7,7 @@ import Stripe from 'stripe';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ZONES, resolveZone, resolveCurrency } from '../config/shipping.js';
+import { ZONES, resolveZone } from '../config/shipping.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { items, customerEmail, customerName, shippingRegion, currency, fbp, fbc } = req.body;
+  const { items, customerEmail, customerName, shippingRegion, fbp, fbc } = req.body;
 
   // Meta ads attribution — the browser's _fbp/_fbc cookies arrive in the body;
   // IP and user-agent are read from this request (it comes from the customer's
@@ -83,11 +83,13 @@ export default async function handler(req, res) {
     looked.push({ item, entry, quantity, clubHandle, override });
   }
 
-  // A Stripe session is single-currency, so EUR is all-or-nothing: if any line
-  // can't be priced in EUR (no EUR price, or a club item — club prices are GBP
-  // agreements) the whole session falls back to GBP.
+  // The charged currency is derived from the delivery zone — never from the
+  // client (any client-sent currency field is ignored). A Stripe session is
+  // single-currency, so EUR is all-or-nothing: if any line can't be priced in
+  // EUR (no EUR price, or a club item — club prices are GBP agreements) the
+  // whole session falls back to GBP.
   const sessionCurrency =
-    resolveCurrency(currency) === 'eur' && looked.every(l => l.entry.eur && !l.override)
+    zone.currency === 'eur' && looked.every(l => l.entry.eur && !l.override)
       ? 'eur'
       : 'gbp';
 

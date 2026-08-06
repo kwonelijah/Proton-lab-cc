@@ -52,10 +52,16 @@ const EUROPE_COUNTRIES = [
   'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK',
 ];
 
+// Each zone carries the currency its customers are CHARGED in — the charged
+// currency is a function of where the order ships, never a client choice
+// (paying GBP requires a GB delivery address). The `currency` param on
+// optionsFor/customText only serves the club/coverage fallback, where a
+// session drops to GBP regardless of zone.
 export const ZONES = {
   uk: {
-    label: 'UK & Ireland',
-    allowedCountries: ['GB', 'IE'],
+    label: 'United Kingdom',
+    currency: 'gbp',
+    allowedCountries: ['GB'],
     optionsFor: (subtotal, currency = 'gbp') => [
       subtotal >= THRESHOLDS[currency]
         ? rate('Free Standard Delivery', 0, currency, 'standard', 2, 4)
@@ -65,17 +71,34 @@ export const ZONES = {
     customText: (subtotal, currency = 'gbp') =>
       subtotal >= THRESHOLDS[currency]
         ? 'You qualify for free standard delivery.'
-        : `Free standard UK & Ireland delivery on orders over ${THRESHOLD_LABEL[currency]}.`,
+        : `Free standard UK delivery on orders over ${THRESHOLD_LABEL[currency]}.`,
+  },
+  // Ireland: same services and timings as the UK, charged in EUR.
+  ireland: {
+    label: 'Ireland',
+    currency: 'eur',
+    allowedCountries: ['IE'],
+    optionsFor: (subtotal, currency = 'eur') => [
+      subtotal >= THRESHOLDS[currency]
+        ? rate('Free Standard Delivery', 0, currency, 'standard', 2, 4)
+        : rate('Standard Delivery', AMOUNTS.ukStandard[currency], currency, 'standard', 2, 4),
+      rate('Next-Day Delivery', AMOUNTS.ukNextDay[currency], currency, 'next-day', 1, 1),
+    ],
+    customText: (subtotal, currency = 'eur') =>
+      subtotal >= THRESHOLDS[currency]
+        ? 'You qualify for free standard delivery.'
+        : `Free standard delivery to Ireland on orders over ${THRESHOLD_LABEL[currency]}.`,
   },
   europe: {
     label: 'Europe',
+    currency: 'eur',
     allowedCountries: EUROPE_COUNTRIES,
-    optionsFor: (subtotal, currency = 'gbp') => [
+    optionsFor: (subtotal, currency = 'eur') => [
       subtotal >= THRESHOLDS[currency]
         ? rate('Free European Delivery', 0, currency, 'international', 5, 10)
         : rate('European Delivery', AMOUNTS.europe[currency], currency, 'international', 5, 10),
     ],
-    customText: (subtotal, currency = 'gbp') =>
+    customText: (subtotal, currency = 'eur') =>
       (subtotal >= THRESHOLDS[currency]
         ? 'You qualify for free European delivery.'
         : `European delivery — ${EUROPE_RATE_LABEL[currency]}, 5–10 working days. Free on orders over ${THRESHOLD_LABEL[currency]}.`) +
@@ -87,9 +110,4 @@ export const ZONES = {
 export function resolveZone(region) {
   const key = typeof region === 'string' ? region.trim().toLowerCase() : '';
   return ZONES[key] ? key : 'uk';
-}
-
-// Normalise whatever the frontend sends into a supported session currency.
-export function resolveCurrency(currency) {
-  return typeof currency === 'string' && currency.trim().toLowerCase() === 'eur' ? 'eur' : 'gbp';
 }

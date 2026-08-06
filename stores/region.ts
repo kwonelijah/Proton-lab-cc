@@ -9,16 +9,13 @@ function readCurrencyCookie(): Currency {
 
 interface CurrencyStore {
   currency: Currency
-  setCurrency: (currency: Currency) => void
 }
 
-// Client mirror of the pl-currency cookie (middleware geo-defaults it, the
-// £/€ toggle writes it). Components rendering currency-dependent text on the
-// server pass must gate on mount to avoid hydration mismatches.
-export const useCurrencyStore = create<CurrencyStore>(set => ({
+// Read-only client mirror of the geo-set pl-currency cookie (middleware
+// re-asserts it every request; there is no user-facing switcher — charged
+// currency is bound to the delivery region at checkout). Components rendering
+// currency-dependent text on the server pass must gate on mount to avoid
+// hydration mismatches.
+export const useCurrencyStore = create<CurrencyStore>(() => ({
   currency: readCurrencyCookie(),
-  setCurrency: currency => {
-    document.cookie = `${CURRENCY_COOKIE}=${currency}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`
-    set({ currency })
-  },
 }))

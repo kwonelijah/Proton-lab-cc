@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import CartButton from '@/components/ui/CartButton'
-import CurrencyToggle from '@/components/ui/CurrencyToggle'
 
 const secondaryLinks = [
   { label: 'Contact', href: '/contact' },
@@ -117,10 +116,6 @@ export default function Navbar() {
             </>
           ))}
           <span aria-hidden="true" className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
-          <span className={`px-2 transition-colors duration-300 ${isLight ? 'text-proton-black' : 'text-proton-white'}`}>
-            <CurrencyToggle />
-          </span>
-          <span aria-hidden="true" className={`text-xs ${isLight ? 'text-proton-black/30' : 'text-proton-white/30'}`}>|</span>
           <span className={`pl-3 transition-colors duration-300 ${isLight ? 'text-proton-black' : 'text-proton-white'}`}>
             <CartButton />
           </span>
@@ -139,9 +134,6 @@ export default function Navbar() {
           />
         </Link>
         <div className="flex items-center gap-2">
-          <span className={`transition-colors duration-300 ${isLight ? 'text-proton-black' : 'text-proton-white'}`}>
-            <CurrencyToggle />
-          </span>
           <span className={`transition-colors duration-300 ${isLight ? 'text-proton-black' : 'text-proton-white'}`}>
             <CartButton />
           </span>

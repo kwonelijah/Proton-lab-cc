@@ -2,17 +2,17 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '@/stores/cart'
-import { useCurrencyStore } from '@/stores/region'
-import { COUNTRY_COOKIE, CURRENCY_SYMBOL, FREE_SHIPPING_THRESHOLD, type Currency } from '@/lib/currency'
+import { COUNTRY_COOKIE, CURRENCY_SYMBOL, EUR_COUNTRIES, FREE_SHIPPING_THRESHOLD, type Currency } from '@/lib/currency'
 import { redirectToCheckout, type ShippingRegion } from '@/lib/checkout'
 import { trackMetaEvent, parsePrice } from '@/lib/meta'
 import { trackGaEvent } from '@/lib/ga'
 import stripeProducts from '@/data/stripe-products.json'
 
-// Cart line prices are recomputed from the price map at render time so a £/€
-// toggle can never leave stale amounts in the drawer. Club items are exempt —
-// club prices are GBP agreements, and a cart containing one renders (and is
-// charged) entirely in GBP, mirroring the backend's fallback rule.
+// Cart line prices are recomputed from the price map at render time so the
+// drawer always shows exactly what the selected delivery region will be
+// charged. Club items are exempt — club prices are GBP agreements, and a cart
+// containing one renders (and is charged) entirely in GBP, mirroring the
+// backend's fallback rule.
 type PriceMapEntry = { unitAmount: number; eur?: { unitAmount: number } }
 const priceMap = stripeProducts as unknown as Record<string, PriceMapEntry>
 
@@ -23,24 +23,26 @@ function unitPrice(handle: string, fallback: string, currency: Currency): number
   return parsePrice(fallback)
 }
 
-// Geo default for the delivery selector: EU countries ship under the Europe
-// zone; GB and IE stay UK & Ireland (Irish customers pay EUR on UK rates).
+// Geo default for the delivery selector — the region picked here decides the
+// charged currency server-side (uk → GBP, ireland/europe → EUR).
 function defaultRegion(): ShippingRegion {
   if (typeof document === 'undefined') return 'uk'
   const country = document.cookie.match(new RegExp(`(?:^|; )${COUNTRY_COOKIE}=([^;]+)`))?.[1]
-  if (!country || country === 'GB' || country === 'IE') return 'uk'
-  return useCurrencyStore.getState().currency === 'EUR' ? 'europe' : 'uk'
+  if (country === 'IE') return 'ireland'
+  if (country && country !== 'GB' && EUR_COUNTRIES.has(country)) return 'europe'
+  return 'uk'
 }
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem } = useCartStore()
-  const currency = useCurrencyStore(s => s.currency)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [region, setRegion] = useState<ShippingRegion>(defaultRegion)
 
-  // A club item pins the whole cart to GBP (club prices are GBP agreements).
-  const cartCurrency: Currency = items.some(i => i.clubHandle !== 'protonlab') ? 'GBP' : currency
+  // Currency follows the delivery region; a club item pins the whole cart to
+  // GBP (club prices are GBP agreements).
+  const regionCurrency: Currency = region === 'uk' ? 'GBP' : 'EUR'
+  const cartCurrency: Currency = items.some(i => i.clubHandle !== 'protonlab') ? 'GBP' : regionCurrency
   const symbol = CURRENCY_SYMBOL[cartCurrency]
 
   const drawerRef = useRef<HTMLDivElement>(null)
@@ -134,8 +136,7 @@ export default function CartDrawer() {
           clubName: item.clubName,
           clubHandle: item.clubHandle,
         })),
-        region,
-        cartCurrency.toLowerCase() as 'gbp' | 'eur'
+        region
       )
     } catch {
       setLoading(false)
@@ -226,7 +227,8 @@ export default function CartDrawer() {
                       onChange={e => setRegion(e.target.value as ShippingRegion)}
                       className="text-sm text-proton-black bg-transparent text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black"
                     >
-                      <option value="uk">UK &amp; Ireland</option>
+                      <option value="uk">United Kingdom</option>
+                      <option value="ireland">Ireland</option>
                       <option value="europe">Europe</option>
                     </select>
                   </div>

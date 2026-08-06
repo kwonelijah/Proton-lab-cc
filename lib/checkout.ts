@@ -11,12 +11,14 @@ export interface CheckoutItem {
   clubHandle?: string // keys the server-side club price override; retail sends 'protonlab'
 }
 
-export type ShippingRegion = 'uk' | 'europe'
+// The delivery region decides the charged currency server-side (uk → GBP,
+// ireland/europe → EUR) — no currency field is sent; the backend would
+// ignore it anyway.
+export type ShippingRegion = 'uk' | 'ireland' | 'europe'
 
 export async function redirectToCheckout(
   items: CheckoutItem[],
-  shippingRegion: ShippingRegion = 'uk',
-  currency: 'gbp' | 'eur' = 'gbp'
+  shippingRegion: ShippingRegion = 'uk'
 ): Promise<void> {
   // Meta attribution cookies ride along so the backend can stamp them onto the
   // PaymentIntent and send a fully-attributed Conversions API Purchase event.
@@ -25,7 +27,7 @@ export async function redirectToCheckout(
   const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items, shippingRegion, currency, fbp, fbc }),
+    body: JSON.stringify({ items, shippingRegion, fbp, fbc }),
   })
 
   const data = await res.json()
