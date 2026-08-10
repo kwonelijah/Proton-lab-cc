@@ -6,5 +6,20 @@
   },
   "hamish-mayes": {
     "training-bib-shorts": 70
+  },
+  "ucl-cycling": {
+    "ss-club-jersey": 45,
+    "ss-training-jersey": 63,
+    "ss-race-jersey": 86,
+    "club-bib-shorts": 59,
+    "training-bib-shorts": 81,
+    "ss-roadsuit": 108,
+    "summer-gilet": 50,
+    "ls-fleece-jersey": 81,
+    "winter-jacket": 99,
+    "training-bib-tights": 108,
+    "aero-socks": 18,
+    "training-mitts": 18,
+    "arm-warmers": 18
   }
 }

@@ -36,7 +36,7 @@ export default function ClubProductPage() {
     setClubProduct(cp)
     setAuthed(true)
 
-    getClubProductByHandle(productHandle).then(p => {
+    getClubProductByHandle(cp.catalogHandle ?? productHandle).then(p => {
       if (p) setProduct(p)
     })
   }, [handle, productHandle, router])
@@ -107,11 +107,12 @@ export default function ClubProductPage() {
 
               <ClubVariantSelector
                 variants={variants}
-                productHandle={productHandle}
+                productHandle={clubProduct.catalogHandle ?? productHandle}
                 productName={clubProduct.name}
                 clubHandle={handle}
                 clubName={club.name}
                 price={clubProduct.price}
+                variant={clubProduct.variant}
               />
 
               <DeliveryNote />

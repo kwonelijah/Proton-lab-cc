@@ -14,15 +14,20 @@ interface Props {
   clubHandle: string
   clubName: string
   price: string
+  // Colourway/trim note — appended to the size so it reaches Stripe metadata
+  // and the order emails, and keeps cart lines distinct across colourways
+  // that share one catalogue handle.
+  variant?: string
 }
 
-export default function ClubVariantSelector({ variants, productHandle, productName, clubHandle, clubName, price }: Props) {
+export default function ClubVariantSelector({ variants, productHandle, productName, clubHandle, clubName, price, variant }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(variants[0]?.id ?? null)
   const [added, setAdded] = useState(false)
   const { addItem, openCart } = useCartStore()
 
   const selected = variants.find(v => v.id === selectedId)
-  const sizeLabel = selected?.selectedOptions.find(o => o.name === 'Size')?.value ?? selected?.title ?? ''
+  const baseSize = selected?.selectedOptions.find(o => o.name === 'Size')?.value ?? selected?.title ?? ''
+  const sizeLabel = variant ? `${baseSize} — ${variant}` : baseSize
 
   // Meta Pixel: club product page viewed
   useEffect(() => {
