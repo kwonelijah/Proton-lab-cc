@@ -68,7 +68,7 @@ export const clubs: Club[] = [
       { name: 'Training Bib Shorts', handle: 'training-bib-shorts', category: 'lower', price: '£81.00',
         image: '/images/clubs/ucl-cycling/ucl-training-bib-shorts-front.jpg',
         customImages: ['/images/clubs/ucl-cycling/ucl-training-bib-shorts-back.jpg'] },
-      { name: 'SS Roadsuit', handle: 'ss-roadsuit', category: 'lower', price: '£108.00',
+      { name: 'SS Roadsuit', handle: 'ss-roadsuit', category: 'lower', price: '£126.00',
         image: '/images/clubs/ucl-cycling/ucl-ss-roadsuit-front.jpg',
         customImages: ['/images/clubs/ucl-cycling/ucl-ss-roadsuit-back.jpg'] },
       { name: 'Summer Gilet', handle: 'summer-gilet-purple-trim', category: 'top',
