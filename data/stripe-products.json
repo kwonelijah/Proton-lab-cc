@@ -199,13 +199,17 @@
   },
   "ss-roadsuit": {
     "productId": "prod_UNYWmEBzC3VEr4",
-    "priceId": "price_1TOnPr3x1N43j1ucUwN4aL55",
+    "priceId": "price_1U31Ht3x1N43j1ucLS3N8ow9",
     "name": "SS Roadsuit",
-    "unitAmount": 12000,
+    "unitAmount": 14000,
     "currency": "gbp",
     "category": "Skinsuits",
     "collection": "Race",
     "clubPrices": {
+      "edinburgh-bike-fitting-club": {
+        "priceId": "price_1U31Ht3x1N43j1ucsM6MjlVS",
+        "unitAmount": 12000
+      },
       "ucl-cycling": {
         "priceId": "price_1U30iM3x1N43j1ucPCdvMCPK",
         "unitAmount": 10800
@@ -214,36 +218,36 @@
   },
   "ss-aerosuit": {
     "productId": "prod_UNYWFe2NWjtRXP",
-    "priceId": "price_1TOnPt3x1N43j1ucizzUDa6L",
+    "priceId": "price_1U31Hu3x1N43j1ucl5OZdidV",
     "name": "SS Aerosuit",
-    "unitAmount": 14000,
+    "unitAmount": 16000,
     "currency": "gbp",
     "category": "Skinsuits",
     "collection": "Race"
   },
   "ls-speedsuit": {
     "productId": "prod_UNYWjdW4FC44YB",
-    "priceId": "price_1TOnPt3x1N43j1ucUOO4XMTr",
+    "priceId": "price_1U31Hv3x1N43j1ucLziXEp8n",
     "name": "LS Speedsuit",
-    "unitAmount": 15000,
+    "unitAmount": 17000,
     "currency": "gbp",
     "category": "Skinsuits",
     "collection": "Race"
   },
   "ss-trisuit": {
     "productId": "prod_UNYWQICGV8rddi",
-    "priceId": "price_1TOnPu3x1N43j1ucxd9SXsOr",
+    "priceId": "price_1U31Hv3x1N43j1uc6YrOxzyO",
     "name": "SS Trisuit",
-    "unitAmount": 13500,
+    "unitAmount": 15000,
     "currency": "gbp",
     "category": "Skinsuits",
     "collection": "Race"
   },
   "sleeveless-trisuit": {
     "productId": "prod_UNYWXjd4oBN0y7",
-    "priceId": "price_1TOnPv3x1N43j1ucARNrFfE5",
+    "priceId": "price_1U31Hw3x1N43j1ucYRLD7wZ2",
     "name": "Sleeveless Trisuit",
-    "unitAmount": 13500,
+    "unitAmount": 14000,
     "currency": "gbp",
     "category": "Skinsuits",
     "collection": "Race"
