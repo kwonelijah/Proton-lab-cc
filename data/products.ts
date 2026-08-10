@@ -466,8 +466,8 @@ export const products: Product[] = [
     images: { nodes: [
       { id: 'img-leg-warmers-1', url: '/images/products/leg-warmers/leg-warmers1.JPG?v=2', altText: 'Leg Warmers', width: 689, height: 609 },
     ]},
-    variants: sizes('018', '25.00'),
-    priceRange: { minVariantPrice: { amount: '25.00', currencyCode: 'GBP' } },
+    variants: sizes('018', '30.00'),
+    priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['accessories', 'leg-warmers', 'moq-10'], availableForSale: true,
   },
 
