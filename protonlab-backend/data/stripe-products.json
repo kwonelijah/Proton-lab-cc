@@ -11,6 +11,10 @@
       "edinburgh-bike-fitting-club": {
         "priceId": "price_1U17n63x1N43j1ucQwZyts0m",
         "unitAmount": 8000
+      },
+      "ucl-cycling": {
+        "priceId": "price_1U30iD3x1N43j1uct9T5nCvl",
+        "unitAmount": 8600
       }
     }
   },
@@ -21,7 +25,13 @@
     "unitAmount": 7000,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Training"
+    "collection": "Training",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iE3x1N43j1ucUKScmxe6",
+        "unitAmount": 6300
+      }
+    }
   },
   "ss-club-jersey": {
     "productId": "prod_UNYWox5km4n8mg",
@@ -30,7 +40,13 @@
     "unitAmount": 5000,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Training"
+    "collection": "Training",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iF3x1N43j1ucapzNq7xH",
+        "unitAmount": 4500
+      }
+    }
   },
   "ss-zipperless-jersey": {
     "productId": "prod_UNYWdNCHUs7xLP",
@@ -62,6 +78,10 @@
       "edinburgh-bike-fitting-club": {
         "priceId": "price_1U17n93x1N43j1ucoMVZ3lco",
         "unitAmount": 8500
+      },
+      "ucl-cycling": {
+        "priceId": "price_1U30iG3x1N43j1ucHLZ44v0l",
+        "unitAmount": 8100
       }
     }
   },
@@ -101,6 +121,10 @@
       "hamish-mayes": {
         "priceId": "price_1U17nC3x1N43j1uc8XZXAvXV",
         "unitAmount": 7000
+      },
+      "ucl-cycling": {
+        "priceId": "price_1U30iI3x1N43j1ucH4y7zVzt",
+        "unitAmount": 8100
       }
     }
   },
@@ -111,7 +135,13 @@
     "unitAmount": 6500,
     "currency": "gbp",
     "category": "Shorts",
-    "collection": "Training"
+    "collection": "Training",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iJ3x1N43j1uckb1Y8lTK",
+        "unitAmount": 5900
+      }
+    }
   },
   "training-bib-tights": {
     "productId": "prod_UNYWMMea2adexg",
@@ -120,7 +150,13 @@
     "unitAmount": 12000,
     "currency": "gbp",
     "category": "Shorts",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iK3x1N43j1uc2ZPcslRM",
+        "unitAmount": 10800
+      }
+    }
   },
   "winter-jacket": {
     "productId": "prod_UNYWXIgdqgKqng",
@@ -129,7 +165,13 @@
     "unitAmount": 11000,
     "currency": "gbp",
     "category": "Jackets & Gilets",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iK3x1N43j1ucpivfUoXc",
+        "unitAmount": 9900
+      }
+    }
   },
   "summer-gilet": {
     "productId": "prod_UNYWHza2kkPcx8",
@@ -138,7 +180,13 @@
     "unitAmount": 5500,
     "currency": "gbp",
     "category": "Jackets & Gilets",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iL3x1N43j1ucUlT6O1Eo",
+        "unitAmount": 5000
+      }
+    }
   },
   "winter-gilet": {
     "productId": "prod_UNYWq8lZqm9SIU",
@@ -156,7 +204,13 @@
     "unitAmount": 12000,
     "currency": "gbp",
     "category": "Skinsuits",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iM3x1N43j1ucPCdvMCPK",
+        "unitAmount": 10800
+      }
+    }
   },
   "ss-aerosuit": {
     "productId": "prod_UNYWFe2NWjtRXP",
@@ -201,7 +255,13 @@
     "unitAmount": 2000,
     "currency": "gbp",
     "category": "Accessories",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iP3x1N43j1uc1NvZdPU3",
+        "unitAmount": 1800
+      }
+    }
   },
   "training-mitts": {
     "productId": "prod_UNYXKeHZQO0nFb",
@@ -210,7 +270,13 @@
     "unitAmount": 2000,
     "currency": "gbp",
     "category": "Accessories",
-    "collection": "Training"
+    "collection": "Training",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iP3x1N43j1uchSYBGAvb",
+        "unitAmount": 1800
+      }
+    }
   },
   "aero-mitts": {
     "productId": "prod_UNYXtuYWQCI1P7",
@@ -228,7 +294,13 @@
     "unitAmount": 2000,
     "currency": "gbp",
     "category": "Accessories",
-    "collection": "Training"
+    "collection": "Training",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1U30iQ3x1N43j1ucS07M9Xh8",
+        "unitAmount": 1800
+      }
+    }
   },
   "aero-arm-warmers": {
     "productId": "prod_UNYXD8x7inKOby",
