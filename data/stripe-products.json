@@ -25,13 +25,7 @@
     "unitAmount": 7000,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Training",
-    "clubPrices": {
-      "ucl-cycling": {
-        "priceId": "price_1U30iE3x1N43j1ucUKScmxe6",
-        "unitAmount": 6300
-      }
-    }
+    "collection": "Training"
   },
   "ss-club-jersey": {
     "productId": "prod_UNYWox5km4n8mg",
