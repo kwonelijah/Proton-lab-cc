@@ -3,10 +3,32 @@ import PageWrapper from '@/components/layout/PageWrapper'
 import SurveyForm from './SurveyForm'
 
 // Hidden page — not linked from navigation, excluded from search engines.
-// Shared directly via Instagram / email / QR.
+// Shared directly via Instagram / email / QR, so the link-preview card
+// (og tags below) carries its own women's-specific text and image.
+const OG_DESCRIPTION =
+  "We're designing our first women's range from the ground up and we want your input. Two minutes of questions, a 20% code for your next order, and three sets of the finished kit to give away."
+
 export const metadata: Metadata = {
   title: "We're Designing Women's Kit",
+  description: OG_DESCRIPTION,
   robots: { index: false, follow: false },
+  openGraph: {
+    title: "We're Designing Women's Kit. We Want Your Help.",
+    description: OG_DESCRIPTION,
+    images: [
+      {
+        url: '/images/womens/og.jpg',
+        width: 1200,
+        height: 630,
+        alt: "Women's bib shorts — help design the Proton Lab women's range",
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "We're Designing Women's Kit. We Want Your Help.",
+    description: OG_DESCRIPTION,
+  },
 }
 
 export default function WomensSurveyPage() {
