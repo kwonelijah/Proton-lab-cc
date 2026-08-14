@@ -52,6 +52,63 @@ export async function appendOrder(order) {
 }
 
 
+// ─── Women's kit survey tab ────────────────────────────────────────────────
+// Survey submissions land on their own tab, created automatically (with its
+// header row) the first time a submission arrives.
+
+const WOMENS_TAB = 'WomensSurvey';
+const WOMENS_HEADERS = [
+  'Date', 'Email', 'Riding', 'Womens kit', 'Bib length', 'Bib custom',
+  'Straps ranked', 'Sleeve', 'Sleeve %', 'Frustrations', 'Favourites',
+  'Updates opt-in', 'Code',
+];
+
+async function ensureWomensTab(sheets) {
+  const meta = await sheets.spreadsheets.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+  });
+  const exists = (meta.data.sheets || []).some(
+    (s) => s.properties && s.properties.title === WOMENS_TAB
+  );
+  if (exists) return;
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    requestBody: { requests: [{ addSheet: { properties: { title: WOMENS_TAB } } }] },
+  });
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: `${WOMENS_TAB}!A1`,
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: [WOMENS_HEADERS] },
+  });
+}
+
+export async function appendWomensSurveyRow(row) {
+  const auth = await getAuth();
+  const sheets = getSheetsClient(auth);
+  await ensureWomensTab(sheets);
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: `${WOMENS_TAB}!A:M`,
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: [row] },
+  });
+}
+
+// Emails of everyone who already submitted — used to stop code farming.
+export async function womensSurveyEmails() {
+  const auth = await getAuth();
+  const sheets = getSheetsClient(auth);
+  await ensureWomensTab(sheets);
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: `${WOMENS_TAB}!B2:B`,
+  });
+  return (response.data.values || []).map((r) => (r[0] || '').toLowerCase()).filter(Boolean);
+}
+
 // ─── Read all orders from the sheet ────────────────────────────────────────
 
 export async function getAllOrders() {

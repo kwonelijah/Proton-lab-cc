@@ -9,7 +9,9 @@ import { render as renderConfirmation } from '../emails/order-confirmation.js';
 import { render as renderProduction } from '../emails/order-production.js';
 import { render as renderDispatched } from '../emails/order-dispatched.js';
 import { render as renderDelivered } from '../emails/order-delivered.js';
+import { render as renderReviewRequest } from '../emails/review-request.js';
 import { render as renderWelcome } from '../emails/welcome.js';
+import { render as renderWomensSurveyCode } from '../emails/womens-survey-code.js';
 
 const FROM = 'Proton Lab CC <noreply@protonlab.cc>';
 const TEAM = 'info@protonlab.cc';
@@ -77,9 +79,65 @@ export async function sendOrderDelivered(order, options = {}) {
   return sendToCustomer(order, renderDelivered(order), options);
 }
 
+// Review request with the in-email star rating — scheduled by the dispatch
+// flow for ~2 weeks after the kit lands (options.scheduledAt, like the
+// thank-you). Rendering can fail if REVIEW_TOKEN_SECRET is unset; that is
+// surfaced as { ok:false } rather than thrown so dispatch never breaks.
+export async function sendReviewRequest(order, options = {}) {
+  let rendered;
+  try {
+    rendered = renderReviewRequest(order);
+  } catch (e) {
+    console.error('Review request render failed:', e.message || e);
+    return { ok: false, error: e.message || String(e) };
+  }
+  return sendToCustomer(order, rendered, options);
+}
+
 // Newsletter welcome with the subscriber's unique 10% code.
 export async function sendWelcome(email, { code, expiresAt }) {
   return sendToCustomer({ email }, renderWelcome({ code, expiresAt }));
+}
+
+// Women's survey thank-you with the respondent's unique 20% code.
+export async function sendWomensSurveyCode(email, { code }) {
+  return sendToCustomer({ email }, renderWomensSurveyCode({ code }));
+}
+
+// Internal copy of a women's-survey submission — every answer, straight to
+// the team inbox, replyable to the respondent.
+export async function sendWomensSurveyNotification(entry) {
+  const label = `padding:10px 0;border-bottom:1px solid ${COLORS.light};font-family:${FONTS.body};font-size:13px;color:${COLORS.grey};vertical-align:top;width:130px;`;
+  const value = `padding:10px 0;border-bottom:1px solid ${COLORS.light};font-family:${FONTS.body};font-size:13px;color:${COLORS.black};line-height:1.6;`;
+  const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const rows = entry.fields
+    .map(([k, v]) => `<tr><td style="${label}">${esc(k)}</td><td style="${value}">${esc(v) || '—'}</td></tr>`)
+    .join('');
+  const html = `
+    <div style="font-family:${FONTS.body};max-width:600px;margin:0 auto;color:${COLORS.black};">
+      <h2 style="font-size:16px;margin-bottom:24px;">Women's survey submission${entry.duplicate ? ' (repeat — no new code sent)' : ''}</h2>
+      <table style="width:100%;border-collapse:collapse;">${rows}</table>
+    </div>`;
+  const text = entry.fields.map(([k, v]) => `${k}: ${v || '—'}`).join('\n');
+
+  let error;
+  try {
+    ({ error } = await getResend().emails.send({
+      from: FROM,
+      to: TEAM,
+      replyTo: entry.email,
+      subject: `Women's survey — ${entry.email}${entry.duplicate ? ' (repeat)' : ''}`,
+      html,
+      text,
+    }));
+  } catch (e) {
+    error = e;
+  }
+  if (error) {
+    console.error('Failed to send womens-survey notification:', error);
+    return { ok: false, error: error.message || String(error) };
+  }
+  return { ok: true };
 }
 
 // Adds a customer to the Resend contact list (single-audience model — no
