@@ -14,8 +14,8 @@ export default function DeliveryNote() {
   useEffect(() => setMounted(true), [])
 
   const copy = mounted && currency === 'EUR'
-    ? 'UK & Ireland delivery from €3.49 — free over €150. Europe €6.99 — customs charges may apply on arrival.'
-    : 'UK & Ireland delivery from £2.99 — free over £110. Europe £5.99 — customs charges may apply on arrival.'
+    ? 'UK & Ireland delivery from €3.49 — free over €150. Europe €6.99 — duties & customs covered.'
+    : 'UK & Ireland delivery from £2.99 — free over £110. Europe £5.99 — duties & customs covered.'
 
   return (
     <p className="text-xs text-proton-grey leading-relaxed">

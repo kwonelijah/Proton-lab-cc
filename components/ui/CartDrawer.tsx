@@ -246,7 +246,7 @@ export default function CartDrawer() {
                   </p>
                   {region === 'europe' && (
                     <p className="text-[10px] text-proton-grey text-center">
-                      Customs charges &amp; import duties are not covered — EU orders may incur local VAT or duties on arrival
+                      Customs charges &amp; import duties are covered — nothing extra to pay on arrival
                     </p>
                   )}
                   {error && <p role="alert" className="text-sm text-red-600">{error}</p>}

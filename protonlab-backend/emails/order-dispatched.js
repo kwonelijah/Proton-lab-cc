@@ -32,7 +32,7 @@ export function render(order, dispatch = {}) {
   const estimateText = estimateHtml.replace(/&ndash;/g, '-');
 
   const customsNote = isInternational
-    ? 'Please note: customs charges and import duties are not covered by Proton Lab — your order may incur local VAT or duties on arrival.'
+    ? "Customs charges and import duties are covered by Proton Lab — there's nothing extra to pay on arrival."
     : null;
 
   const html = layout(`

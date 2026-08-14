@@ -102,7 +102,7 @@ export const ZONES = {
       (subtotal >= THRESHOLDS[currency]
         ? 'You qualify for free European delivery.'
         : `European delivery — ${EUROPE_RATE_LABEL[currency]}, 5–10 working days. Free on orders over ${THRESHOLD_LABEL[currency]}.`) +
-      ' Please note: customs charges and import duties are not covered — EU orders may incur local VAT or duties on arrival.',
+      ' Customs charges and import duties are covered by Proton Lab — nothing extra to pay on arrival.',
   },
 };
 

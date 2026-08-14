@@ -34,10 +34,10 @@ export function render(order) {
     ? `−${sym}${discountValue.toFixed(2)}${order.promoCode ? ` (${order.promoCode})` : ''}`
     : null;
 
-  // International (non-UK) orders may be charged VAT/duties on import — the
-  // customer covers those, so say it plainly on the order record.
+  // International (non-UK) orders pass through customs — Proton Lab covers
+  // VAT/duties, so say it plainly on the order record.
   const customsNote = order.shippingMethod === 'international'
-    ? 'Please note: customs charges and import duties are not covered by Proton Lab — your order may incur local VAT or duties on arrival.'
+    ? "Customs charges and import duties are covered by Proton Lab — there's nothing extra to pay on arrival."
     : null;
 
   const html = layout(`

@@ -84,8 +84,8 @@ export default function DeliveryPage() {
                 <p className="text-sm text-proton-black">€6.99 — 5–10 working days</p>
               </div>
               <p className="text-sm text-proton-grey leading-relaxed">
-                Delivery is free on orders over €150. European orders may incur customs
-                charges on arrival — see below.
+                Delivery is free on orders over €150. Customs and import duties are
+                covered by us — see below.
               </p>
             </div>
           </div>
@@ -116,18 +116,23 @@ export default function DeliveryPage() {
             <h2 className="font-playfair text-2xl mb-4">Customs &amp; Import Duties</h2>
             <p className="text-sm text-proton-black leading-relaxed">
               Orders to Europe are shipped from the United Kingdom, which means they pass
-              through customs on arrival. Customs charges and import duties are not covered
-              by Proton Lab — you may be asked to pay local VAT, import duty or a carrier
-              handling fee before your parcel is released.
+              through customs on arrival. Customs charges and import duties are covered by
+              Proton Lab — you will not be asked to pay local VAT, import duty or a carrier
+              handling fee to receive your parcel.
             </p>
             <p className="mt-4 text-sm text-proton-grey leading-relaxed">
-              These charges are set by the destination country and collected by the carrier
-              or local customs authority. We cannot calculate or pre-pay them at checkout,
-              and they are not included in our prices or delivery rates.
+              The price you pay at checkout is the total price. Duties are handled before
+              delivery and are never added on arrival.
             </p>
             <p className="mt-4 text-sm text-proton-grey leading-relaxed">
-              If you are unsure what your country charges on imports from the UK, check with
-              your local customs authority before ordering.
+              In the unlikely event a carrier asks you for a payment to release your parcel,{' '}
+              <Link
+                href="/contact"
+                className="text-proton-black underline underline-offset-2 hover:text-proton-grey transition-colors duration-200"
+              >
+                contact us
+              </Link>{' '}
+              before paying and we will resolve it.
             </p>
           </div>
         </div>
