@@ -25,6 +25,7 @@ import {
   sendOrderDispatched,
   sendOrderDelivered,
   sendOrderInProduction,
+  sendReviewRequest,
 } from '../lib/email.js';
 import { readStock, applyAndCommit } from '../lib/stock.js';
 
@@ -32,6 +33,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Thank-you email lands this many days after dispatch.
 const THANK_YOU_DELAY_DAYS = 5;
+
+// Review request lands this many days after dispatch: kit lands around
+// dispatch+5 (the thank-you's own assumption), plus two weeks on the road.
+// Must stay within Resend's 30-day scheduling ceiling.
+const REVIEW_DELAY_DAYS = 19;
 
 // Same deterministic order number used in the order emails (webhook.js).
 function orderNumber(id) {
@@ -163,7 +169,7 @@ export function renderPage({ awaiting, dispatched, key, since }) {
 <body>
 <div class="wrap">
   <h1>Dispatch</h1>
-  <p class="sub">Orders from the last ${esc(since)} days, read live from Stripe. Marking a parcel dispatched emails the customer their tracking link and schedules the thank-you email for ${THANK_YOU_DELAY_DAYS} days later.</p>
+  <p class="sub">Orders from the last ${esc(since)} days, read live from Stripe. Marking a parcel dispatched emails the customer their tracking link and schedules the thank-you email for ${THANK_YOU_DELAY_DAYS} days later and the review request for ${REVIEW_DELAY_DAYS} days later.</p>
 
   <h2>Awaiting dispatch (${awaiting.length})</h2>
   <table>${awaitingRows || ''}</table>
@@ -367,6 +373,9 @@ export default async function handler(req, res) {
           const scheduledAt = new Date(Date.now() + THANK_YOU_DELAY_DAYS * 86400000).toISOString();
           const thankYou = await sendOrderDelivered(o, { scheduledAt });
           if (!thankYou.ok) console.error('Thank-you scheduling failed for manual order', o.ref, thankYou);
+          const reviewAt = new Date(Date.now() + REVIEW_DELAY_DAYS * 86400000).toISOString();
+          const review = await sendReviewRequest(o, { scheduledAt: reviewAt });
+          if (!review.ok) console.error('Review request scheduling failed for manual order', o.ref, review);
         }
       }
       if (!result.ok) {
@@ -412,12 +421,19 @@ export default async function handler(req, res) {
       console.error('Thank-you scheduling failed for', payment.id, thankYou);
     }
 
+    const reviewAt = new Date(Date.now() + REVIEW_DELAY_DAYS * 86400000).toISOString();
+    const review = await sendReviewRequest(order, { scheduledAt: reviewAt });
+    if (!review.ok) {
+      console.error('Review request scheduling failed for', payment.id, review);
+    }
+
     try {
       await stripe.paymentIntents.update(payment.id, {
         metadata: {
           dispatched_at: new Date().toISOString(),
           tracking: trackingNumber || '',
           thank_you_scheduled: thankYou.ok ? scheduledAt : 'FAILED',
+          review_scheduled: review.ok ? reviewAt : 'FAILED',
         },
       });
     } catch (err) {
