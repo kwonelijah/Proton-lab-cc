@@ -447,8 +447,7 @@ export default function SurveyForm() {
       <div className="py-12">
         <p className="font-playfair text-3xl text-proton-black mb-4">Thank you.</p>
         <p className="text-sm text-proton-grey leading-relaxed">
-          Your 20% code is on its way to your inbox. Every answer is read by the
-          people designing the line.
+          Your 20% code is on its way to your inbox.
         </p>
       </div>
     )
