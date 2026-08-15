@@ -1,20 +1,26 @@
 // api/womens-survey.js
 // Women's kit survey intake (frontend /womens page → frontend proxy route →
 // here). On each submission:
-//   1. Appends every answer to the WomensSurvey sheet tab (tab + header row
-//      are created automatically on first use)
-//   2. Issues a unique single-use 20% code (retail range only) and emails it
-//      — one code per address ever, deduped against the sheet
+//   1. Issues a unique single-use 20% code (retail range only) and emails it
+//      — one code per address ever, deduped against Stripe
+//   2. Stores EVERY answer as metadata on that Stripe promotion code — Stripe
+//      is the private, permanent store (no Google Sheet involved)
 //   3. If the respondent ticked "keep me posted", adds them to the Resend
 //      "Women's line" audience
-//   4. Emails the full submission to info@ (reply-to the respondent)
+//   4. Emails the full submission to info@ (reply-to the respondent) —
+//      long free-text answers live here in full (metadata caps at ~450 chars)
 //
 // POST { ridingTypes[], womensKit, bibLength, bibLengthCustom, strapRank[],
-//        sleeve, sleevePct, frustrations, favourites, email, updates, website }
+//        sleeve, sleevePct, frustrations, favourites, size, height, email,
+//        updates, website }
 // Responses mirror api/subscribe.js:
 //   200 { ok: true }                — recorded, code on its way
-//   200 { ok: true, already: true } — repeat submission (recorded, no new code)
+//   200 { ok: true, already: true } — repeat submission (recorded at info@ only)
 //   400 { error }                   — bad email
+//
+// EXPORT — download all responses as a spreadsheet-ready CSV:
+//   GET /api/womens-survey?key=<proton_export_key>&format=csv
+// (Same key as the /api/admin dispatch page.)
 //
 // `website` is a honeypot: bots fill it, humans never see it. Bot submissions
 // get a silent 200 and nothing happens.
@@ -23,7 +29,6 @@ import Stripe from 'stripe';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { appendWomensSurveyRow } from '../lib/sheets.js';
 import { sendWomensSurveyCode, sendWomensSurveyNotification } from '../lib/email.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -45,8 +50,8 @@ const WOMENS_AUDIENCE_ID = '838e4c6e-4f2d-45e7-8569-8a225ca4dc3f';
 // scoped to the product list below. When the women's range goes live, rescope
 // without changing anyone's code: for each unredeemed survey promotion code,
 // set active:false, then recreate the SAME code string on a new v2 coupon
-// whose applies_to includes the women's products. Every issued code + email
-// is in Stripe metadata (source: womens-survey) and on the sheet.
+// whose applies_to includes the women's products (carry the metadata over —
+// it holds the survey answers).
 const COUPON_ID = 'womens-survey-20-v1';
 const RETAIL_HANDLES = [
   // Mirrors SUMMER_2026_HANDLES in the frontend's lib/api.ts (the live shop).
@@ -57,6 +62,7 @@ const RETAIL_HANDLES = [
   'granite-bib-shorts',
   'white-bib-shorts',
 ];
+
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function generateCode() {
   let suffix = '';
@@ -93,12 +99,73 @@ const clean = (v, max = 2000) => String(v ?? '').trim().slice(0, max);
 const cleanList = (v, max = 12) =>
   (Array.isArray(v) ? v : []).slice(0, max).map((x) => clean(x, 60));
 
+// ─── CSV export ──────────────────────────────────────────────────────────────
+
+const CSV_COLUMNS = [
+  ['Date', (pc) => new Date(pc.created * 1000).toISOString()],
+  ['Email', (pc) => pc.metadata.email || ''],
+  ['Riding', (pc) => pc.metadata.riding || ''],
+  ["Women's kit", (pc) => pc.metadata.womens_kit || ''],
+  ['Bib length', (pc) => pc.metadata.bib_length || ''],
+  ['Bib custom', (pc) => pc.metadata.bib_custom || ''],
+  ['Straps ranked', (pc) => pc.metadata.straps || ''],
+  ['Sleeve', (pc) => pc.metadata.sleeve || ''],
+  ['Sleeve %', (pc) => pc.metadata.sleeve_pct || ''],
+  ['Frustrations', (pc) => pc.metadata.frustrations || ''],
+  ['Favourites', (pc) => pc.metadata.favourites || ''],
+  ['Size', (pc) => pc.metadata.size || ''],
+  ['Height', (pc) => pc.metadata.height || ''],
+  ['Updates opt-in', (pc) => pc.metadata.updates || ''],
+  ['Code', (pc) => pc.code],
+  ['Code used', (pc) => (pc.times_redeemed > 0 ? 'yes' : 'no')],
+];
+
+function csvField(value) {
+  const s = String(value ?? '');
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+async function exportCsv(res) {
+  const rows = [CSV_COLUMNS.map(([name]) => csvField(name)).join(',')];
+  try {
+    for await (const pc of stripe.promotionCodes.list({ coupon: COUPON_ID, limit: 100 })) {
+      if (!pc.metadata || pc.metadata.source !== 'womens-survey') continue;
+      rows.push(CSV_COLUMNS.map(([, get]) => csvField(get(pc))).join(','));
+    }
+  } catch (err) {
+    // Coupon doesn't exist yet — no responses; export just the header.
+    if (err.statusCode !== 404) throw err;
+  }
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="womens-survey.csv"');
+  return res.status(200).send(rows.join('\n') + '\n');
+}
+
+// ─── Handler ─────────────────────────────────────────────────────────────────
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://protonlab.cc');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  if (req.method === 'GET') {
+    const expected = process.env.proton_export_key;
+    if (!expected) {
+      return res.status(500).json({ error: 'EXPORT_KEY_MISSING: set proton_export_key in the environment' });
+    }
+    if (req.query.key !== expected) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    try {
+      return await exportCsv(res);
+    } catch (err) {
+      console.error('Womens-survey export error:', err);
+      return res.status(500).json({ error: 'Export failed — check the function logs.' });
+    }
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const body = req.body || {};
@@ -129,8 +196,7 @@ export default async function handler(req, res) {
   try {
     // One code per address, ever. Dedupe against Stripe itself — every issued
     // code carries the email in its metadata, so the thing being farmed is
-    // also the dedupe record. (The sheet is the data log, not the guard:
-    // if Stripe were down, code creation would fail anyway.)
+    // also the dedupe record.
     let duplicate = false;
     try {
       for await (const pc of stripe.promotionCodes.list({ coupon: COUPON_ID, limit: 100 })) {
@@ -149,38 +215,30 @@ export default async function handler(req, res) {
     if (!duplicate) {
       const coupon = await ensureCoupon();
       code = generateCode();
+      // The metadata on this promotion code IS the survey store. Stripe caps
+      // each value at 500 chars, so the two free-text answers are truncated
+      // here — the info@ copy below always carries them in full.
       await stripe.promotionCodes.create({
         coupon,
         code,
         max_redemptions: 1,
-        metadata: { source: 'womens-survey', email },
+        metadata: {
+          source: 'womens-survey',
+          email,
+          riding: answers.riding,
+          womens_kit: answers.womensKit,
+          bib_length: answers.bibLength,
+          bib_custom: answers.bibCustom,
+          straps: answers.straps,
+          sleeve: answers.sleeve,
+          sleeve_pct: answers.sleevePct,
+          frustrations: answers.frustrations.slice(0, 450),
+          favourites: answers.favourites.slice(0, 450),
+          size: answers.size,
+          height: answers.height,
+          updates: answers.updates,
+        },
       });
-    }
-
-    // Sheet write must never kill a submission — the info@ copy below carries
-    // every answer either way, flagged if this failed.
-    let sheetFailed = false;
-    try {
-      await appendWomensSurveyRow([
-        new Date().toISOString(),
-        email,
-        answers.riding,
-        answers.womensKit,
-        answers.bibLength,
-        answers.bibCustom,
-        answers.straps,
-        answers.sleeve,
-        answers.sleevePct,
-        answers.frustrations,
-        answers.favourites,
-        answers.updates,
-        duplicate ? 'DUPLICATE — no new code' : code,
-        answers.size,
-        answers.height,
-      ]);
-    } catch (err) {
-      sheetFailed = true;
-      console.error('Womens-survey sheet append failed (submission continues):', err);
     }
 
     // "Keep me posted" → Women's line audience. Non-fatal.
@@ -203,11 +261,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // Internal copy to info@. Non-fatal.
+    // Internal copy to info@ — the only record that carries full-length
+    // free text, and the only record of repeat submissions. Non-fatal.
     sendWomensSurveyNotification({
       email,
       duplicate,
-      warning: sheetFailed ? 'SHEET WRITE FAILED — record manually' : '',
       fields: [
         ['Email', email],
         ['Riding', answers.riding],
@@ -222,7 +280,6 @@ export default async function handler(req, res) {
         ['Height', answers.height],
         ['Updates opt-in', answers.updates],
         ['Code issued', duplicate ? 'no (repeat submission)' : code],
-        ['Sheet row', sheetFailed ? 'FAILED — this email is the only record' : 'written'],
       ],
     }).catch((err) => console.error('Womens-survey notification failed:', err));
 
