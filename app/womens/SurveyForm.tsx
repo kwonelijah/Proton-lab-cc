@@ -399,7 +399,7 @@ export default function SurveyForm() {
   const [heightIn, setHeightIn] = useState('')
   // contact
   const [email, setEmail] = useState('')
-  const [updates, setUpdates] = useState(true)
+  const [optOut, setOptOut] = useState(false)
   const [website, setWebsite] = useState('') // honeypot
 
   const [submitted, setSubmitted] = useState(false)
@@ -433,7 +433,7 @@ export default function SurveyForm() {
               ? `${heightFt.trim() || '0'} ft ${heightIn.trim() || '0'} in`
               : '',
         email,
-        updates,
+        updates: !optOut,
         website,
       }),
     }).catch(() => null)
@@ -596,15 +596,19 @@ export default function SurveyForm() {
           placeholder="you@email.com"
           className={inputClasses}
         />
-        <label className="flex items-start gap-3 mt-6 cursor-pointer">
+        <p className="text-sm text-proton-grey leading-relaxed mt-6">
+          We&apos;ll keep you posted on the women&apos;s line. First look,
+          first sizes.
+        </p>
+        <label className="flex items-start gap-3 mt-4 cursor-pointer">
           <input
             type="checkbox"
-            checked={updates}
-            onChange={(e) => setUpdates(e.target.checked)}
+            checked={optOut}
+            onChange={(e) => setOptOut(e.target.checked)}
             className="mt-0.5 h-4 w-4 accent-black"
           />
           <span className="text-sm text-proton-grey leading-relaxed">
-            Keep me posted on the women&apos;s line. First look, first sizes.
+            I&apos;d rather not receive updates.
           </span>
         </label>
       </div>
