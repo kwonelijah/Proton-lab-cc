@@ -126,7 +126,7 @@ export async function sendWomensSurveyNotification(entry) {
       from: FROM,
       to: TEAM,
       replyTo: entry.email,
-      subject: `Women's survey — ${entry.email}${entry.duplicate ? ' (repeat)' : ''}`,
+      subject: `Women's survey — ${entry.email}${entry.duplicate ? ' (repeat)' : ''}${entry.warning ? ` — ${entry.warning}` : ''}`,
       html,
       text,
     }));

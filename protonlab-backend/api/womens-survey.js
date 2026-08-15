@@ -23,7 +23,7 @@ import Stripe from 'stripe';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { appendWomensSurveyRow, womensSurveyEmails } from '../lib/sheets.js';
+import { appendWomensSurveyRow } from '../lib/sheets.js';
 import { sendWomensSurveyCode, sendWomensSurveyNotification } from '../lib/email.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -127,15 +127,22 @@ export default async function handler(req, res) {
   };
 
   try {
-    // One code per address, ever — the sheet is the submission log.
+    // One code per address, ever. Dedupe against Stripe itself — every issued
+    // code carries the email in its metadata, so the thing being farmed is
+    // also the dedupe record. (The sheet is the data log, not the guard:
+    // if Stripe were down, code creation would fail anyway.)
     let duplicate = false;
     try {
-      duplicate = (await womensSurveyEmails()).includes(email);
+      for await (const pc of stripe.promotionCodes.list({ coupon: COUPON_ID, limit: 100 })) {
+        if (pc.metadata && pc.metadata.email === email) {
+          duplicate = true;
+          break;
+        }
+      }
     } catch (err) {
-      // If the dedupe read fails, fail open (still record) but skip the code
-      // rather than risk handing out unlimited codes.
-      console.error('Womens-survey dedupe read failed:', err);
-      duplicate = true;
+      // Coupon doesn't exist yet (first ever submission) — no codes issued,
+      // so no duplicates possible.
+      duplicate = false;
     }
 
     let code = '';
@@ -150,23 +157,31 @@ export default async function handler(req, res) {
       });
     }
 
-    await appendWomensSurveyRow([
-      new Date().toISOString(),
-      email,
-      answers.riding,
-      answers.womensKit,
-      answers.bibLength,
-      answers.bibCustom,
-      answers.straps,
-      answers.sleeve,
-      answers.sleevePct,
-      answers.frustrations,
-      answers.favourites,
-      answers.updates,
-      duplicate ? 'DUPLICATE — no new code' : code,
-      answers.size,
-      answers.height,
-    ]);
+    // Sheet write must never kill a submission — the info@ copy below carries
+    // every answer either way, flagged if this failed.
+    let sheetFailed = false;
+    try {
+      await appendWomensSurveyRow([
+        new Date().toISOString(),
+        email,
+        answers.riding,
+        answers.womensKit,
+        answers.bibLength,
+        answers.bibCustom,
+        answers.straps,
+        answers.sleeve,
+        answers.sleevePct,
+        answers.frustrations,
+        answers.favourites,
+        answers.updates,
+        duplicate ? 'DUPLICATE — no new code' : code,
+        answers.size,
+        answers.height,
+      ]);
+    } catch (err) {
+      sheetFailed = true;
+      console.error('Womens-survey sheet append failed (submission continues):', err);
+    }
 
     // "Keep me posted" → Women's line audience. Non-fatal.
     if (body.updates) {
@@ -192,6 +207,7 @@ export default async function handler(req, res) {
     sendWomensSurveyNotification({
       email,
       duplicate,
+      warning: sheetFailed ? 'SHEET WRITE FAILED — record manually' : '',
       fields: [
         ['Email', email],
         ['Riding', answers.riding],
@@ -206,6 +222,7 @@ export default async function handler(req, res) {
         ['Height', answers.height],
         ['Updates opt-in', answers.updates],
         ['Code issued', duplicate ? 'no (repeat submission)' : code],
+        ['Sheet row', sheetFailed ? 'FAILED — this email is the only record' : 'written'],
       ],
     }).catch((err) => console.error('Womens-survey notification failed:', err));
 
@@ -222,15 +239,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('Womens-survey error:', err);
-    // TEMPORARY diagnostic — remove after debugging. Error detail is only
-    // exposed to callers presenting the one-off debug header.
-    if (req.headers['x-pl-debug'] === 'plgd-2f8a91c4') {
-      return res.status(500).json({
-        error: 'debug',
-        message: String((err && err.message) || err),
-        stack: String((err && err.stack) || '').split('\n').slice(0, 4),
-      });
-    }
     return res.status(500).json({ error: 'Something went wrong — please try again.' });
   }
 }

@@ -100,18 +100,6 @@ export async function appendWomensSurveyRow(row) {
   });
 }
 
-// Emails of everyone who already submitted — used to stop code farming.
-export async function womensSurveyEmails() {
-  const auth = await getAuth();
-  const sheets = getSheetsClient(auth);
-  await ensureWomensTab(sheets);
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `${WOMENS_TAB}!B2:B`,
-  });
-  return (response.data.values || []).map((r) => (r[0] || '').toLowerCase()).filter(Boolean);
-}
-
 // ─── Read all orders from the sheet ────────────────────────────────────────
 
 export async function getAllOrders() {
