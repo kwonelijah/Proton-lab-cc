@@ -121,6 +121,8 @@ export default async function handler(req, res) {
     sleevePct: clean(body.sleevePct, 10),
     frustrations: clean(body.frustrations),
     favourites: clean(body.favourites),
+    size: clean(body.size, 20),
+    height: clean(body.height, 30),
     updates: body.updates ? 'yes' : 'no',
   };
 
@@ -162,6 +164,8 @@ export default async function handler(req, res) {
       answers.favourites,
       answers.updates,
       duplicate ? 'DUPLICATE — no new code' : code,
+      answers.size,
+      answers.height,
     ]);
 
     // "Keep me posted" → Women's line audience. Non-fatal.
@@ -198,6 +202,8 @@ export default async function handler(req, res) {
         ['Sleeve', `${answers.sleeve}${answers.sleevePct !== '' ? ` (${answers.sleevePct}%)` : ''}`],
         ['Frustrations', answers.frustrations],
         ['Favourites', answers.favourites],
+        ['Size normally worn', answers.size],
+        ['Height', answers.height],
         ['Updates opt-in', answers.updates],
         ['Code issued', duplicate ? 'no (repeat submission)' : code],
       ],

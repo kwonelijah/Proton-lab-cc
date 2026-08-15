@@ -57,10 +57,11 @@ export async function appendOrder(order) {
 // header row) the first time a submission arrives.
 
 const WOMENS_TAB = 'WomensSurvey';
+// New columns go at the END so rows written before the change stay aligned.
 const WOMENS_HEADERS = [
   'Date', 'Email', 'Riding', 'Womens kit', 'Bib length', 'Bib custom',
   'Straps ranked', 'Sleeve', 'Sleeve %', 'Frustrations', 'Favourites',
-  'Updates opt-in', 'Code',
+  'Updates opt-in', 'Code', 'Size', 'Height',
 ];
 
 async function ensureWomensTab(sheets) {
@@ -70,16 +71,18 @@ async function ensureWomensTab(sheets) {
   const exists = (meta.data.sheets || []).some(
     (s) => s.properties && s.properties.title === WOMENS_TAB
   );
-  if (exists) return;
-  await sheets.spreadsheets.batchUpdate({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    requestBody: { requests: [{ addSheet: { properties: { title: WOMENS_TAB } } }] },
-  });
-  await sheets.spreadsheets.values.append({
+  if (!exists) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      requestBody: { requests: [{ addSheet: { properties: { title: WOMENS_TAB } } }] },
+    });
+  }
+  // Rewrite the header row every time — idempotent, and it picks up newly
+  // added columns on tabs created before the change.
+  await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range: `${WOMENS_TAB}!A1`,
     valueInputOption: 'USER_ENTERED',
-    insertDataOption: 'INSERT_ROWS',
     requestBody: { values: [WOMENS_HEADERS] },
   });
 }
@@ -90,7 +93,7 @@ export async function appendWomensSurveyRow(row) {
   await ensureWomensTab(sheets);
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: `${WOMENS_TAB}!A:M`,
+    range: `${WOMENS_TAB}!A:O`,
     valueInputOption: 'USER_ENTERED',
     insertDataOption: 'INSERT_ROWS',
     requestBody: { values: [row] },

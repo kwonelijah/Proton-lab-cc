@@ -44,6 +44,8 @@ const SLEEVE_STOPS = [
 ]
 const SLEEVE_INCREMENTS = 15
 
+const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+
 // ─── END QUESTIONS ───────────────────────────────────────────────────────────
 
 const inputClasses =
@@ -389,6 +391,12 @@ export default function SurveyForm() {
   const [sleeve, setSleeve] = useState(8) // starts at Classic short
   const [frustrations, setFrustrations] = useState('')
   const [favourites, setFavourites] = useState('')
+  // sizing (both optional)
+  const [size, setSize] = useState<string[]>([])
+  const [heightUnit, setHeightUnit] = useState<'cm' | 'ftin'>('cm')
+  const [heightCm, setHeightCm] = useState('')
+  const [heightFt, setHeightFt] = useState('')
+  const [heightIn, setHeightIn] = useState('')
   // contact
   const [email, setEmail] = useState('')
   const [updates, setUpdates] = useState(true)
@@ -415,6 +423,15 @@ export default function SurveyForm() {
         sleevePct: sleeveAt(sleeve).pct,
         frustrations,
         favourites,
+        size: size[0] ?? '',
+        height:
+          heightUnit === 'cm'
+            ? heightCm.trim()
+              ? `${heightCm.trim()} cm`
+              : ''
+            : heightFt.trim() || heightIn.trim()
+              ? `${heightFt.trim() || '0'} ft ${heightIn.trim() || '0'} in`
+              : '',
         email,
         updates,
         website,
@@ -500,6 +517,74 @@ export default function SurveyForm() {
           onChange={(e) => setFavourites(e.target.value)}
           className={textareaClasses}
         />
+      </div>
+
+      <div>
+        <Eyebrow>What size do you normally wear? (optional)</Eyebrow>
+        <TapGroup options={SIZE_OPTIONS} value={size} onChange={setSize} />
+      </div>
+
+      <div>
+        <Eyebrow>Height (optional)</Eyebrow>
+        <div className="flex gap-2 mb-4">
+          {(['cm', 'ftin'] as const).map((unit) => (
+            <button
+              key={unit}
+              type="button"
+              aria-pressed={heightUnit === unit}
+              onClick={() => setHeightUnit(unit)}
+              className={cn(
+                'h-11 px-4 border text-xs uppercase tracking-widest transition-colors duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2',
+                heightUnit === unit
+                  ? 'bg-proton-black text-proton-white border-proton-black'
+                  : 'bg-transparent text-proton-black border-proton-mid hover:border-proton-black'
+              )}
+            >
+              {unit === 'cm' ? 'cm' : 'ft + in'}
+            </button>
+          ))}
+        </div>
+        {heightUnit === 'cm' ? (
+          <div className="flex items-baseline gap-3">
+            <input
+              type="number"
+              inputMode="numeric"
+              min={100}
+              max={230}
+              value={heightCm}
+              onChange={(e) => setHeightCm(e.target.value)}
+              aria-label="Height in centimetres"
+              className={cn(inputClasses, 'max-w-[120px]')}
+            />
+            <span className="text-sm text-proton-grey">cm</span>
+          </div>
+        ) : (
+          <div className="flex items-baseline gap-3">
+            <input
+              type="number"
+              inputMode="numeric"
+              min={3}
+              max={7}
+              value={heightFt}
+              onChange={(e) => setHeightFt(e.target.value)}
+              aria-label="Height, feet"
+              className={cn(inputClasses, 'max-w-[80px]')}
+            />
+            <span className="text-sm text-proton-grey">ft</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={11}
+              value={heightIn}
+              onChange={(e) => setHeightIn(e.target.value)}
+              aria-label="Height, inches"
+              className={cn(inputClasses, 'max-w-[80px]')}
+            />
+            <span className="text-sm text-proton-grey">in</span>
+          </div>
+        )}
       </div>
 
       <div className="border-t border-proton-light pt-10">
