@@ -222,6 +222,15 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('Womens-survey error:', err);
+    // TEMPORARY diagnostic — remove after debugging. Error detail is only
+    // exposed to callers presenting the one-off debug header.
+    if (req.headers['x-pl-debug'] === 'plgd-2f8a91c4') {
+      return res.status(500).json({
+        error: 'debug',
+        message: String((err && err.message) || err),
+        stack: String((err && err.stack) || '').split('\n').slice(0, 4),
+      });
+    }
     return res.status(500).json({ error: 'Something went wrong — please try again.' });
   }
 }
