@@ -57,11 +57,27 @@ export function trackMetaEvent(event: MetaEventName, params: MetaEventParams, ev
   sendEvent(event, params, eventId)
 }
 
+// Custom events (fbq trackCustom) — e.g. SurveyComplete, MailingListSignup.
+// Same pre-init queue treatment as the standard events.
+const pendingCustomEvents: Array<[string, Record<string, string | number>]> = []
+
+export function trackMetaCustom(event: string, params: Record<string, string | number> = {}): void {
+  if (typeof window === 'undefined') return
+  if (!pixelReady || !window.fbq) {
+    if (pendingCustomEvents.length < 20) pendingCustomEvents.push([event, params])
+    return
+  }
+  window.fbq('trackCustom', event, params)
+}
+
 // Called by MetaPixel.tsx once fbq('init') has run.
 export function markPixelReady(): void {
   pixelReady = true
   for (const [event, params, eventId] of pendingEvents.splice(0)) {
     sendEvent(event, params, eventId)
+  }
+  for (const [event, params] of pendingCustomEvents.splice(0)) {
+    window.fbq?.('trackCustom', event, params)
   }
 }
 

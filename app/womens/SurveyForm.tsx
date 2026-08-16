@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Button from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
+import { trackMetaCustom } from '@/lib/meta'
+import { trackGaCustom } from '@/lib/ga'
 
 // ─── QUESTIONS — edit everything in this block ───────────────────────────────
 
@@ -438,8 +440,17 @@ export default function SurveyForm() {
       }),
     }).catch(() => null)
     setLoading(false)
-    if (res?.ok) setSubmitted(true)
-    else setError('Something went wrong — please try again.')
+    if (res?.ok) {
+      trackMetaCustom('SurveyComplete', { mailing_list: optOut ? 'no' : 'yes' })
+      trackGaCustom('survey_complete', { mailing_list: optOut ? 'no' : 'yes' })
+      if (!optOut) {
+        trackMetaCustom('MailingListSignup', { source: 'womens-survey' })
+        trackGaCustom('mailing_list_signup', { source: 'womens-survey' })
+      }
+      setSubmitted(true)
+    } else {
+      setError('Something went wrong — please try again.')
+    }
   }
 
   if (submitted) {
@@ -598,7 +609,7 @@ export default function SurveyForm() {
         />
         <p className="text-sm text-proton-grey leading-relaxed mt-6">
           We&apos;ll keep you posted on the women&apos;s line. First look,
-          first sizes.
+          first sizes. The giveaway winners are drawn from this mailing list.
         </p>
         <label className="flex items-start gap-3 mt-4 cursor-pointer">
           <input
@@ -608,7 +619,8 @@ export default function SurveyForm() {
             className="mt-0.5 h-4 w-4 accent-black"
           />
           <span className="text-sm text-proton-grey leading-relaxed">
-            I&apos;d rather not receive updates.
+            I&apos;d rather not receive updates. This removes me from the
+            giveaway draw.
           </span>
         </label>
       </div>

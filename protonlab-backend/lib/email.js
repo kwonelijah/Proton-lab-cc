@@ -100,8 +100,9 @@ export async function sendWelcome(email, { code, expiresAt }) {
 }
 
 // Women's survey thank-you with the respondent's unique 20% code.
-export async function sendWomensSurveyCode(email, { code }) {
-  return sendToCustomer({ email }, renderWomensSurveyCode({ code }));
+// inDraw: on the women's-line list → the email mentions the giveaway draw.
+export async function sendWomensSurveyCode(email, { code, inDraw }) {
+  return sendToCustomer({ email }, renderWomensSurveyCode({ code, inDraw }));
 }
 
 // Internal copy of a women's-survey submission — every answer, straight to

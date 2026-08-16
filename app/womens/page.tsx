@@ -49,7 +49,9 @@ export default function WomensSurveyPage() {
             </p>
             <p>
               We&apos;re giving away 3 sets of the completed range, and a 20%
-              discount code for everyone who gives their input.
+              discount code for everyone who gives their input. Winners are
+              drawn from the women&apos;s line mailing list, so stay subscribed
+              to be entered.
             </p>
             <p className="text-proton-black">
               Thanks,

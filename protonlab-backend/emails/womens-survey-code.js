@@ -21,7 +21,16 @@ import {
 const PERSONAL_NOTE = '';
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function render({ code }) {
+// inDraw: whether the respondent stayed on the women's-line mailing list —
+// the giveaway is drawn from that list, so opted-out respondents get the
+// code paragraph without the draw sentence.
+export function render({ code, inDraw = true }) {
+  const drawSentenceHtml = inDraw
+    ? ' You’re also in the draw for one of three sets of the finished range, for as long as you’re on the women’s line mailing list.'
+    : '';
+  const drawSentenceText = inDraw
+    ? " You're also in the draw for one of three sets of the finished range, for as long as you're on the women's line mailing list."
+    : '';
   const codeBlock = `
       <table role="presentation" style="width:100%;border-collapse:collapse;margin:0 0 32px 0;">
         <tr>
@@ -47,9 +56,8 @@ export function render({ code }) {
       </p>
       ${noteBlock}
       <p style="${bodyStyle}margin:0 0 32px 0;">
-        As promised, here’s 20% off your next order, and you’re in the draw
-        for one of three sets of the finished range. The code doesn’t expire,
-        so you can save it for the women’s range itself.
+        As promised, here’s 20% off your next order. The code doesn’t expire,
+        so you can save it for the women’s range itself.${drawSentenceHtml}
       </p>
 
       ${codeBlock}
@@ -72,7 +80,7 @@ export function render({ code }) {
 
 Thanks for helping us design our first Women's focused range. Every answer gives us data to identify what you are looking for. We'll keep you updated on the full design process.
 ${PERSONAL_NOTE ? `\n${PERSONAL_NOTE}\n` : ''}
-As promised, here's 20% off your next order, and you're in the draw for one of three sets of the finished range. The code doesn't expire, so you can save it for the women's range itself.
+As promised, here's 20% off your next order. The code doesn't expire, so you can save it for the women's range itself.${drawSentenceText}
 
 Your code: ${code}
 

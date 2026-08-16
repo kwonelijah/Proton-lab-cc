@@ -61,3 +61,10 @@ export function trackGaEvent(event: GaEventName, params: GaEventParams): void {
   initGa()
   window.gtag?.('event', event, params)
 }
+
+// Custom (non-ecommerce) events — e.g. survey_complete, mailing_list_signup.
+export function trackGaCustom(event: string, params: Record<string, string | number> = {}): void {
+  if (typeof window === 'undefined') return
+  initGa()
+  window.gtag?.('event', event, params)
+}

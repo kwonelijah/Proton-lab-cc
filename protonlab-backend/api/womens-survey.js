@@ -273,7 +273,7 @@ export default async function handler(req, res) {
 
     if (duplicate) return res.status(200).json({ ok: true, already: true });
 
-    const sent = await sendWomensSurveyCode(email, { code });
+    const sent = await sendWomensSurveyCode(email, { code, inDraw: !!body.updates });
     if (!sent.ok) {
       console.error('Womens-survey code email failed for', email, sent.error);
       return res.status(500).json({
