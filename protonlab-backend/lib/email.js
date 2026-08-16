@@ -140,37 +140,36 @@ export async function sendWomensSurveyNotification(entry) {
   return { ok: true };
 }
 
-// Adds a customer to the Resend contact list (single-audience model — no
-// audienceId). Called by the webhook on every paid order so buyers land on
-// the mailing list automatically; no email is sent and no welcome code is
-// issued. Existing contacts and failures are non-fatal — never let this
-// break order processing.
-export async function addToMailingList(order) {
-  if (!order.email || order.email === 'N/A') return { ok: false, skipped: 'no-customer-email' };
-  const name = order.name && order.name !== 'N/A' ? order.name : '';
-  const [firstName, ...rest] = name.split(' ').filter(Boolean);
+// Back-in-stock request, straight to the team inbox. This email IS the
+// waitlist record — Resend contacts can't be tagged by product, so restocks
+// are answered by searching info@ for the subject line and replying.
+export async function sendWaitlistNotification({ email, handle, size }) {
+  const subject = `Back in stock request: ${handle}${size ? ` (${size})` : ''} — ${email}`;
+  const text = `${email} asked to be notified when ${handle}${size ? ` in size ${size}` : ''} is back in stock.`;
+  const html = `
+    <div style="font-family:${FONTS.body};max-width:600px;margin:0 auto;color:${COLORS.black};">
+      <h2 style="font-size:16px;margin-bottom:16px;">Back in stock request</h2>
+      <p style="font-size:13px;line-height:1.6;">${text}</p>
+    </div>`;
+
+  let error;
   try {
-    const key = process.env.proton_resend_key || process.env.Resend_Backend_Key;
-    const res = await fetch('https://api.resend.com/contacts', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: order.email.toLowerCase(),
-        firstName: firstName || undefined,
-        lastName: rest.join(' ') || undefined,
-        unsubscribed: false,
-      }),
-    });
-    if (!res.ok) {
-      console.warn(`Mailing-list add skipped for ${order.email}:`, await res.text());
-      return { ok: false };
-    }
-    console.log(`Added ${order.email} to mailing list`);
-    return { ok: true };
-  } catch (err) {
-    console.error('Mailing-list add failed (continuing):', err);
-    return { ok: false };
+    ({ error } = await getResend().emails.send({
+      from: FROM,
+      to: TEAM,
+      replyTo: email,
+      subject,
+      html,
+      text,
+    }));
+  } catch (e) {
+    error = e;
   }
+  if (error) {
+    console.error('Failed to send waitlist notification:', error);
+    return { ok: false, error: error.message || String(error) };
+  }
+  return { ok: true };
 }
 
 // ─── Internal team notification ─────────────────────────────────────────────

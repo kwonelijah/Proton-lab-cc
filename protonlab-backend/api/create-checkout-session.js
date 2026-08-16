@@ -148,6 +148,12 @@ export default async function handler(req, res) {
       // under Product catalogue → Coupons) on the hosted page.
       allow_promotion_codes: true,
 
+      // Marketing consent checkbox on the hosted page ('auto' shows it where
+      // Stripe supports promotional consent for the customer's locale). The
+      // webhook only adds buyers to the mailing list when this comes back
+      // 'opt_in' — absent/opt_out means no list add, order emails unaffected.
+      consent_collection: { promotions: 'auto' },
+
       line_items: resolved.map((item) => ({
         price: item.priceId,
         quantity: item.quantity,

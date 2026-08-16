@@ -1,12 +1,14 @@
 // api/subscribe.js
-// Newsletter signup: adds the address to the Resend contact list, issues a
-// unique single-use 10% welcome code (retail range only), and emails the
-// code. The code is only ever delivered by email — that's what proves the
-// address is real. The subscriber log lives in Resend (Audience → Contacts);
+// Newsletter signup: adds the address to the General audience in Resend,
+// issues a unique single-use 10% welcome code (retail range only), and emails
+// the code. The code is only ever delivered by email — that's what proves the
+// address is real. The subscriber log lives in Resend (Audiences → General);
 // each issued code is also visible in Stripe (promotion code metadata carries
 // the email + source).
 //
-// POST { email, source } — source is 'popup' | 'footer' (display only).
+// POST { email, source } — source is 'popup' | 'footer' | 'contact' |
+// 'notify', recorded on the Stripe promo code so signups can be traced to
+// their surface.
 // Responses are deliberately shaped for the frontend forms:
 //   200 { ok: true }                    — subscribed, code on its way
 //   200 { ok: true, already: true }     — was already on the list (no new code)
@@ -20,6 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sendWelcome } from '../lib/email.js';
+import { GENERAL_AUDIENCE_ID, addContactToAudience, contactInAudience } from '../lib/audiences.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -101,21 +104,15 @@ export default async function handler(req, res) {
   if (!EMAIL_RE.test(email) || email.length > 254) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
-  const src = source === 'footer' ? 'footer' : 'popup';
-  const resendKey = process.env.proton_resend_key || process.env.Resend_Backend_Key;
-  const resendHeaders = {
-    Authorization: `Bearer ${resendKey}`,
-    'Content-Type': 'application/json',
-  };
+  const src = ['footer', 'contact', 'notify'].includes(source) ? source : 'popup';
 
   try {
-    // Dedupe against the Resend contact list — one welcome code per address,
-    // ever. (Contacts also serve as the mailing list; codes are additionally
-    // logged on each Stripe promotion code's metadata.)
-    const lookup = await fetch(`https://api.resend.com/contacts/${encodeURIComponent(email)}`, {
-      headers: resendHeaders,
-    });
-    if (lookup.ok) {
+    // Dedupe against the General audience — one welcome code per address,
+    // ever. General holds everyone marketable (including consenting
+    // purchasers), so a customer who later uses the popup gets `already`
+    // rather than a second code. Codes are additionally logged on each
+    // Stripe promotion code's metadata.
+    if (await contactInAudience(email, GENERAL_AUDIENCE_ID)) {
       return res.status(200).json({ ok: true, already: true });
     }
 
@@ -131,18 +128,10 @@ export default async function handler(req, res) {
       metadata: { source: src, email },
     });
 
-    // Add to the Resend contact list — the actual mailing list; unsubscribes
-    // are managed there. This account is on Resend's single-audience model,
-    // so contacts are created directly (no audienceId). Uses the HTTP API
-    // rather than the SDK, whose pinned version predates the new model.
-    const contactRes = await fetch('https://api.resend.com/contacts', {
-      method: 'POST',
-      headers: resendHeaders,
-      body: JSON.stringify({ email, unsubscribed: false }),
-    });
-    if (!contactRes.ok) {
-      console.error('Resend contact add failed (continuing):', await contactRes.text());
-    }
+    // Add to the General audience — the actual mailing list; unsubscribes
+    // are managed in Resend. Failure is logged inside the helper and never
+    // blocks the welcome code.
+    await addContactToAudience(email, GENERAL_AUDIENCE_ID);
 
     const sent = await sendWelcome(email, { code, expiresAt: expiresAt.toISOString() });
     if (!sent.ok) {

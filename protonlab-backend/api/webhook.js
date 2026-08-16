@@ -4,8 +4,13 @@
 // Phase 2: uncomment the sheets + agent lines once Google is set up
 
 import Stripe from 'stripe';
-import { sendOrderConfirmation, sendInternalNotification, addToMailingList } from '../lib/email.js';
+import { sendOrderConfirmation, sendInternalNotification } from '../lib/email.js';
 import { sendMetaEvent, buildUserData } from '../lib/meta-capi.js';
+import {
+  GENERAL_AUDIENCE_ID,
+  CUSTOMERS_AUDIENCE_ID,
+  addContactToAudience,
+} from '../lib/audiences.js';
 // import { appendOrder } from '../lib/sheets.js';     // Phase 2
 // import { processNewOrders } from '../lib/agent.js'; // Phase 2
 
@@ -27,6 +32,22 @@ export const config = {
     bodyParser: false,
   },
 };
+
+// Adds a buyer to General + Customers, but only when they ticked the
+// promotions consent box on the hosted checkout page (`consent.promotions`
+// on the Checkout Session). Sessions created before consent_collection
+// shipped — and locales where Stripe hides the checkbox — come back null and
+// are skipped. Sequential adds respect Resend's ~2 req/s limit; the helper
+// swallows failures so this can never break order processing.
+async function addConsentedPurchaser(order, session) {
+  if (session?.consent?.promotions !== 'opt_in') return;
+  if (!order.email || order.email === 'N/A') return;
+  const name = order.name && order.name !== 'N/A' ? order.name : '';
+  const [firstName, ...rest] = name.split(' ').filter(Boolean);
+  const person = { firstName, lastName: rest.join(' ') };
+  await addContactToAudience(order.email, GENERAL_AUDIENCE_ID, person);
+  await addContactToAudience(order.email, CUSTOMERS_AUDIENCE_ID, person);
+}
 
 async function getRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -201,7 +222,7 @@ export default async function handler(req, res) {
     await Promise.all([
       sendOrderConfirmation(order),
       sendInternalNotification(order),
-      addToMailingList(order),
+      addConsentedPurchaser(order, session),
       metaPurchase,
     ]);
 

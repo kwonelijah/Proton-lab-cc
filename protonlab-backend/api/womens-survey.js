@@ -30,16 +30,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sendWomensSurveyCode, sendWomensSurveyNotification } from '../lib/email.js';
+import {
+  GENERAL_AUDIENCE_ID,
+  WOMENS_AUDIENCE_ID,
+  addContactToAudience,
+} from '../lib/audiences.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const MAPPING_PATH = path.resolve(__dirname, '..', 'data', 'stripe-products.json');
-
-// Resend "Women's line" audience — respondents who ticked "keep me posted".
-// Not a secret, just an ID (Resend dashboard → Audiences).
-const WOMENS_AUDIENCE_ID = '838e4c6e-4f2d-45e7-8569-8a225ca4dc3f';
 
 // ─── Survey coupon ───────────────────────────────────────────────────────────
 // Shared 20% coupon restricted to the RETAIL range (mirrors subscribe.js —
@@ -241,24 +242,11 @@ export default async function handler(req, res) {
       });
     }
 
-    // "Keep me posted" → Women's line audience. Non-fatal.
+    // "Keep me posted" → Women's line audience, plus General so a site-wide
+    // newsletter reaches them without a second broadcast. Non-fatal.
     if (body.updates) {
-      try {
-        const key = process.env.proton_resend_key || process.env.Resend_Backend_Key;
-        const contactRes = await fetch(
-          `https://api.resend.com/audiences/${WOMENS_AUDIENCE_ID}/contacts`,
-          {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, unsubscribed: false }),
-          }
-        );
-        if (!contactRes.ok) {
-          console.warn('Womens-line audience add failed (continuing):', await contactRes.text());
-        }
-      } catch (err) {
-        console.error('Womens-line audience add failed (continuing):', err);
-      }
+      await addContactToAudience(email, WOMENS_AUDIENCE_ID);
+      await addContactToAudience(email, GENERAL_AUDIENCE_ID);
     }
 
     // Internal copy to info@ — the only record that carries full-length
