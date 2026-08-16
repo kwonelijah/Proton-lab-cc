@@ -9,6 +9,7 @@ const inputClasses =
 export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [subscribe, setSubscribe] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -22,6 +23,7 @@ export default function ContactForm() {
       email: (form.elements.namedItem('email') as HTMLInputElement).value,
       subject: (form.elements.namedItem('subject') as HTMLSelectElement).value,
       message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
+      subscribe,
     }
 
     const res = await fetch('/api/contact', {
@@ -114,6 +116,19 @@ export default function ContactForm() {
           className={`${inputClasses} resize-none`}
         />
       </div>
+
+      <label className="flex items-start gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={subscribe}
+          onChange={e => setSubscribe(e.target.checked)}
+          className="mt-0.5 h-4 w-4 accent-black"
+        />
+        <span className="text-sm text-proton-grey leading-relaxed">
+          Add me to the mailing list — 10% off your first order. Unsubscribe
+          anytime.
+        </span>
+      </label>
 
       {error && (
         <p className="text-sm text-red-600">{error}</p>

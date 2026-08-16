@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ProductVariant } from '@/types/product'
 import Button from '@/components/ui/Button'
+import NotifyMe from './NotifyMe'
 import { useCartStore } from '@/stores/cart'
 import { trackMetaEvent, parsePrice } from '@/lib/meta'
 import { trackGaEvent } from '@/lib/ga'
@@ -51,6 +52,14 @@ export default function VariantSelector({ variants, productTitle, productHandle,
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productHandle])
+
+  // Whole product gone → the size grid and Add to Cart are dead weight;
+  // swap them for the back-in-stock capture instead.
+  const soldOut = variants.every(v => !v.availableForSale)
+  const sizeLabels = useMemo(
+    () => variants.map(v => v.selectedOptions.find(o => o.name === 'Size')?.value ?? v.title),
+    [variants]
+  )
 
   const alreadyInCart = useMemo(() => {
     if (!selected) return 0
@@ -107,6 +116,10 @@ export default function VariantSelector({ variants, productTitle, productHandle,
       ],
     })
     openCart()
+  }
+
+  if (soldOut) {
+    return <NotifyMe productHandle={productHandle} sizes={sizeLabels} />
   }
 
   return (

@@ -1,10 +1,11 @@
 import { Resend } from 'resend'
 import { NextResponse } from 'next/server'
+import { BACKEND_URL } from '@/lib/checkout'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req: Request) {
-  const { name, email, subject, message } = await req.json()
+  const { name, email, subject, message, subscribe } = await req.json()
 
   if (!name || !email || !subject || !message) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
@@ -54,6 +55,18 @@ export async function POST(req: Request) {
 
   if (error) {
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
+  }
+
+  // Opt-in checkbox → the backend subscribe endpoint, which owns dedupe, the
+  // 10% welcome code and the welcome email. Server-to-server, so the
+  // backend's browser-only CORS policy doesn't apply. Fire-and-forget: a
+  // subscribe hiccup must never fail the contact message itself.
+  if (subscribe === true) {
+    fetch(`${BACKEND_URL}/api/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: 'contact' }),
+    }).catch(() => {})
   }
 
   return NextResponse.json({ success: true })
