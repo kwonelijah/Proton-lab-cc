@@ -647,6 +647,18 @@ export default function SurveyForm() {
           send the code and, only if ticked, women&apos;s-line updates.
           Unsubscribe any time.
         </p>
+        <p className="text-[11px] text-proton-grey leading-relaxed mt-3">
+          By entering you agree to the giveaway{' '}
+          <a
+            href="/womens-kit-terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-proton-black transition-colors duration-200"
+          >
+            Terms &amp; Conditions
+          </a>
+          .
+        </p>
       </div>
     </form>
   )

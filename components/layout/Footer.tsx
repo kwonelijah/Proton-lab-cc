@@ -27,6 +27,8 @@ export default function Footer() {
           <span aria-hidden="true">|</span>
           <Link href="/contact" className="hover:text-proton-white transition-colors duration-200">Contact</Link>
           <span aria-hidden="true">|</span>
+          <Link href="/privacy" className="hover:text-proton-white transition-colors duration-200">Privacy</Link>
+          <span aria-hidden="true">|</span>
           <a
             href="https://www.instagram.com/protonlabcc/"
             target="_blank"
