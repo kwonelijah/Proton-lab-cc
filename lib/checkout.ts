@@ -1,4 +1,5 @@
 import { getFbCookies } from '@/lib/meta'
+import { getGaCookies } from '@/lib/ga'
 
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'https://protonlab-backend.vercel.app'
 
@@ -22,12 +23,15 @@ export async function redirectToCheckout(
 ): Promise<void> {
   // Meta attribution cookies ride along so the backend can stamp them onto the
   // PaymentIntent and send a fully-attributed Conversions API Purchase event.
+  // GA cookies do the same for the server-side GA4 Measurement Protocol
+  // purchase — same client_id as this browser, so GA4 dedups the pair.
   const { fbp, fbc } = getFbCookies()
+  const { gaClientId, gaSessionId } = getGaCookies()
 
   const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items, shippingRegion, fbp, fbc }),
+    body: JSON.stringify({ items, shippingRegion, fbp, fbc, gaClientId, gaSessionId }),
   })
 
   const data = await res.json()

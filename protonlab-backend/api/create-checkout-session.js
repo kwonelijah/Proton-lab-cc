@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { items, customerEmail, customerName, shippingRegion, fbp, fbc } = req.body;
+  const { items, customerEmail, customerName, shippingRegion, fbp, fbc, gaClientId, gaSessionId } = req.body;
 
   // Meta ads attribution — the browser's _fbp/_fbc cookies arrive in the body;
   // IP and user-agent are read from this request (it comes from the customer's
@@ -188,6 +188,11 @@ export default async function handler(req, res) {
           fbc: typeof fbc === 'string' ? fbc.slice(0, 500) : '',
           client_ip: clientIp,
           client_ua: clientUa,
+          // GA4 browser identity (_ga / _ga_* cookies) — lets the webhook's
+          // Measurement Protocol purchase share the buyer's client_id and
+          // session, so GA4 dedups it against the /success page event.
+          ga_client_id: typeof gaClientId === 'string' ? gaClientId.slice(0, 100) : '',
+          ga_session_id: typeof gaSessionId === 'string' ? gaSessionId.slice(0, 100) : '',
         },
       },
 

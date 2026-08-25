@@ -68,3 +68,30 @@ export function trackGaCustom(event: string, params: Record<string, string | num
   initGa()
   window.gtag?.('event', event, params)
 }
+
+// GA identifiers for server-side Measurement Protocol events — the GA
+// counterpart to lib/meta.ts getFbCookies(). Captured at checkout-session
+// creation and stamped onto the PaymentIntent metadata, so the webhook's
+// server-side purchase carries the same client_id (and, where possible,
+// session_id) as this browser and GA4 can deduplicate on transaction_id.
+export function getGaCookies(): { gaClientId?: string; gaSessionId?: string } {
+  if (typeof document === 'undefined') return {}
+  const read = (name: string) =>
+    document.cookie
+      .split('; ')
+      .find(c => c.startsWith(name + '='))
+      ?.substring(name.length + 1)
+
+  // _ga = "GA1.1.<random>.<timestamp>" — client_id is the last two segments.
+  const clientMatch = read('_ga')?.match(/(\d+\.\d+)$/)
+  const gaClientId = clientMatch?.[1]
+
+  // Session cookie is named after the stream: _ga_<measurement id minus "G-">.
+  // "GS1.1.<session_id>.<n>..." or newer "GS2.1.s<session_id>$o<n>..." — the
+  // session id is the first number either way.
+  const sessionCookie = read('_ga_' + GA_MEASUREMENT_ID.replace(/^G-/, ''))
+  const sessionMatch = sessionCookie?.match(/^GS\d+\.\d+\.s?(\d+)/)
+  const gaSessionId = sessionMatch?.[1]
+
+  return { gaClientId, gaSessionId }
+}

@@ -4,8 +4,12 @@
 // Phase 2: uncomment the sheets + agent lines once Google is set up
 
 import Stripe from 'stripe';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { sendOrderConfirmation, sendInternalNotification } from '../lib/email.js';
 import { sendMetaEvent, buildUserData } from '../lib/meta-capi.js';
+import { sendGa4Purchase } from '../lib/ga4-mp.js';
 import {
   GENERAL_AUDIENCE_ID,
   CUSTOMERS_AUDIENCE_ID,
@@ -15,6 +19,24 @@ import {
 // import { processNewOrders } from '../lib/agent.js'; // Phase 2
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// Unit prices for GA4 item data — same source and club/EUR resolution as
+// api/checkout-session.js, so the server-side purchase reports the same item
+// prices as the browser event.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const MAPPING_PATH = path.resolve(__dirname, '..', 'data', 'stripe-products.json');
+
+let productMap = null;
+function loadProductMap() {
+  if (productMap) return productMap;
+  try {
+    productMap = JSON.parse(fs.readFileSync(MAPPING_PATH, 'utf8'));
+  } catch {
+    productMap = {};
+  }
+  return productMap;
+}
 
 // Deterministic 5-digit order number derived from the Stripe payment id, so the
 // same order always yields the same reference without needing a stored counter.
@@ -219,11 +241,45 @@ export default async function handler(req, res) {
       },
     });
 
+    // GA4 Measurement Protocol Purchase — the server-side twin of the gtag
+    // purchase on /success (app/success/PurchaseTracker.tsx). Shares that
+    // event's transaction_id (session id) and client_id (_ga cookie stamped
+    // onto the PaymentIntent at checkout creation) so GA4 counts the pair once.
+    const channel = club !== 'N/A' && club !== 'Proton Lab' ? 'club-shop' : 'retail';
+    const clubHandleKey = payment.metadata?.club_handle || '';
+    const isEur = payment.currency.toLowerCase() === 'eur';
+    const map = loadProductMap();
+    const ga4Purchase = sendGa4Purchase({
+      transactionId: session?.id || payment.id,
+      clientId: payment.metadata?.ga_client_id || undefined,
+      sessionId: payment.metadata?.ga_session_id || undefined,
+      value: payment.amount / 100,
+      currency: payment.currency.toUpperCase(),
+      eventTime: payment.created,
+      items: lineItems
+        .filter(i => i.handle)
+        .map(i => {
+          const entry = map[i.handle];
+          const unitAmount =
+            entry?.clubPrices?.[clubHandleKey]?.unitAmount ??
+            (isEur ? entry?.eur?.unitAmount : undefined) ??
+            entry?.unitAmount;
+          return {
+            item_id: i.handle,
+            item_name: i.name || entry?.name || i.handle,
+            item_category: channel,
+            quantity: i.qty || 1,
+            ...(unitAmount != null ? { price: unitAmount / 100 } : {}),
+          };
+        }),
+    });
+
     await Promise.all([
       sendOrderConfirmation(order),
       sendInternalNotification(order),
       addConsentedPurchaser(order, session),
       metaPurchase,
+      ga4Purchase,
     ]);
 
     // Phase 2: uncomment these once Google Sheets is configured
