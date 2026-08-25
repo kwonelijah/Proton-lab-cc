@@ -124,7 +124,7 @@ export default async function handler(req, res) {
   )].join(', ');
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams = {
       payment_method_types: ['card'],
       mode: 'payment',
 
@@ -198,7 +198,25 @@ export default async function handler(req, res) {
 
       success_url: `${process.env.SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.SITE_URL}/cancel`,
-    });
+    };
+
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create(sessionParams);
+    } catch (err) {
+      // Stripe began rejecting `consent_collection.promotions` outright for
+      // UK accounts in Aug 2026 ('auto' previously meant "show where
+      // supported") — which silently took the whole checkout down. The
+      // consent checkbox is nice-to-have; taking payment is not. Drop it and
+      // retry once, so checkout survives Stripe policy changes either way.
+      if (err?.message?.includes('consent_collection')) {
+        console.error('consent_collection rejected by Stripe — retrying without it:', err.message);
+        delete sessionParams.consent_collection;
+        session = await stripe.checkout.sessions.create(sessionParams);
+      } else {
+        throw err;
+      }
+    }
 
     res.status(200).json({ url: session.url });
   } catch (err) {
