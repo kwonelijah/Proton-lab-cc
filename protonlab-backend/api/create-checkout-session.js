@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ZONES, resolveZone } from '../config/shipping.js';
+import { sendOpsAlert } from '../lib/alerts.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -221,6 +222,17 @@ export default async function handler(req, res) {
     res.status(200).json({ url: session.url });
   } catch (err) {
     console.error('Stripe session creation error:', err);
+    // A customer just failed to reach the payment page — this is a checkout
+    // outage in progress, so page the team (deduped to ~1/hour). Awaited so
+    // the serverless runtime can't freeze the send mid-flight, but the
+    // customer response never depends on it succeeding.
+    await sendOpsAlert('Checkout session creation FAILED for a customer', [
+      `Error: ${err.message}`,
+      `Cart: ${Array.isArray(items) ? items.map(i => `${i?.handle} ${i?.size} x${i?.quantity ?? 1}`).join(', ') : 'unparsed'}`,
+      `Region: ${shippingRegion || 'uk'}`,
+      'Customers are seeing "Could not connect to payment server" — investigate now.',
+      'Reproduce: check Vercel logs for create-checkout-session, and Stripe Workbench → Logs for the rejected request.',
+    ]);
     res.status(500).json({ error: 'Failed to create checkout session' });
   }
 }

@@ -9,12 +9,19 @@
     },
     "api/stock-sync.js": {
       "maxDuration": 60
+    },
+    "api/health-checkout.js": {
+      "maxDuration": 30
     }
   },
   "crons": [
     {
       "path": "/api/stock-sync",
       "schedule": "0 20 * * *"
+    },
+    {
+      "path": "/api/health-checkout",
+      "schedule": "0 8 * * *"
     }
   ]
 }
