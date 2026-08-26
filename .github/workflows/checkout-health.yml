@@ -1,0 +1,37 @@
+# Synthetic checkout health check — polls the backend's health endpoint, which
+# creates a real Stripe checkout session through the customer path and
+# immediately expires it. Replaces the daily Vercel cron: Actions gives precise
+# every-6-hours scheduling, and a failed run triggers GitHub's own
+# workflow-failure email — a second alert channel on top of the endpoint's
+# Resend ops alert.
+#
+# Requires repo secret PROTON_EXPORT_KEY (same value as the Vercel env var
+# proton_export_key). Until the secret is added, runs skip cleanly instead of
+# raising false alarms.
+name: Checkout health
+
+on:
+  schedule:
+    - cron: '17 1,7,13,19 * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create and expire a test checkout session
+        env:
+          KEY: ${{ secrets.PROTON_EXPORT_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "PROTON_EXPORT_KEY secret not set — skipping (add it in repo Settings → Secrets → Actions)"
+            exit 0
+          fi
+          resp=$(curl -s -w '\n%{http_code}' "https://protonlab-backend.vercel.app/api/health-checkout?key=$KEY")
+          code=$(echo "$resp" | tail -1)
+          body=$(echo "$resp" | sed '$d')
+          echo "HTTP $code — $body"
+          if [ "$code" != "200" ]; then
+            echo "::error::Checkout health check failed (HTTP $code) — customers may not be able to pay"
+            exit 1
+          fi

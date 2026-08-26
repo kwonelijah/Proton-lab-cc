@@ -1,16 +1,18 @@
 // api/health-checkout.js
-// Daily synthetic checkout test (Vercel cron, see vercel.json) — creates a
-// real checkout session through the same HTTP endpoint customers use, then
-// immediately expires it so nothing lingers in Stripe. Emails an ops alert on
-// any failure.
+// Synthetic checkout test — creates a real checkout session through the same
+// HTTP endpoint customers use, then immediately expires it so nothing lingers
+// in Stripe. Emails an ops alert on any failure.
 //
 // Exists because checkout failures are otherwise invisible: when session
 // creation broke in Aug 2026 the only symptom was customers bouncing off an
-// error message, and it took ten days to notice. This turns "a customer would
-// have failed today" into an email by 8am.
+// error message, and it took ten days to notice.
 //
-//   GET /api/health-checkout                 — Vercel cron (Bearer CRON_SECRET)
-//   GET /api/health-checkout?key=<admin key> — manual run
+// Polled every 6 hours by GitHub Actions (.github/workflows/checkout-health.yml
+// at the repo root) — a failing run also triggers GitHub's own workflow-failure
+// email, a second alert channel independent of Resend.
+//
+//   GET /api/health-checkout?key=<admin key> — Actions poll or manual run
+//   GET /api/health-checkout                 — Bearer CRON_SECRET also accepted
 //
 // A failed run also triggers create-checkout-session's own customer-path
 // alert — two distinctly-worded emails on a broken morning is a feature.
