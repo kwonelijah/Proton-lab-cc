@@ -6,9 +6,13 @@ import ProductGallery from './ProductGallery'
 import VariantSelector from './VariantSelector'
 import Accordion from '@/components/ui/Accordion'
 import DeliveryNote from '@/components/ui/DeliveryNote'
+import ProductCard from '@/components/ui/ProductCard'
+import CompleteKitBanner from '@/components/ui/CompleteKitBanner'
 import { getProducts, getProductByHandle } from '@/lib/api'
 import { getDisplayCurrency } from '@/lib/currency-server'
 import { formatPrice } from '@/lib/utils'
+import { KIT_RECOMMENDATIONS } from '@/data/recommendations'
+import type { Product } from '@/types/product'
 
 interface PageProps {
   params: { slug: string }
@@ -50,11 +54,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProductPage({ params }: PageProps) {
-  const product = await getProductByHandle(params.slug, getDisplayCurrency())
+  const currency = getDisplayCurrency()
+  const product = await getProductByHandle(params.slug, currency)
   if (!product) notFound()
 
   const collectionRef = product.collections?.nodes[0]
   const { amount, currencyCode } = product.priceRange.minVariantPrice
+
+  // Cross-sell rows — resolved through the same gate as the page itself, so a
+  // retired handle silently drops out of its row.
+  const rec = KIT_RECOMMENDATIONS[product.handle]
+  const resolve = async (handles: string[] = []) =>
+    (await Promise.all(handles.map(h => getProductByHandle(h, currency))))
+      .filter((p): p is Product => Boolean(p))
+  const completeKit = await resolve(rec?.completeKit)
+  const colours = await resolve(rec?.colours)
 
   return (
     <PageWrapper>
@@ -222,6 +236,35 @@ export default async function ProductPage({ params }: PageProps) {
             </Accordion>
           </div>
         </div>
+
+        {/* Complete the Kit — rotating banner of the complementary garment,
+            matching item first (pairings documented in data/recommendations.ts) */}
+        {completeKit.length > 0 && (
+          <section aria-label="Complete the kit" className="mt-16 md:mt-24 pt-10 md:pt-12 border-t border-proton-light">
+            <h2 className="font-playfair text-2xl md:text-3xl mb-8">
+              Complete the Kit
+            </h2>
+            {/* Jersey pages show bibs image-right; bib pages show jerseys image-left */}
+            <CompleteKitBanner
+              products={completeKit}
+              imageSide={product.handle.includes('jersey') ? 'right' : 'left'}
+            />
+          </section>
+        )}
+
+        {/* Different Colour? — other colourways of the garment being viewed */}
+        {colours.length > 0 && (
+          <section aria-label="Other colours" className="mt-14 md:mt-20">
+            <h2 className="font-playfair text-2xl md:text-3xl mb-8">
+              Different Colour?
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-10 md:gap-x-6">
+              {colours.map(p => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </PageWrapper>
   )
