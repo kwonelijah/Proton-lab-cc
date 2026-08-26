@@ -2,29 +2,44 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { subscribeToNewsletter } from '@/lib/newsletter'
+import { subscribeToNewsletter, type RidingType } from '@/lib/newsletter'
+import { trackGaEvent } from '@/lib/ga'
 
-// Newsletter capture popup. Shows once per visitor — dismissing or subscribing
-// writes a localStorage flag and it never returns. Page-scoped: only the
-// homepage, /shop and product pages trigger it, each with its own copy and
-// desktop delay (the countdown restarts on navigation, so it measures time on
-// the current page). Desktop: centered dialog with backdrop. Mobile:
-// non-blocking bottom sheet capped at 40% of the screen, fired at half scroll
-// depth or 15s, whichever comes first. The card is black — the one dark
-// surface on an otherwise light site — with the email field as the highlight.
+// Newsletter capture popup, in two steps. Step one is a poll — "What type of
+// cycling do you do?" — with no offer attached; step two makes the 10% offer
+// and takes the email. The poll answer rides along with the signup, where the
+// backend files the contact into the matching riding-type audience (Road /
+// Gravel / Triathlon / Other) alongside General.
+//
+// Shows once per visitor — dismissing or subscribing writes a localStorage
+// flag and it never returns. Page-scoped: only the homepage, /shop and
+// product pages trigger it, each with its own offer copy and desktop delay
+// (the countdown restarts on navigation, so it measures time on the current
+// page). Desktop: centered dialog with backdrop. Mobile: non-blocking bottom
+// sheet capped at 40% of the screen, fired at half scroll depth or 15s,
+// whichever comes first. The card is black — the one dark surface on an
+// otherwise light site.
 
 const STORAGE_KEY = 'pl_newsletter'
 const SCROLL_DEPTH = 0.5
 const MOBILE_DELAY_MS = 15000
+
+const RIDING_OPTIONS: { key: RidingType; label: string }[] = [
+  { key: 'road', label: 'Road' },
+  { key: 'gravel', label: 'Gravel' },
+  { key: 'triathlon', label: 'Triathlon' },
+  { key: 'other', label: 'Other' },
+]
 
 interface PopupCopy {
   headline: string
   sub: string
 }
 
-// Per-page trigger config. Copy is resolved at fire time: product headlines
-// read the page h1 (the product title), which avoids shipping the product
-// catalogue to the client just for a title lookup.
+// Per-page trigger config for the OFFER step (the poll step is identical
+// everywhere). Copy is resolved at fire time: product headlines read the page
+// h1 (the product title), which avoids shipping the product catalogue to the
+// client just for a title lookup.
 function pagePopup(pathname: string): { delayMs: number; copy: () => PopupCopy } | null {
   if (pathname === '/') {
     return {
@@ -62,6 +77,8 @@ function pagePopup(pathname: string): { delayMs: number; copy: () => PopupCopy }
 export default function NewsletterPopup() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [step, setStep] = useState<'poll' | 'offer'>('poll')
+  const [riding, setRiding] = useState<RidingType | null>(null)
   const [email, setEmail] = useState('')
   const [honeypot, setHoneypot] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'already'>('idle')
@@ -107,22 +124,32 @@ export default function NewsletterPopup() {
     }
   }, [pathname, isOpen])
 
-  // Escape to close; focus the field on desktop only — on mobile the sheet is
-  // non-blocking and auto-focus would throw the keyboard over the page.
+  // Escape to close. Focus the email field when the offer step appears —
+  // desktop only: on mobile the sheet is non-blocking and auto-focus would
+  // throw the keyboard over the page.
   useEffect(() => {
     if (!isOpen) return
-    if (window.matchMedia('(min-width: 768px)').matches) inputRef.current?.focus()
+    if (step === 'offer' && window.matchMedia('(min-width: 768px)').matches) {
+      inputRef.current?.focus()
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') dismiss()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen])
+  }, [isOpen, step])
 
   function dismiss() {
     localStorage.setItem(STORAGE_KEY, 'dismissed')
     setIsOpen(false)
+  }
+
+  function answerPoll(choice: RidingType) {
+    setRiding(choice)
+    setStep('offer')
+    // Poll answers are worth counting even when no signup follows.
+    trackGaEvent('newsletter_poll', { riding: choice })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -130,7 +157,7 @@ export default function NewsletterPopup() {
     if (status === 'sending') return
     setError(null)
     setStatus('sending')
-    const result = await subscribeToNewsletter(email, 'popup', honeypot)
+    const result = await subscribeToNewsletter(email, 'popup', honeypot, riding ?? undefined)
     if (!result.ok) {
       setStatus('idle')
       setError(result.error)
@@ -151,7 +178,7 @@ export default function NewsletterPopup() {
         aria-hidden="true"
       />
 
-      {/* Dialog — centered card on desktop, bottom sheet (≤30% of screen) on mobile */}
+      {/* Dialog — centered card on desktop, bottom sheet (≤40% of screen) on mobile */}
       <div
         role="dialog"
         aria-modal="true"
@@ -180,6 +207,26 @@ export default function NewsletterPopup() {
                 : 'Your 10% code is on its way to your email.'}
             </p>
           </div>
+        ) : step === 'poll' ? (
+          <>
+            <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">
+              What type of cycling do you do?
+            </h2>
+            <p className="text-xs md:text-sm text-proton-white/60 leading-relaxed mb-4 md:mb-6">
+              One tap — it helps us shape what we make next.
+            </p>
+            <div className="grid grid-cols-2 gap-2 md:gap-3">
+              {RIDING_OPTIONS.map(opt => (
+                <button
+                  key={opt.key}
+                  onClick={() => answerPoll(opt.key)}
+                  className="border border-proton-white/30 bg-transparent text-proton-white text-xs uppercase tracking-widest py-3 md:py-4 font-inter transition-all duration-300 hover:bg-proton-white hover:text-proton-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-proton-black"
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </>
         ) : (
           <>
             <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">{copy.headline}</h2>

@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-export type GaEventName = 'view_item' | 'add_to_cart' | 'begin_checkout' | 'purchase' | 'generate_lead'
+export type GaEventName = 'view_item' | 'add_to_cart' | 'begin_checkout' | 'purchase' | 'generate_lead' | 'newsletter_poll'
 
 // item_category carries the storefront channel — same values as the Meta
 // events' content_category, so both platforms segment club vs retail alike.
@@ -32,6 +32,7 @@ export interface GaEventParams {
   currency?: string
   transaction_id?: string
   items?: GaItem[]
+  riding?: string
 }
 
 let initialised = false

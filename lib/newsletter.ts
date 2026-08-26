@@ -9,16 +9,19 @@ export type SubscribeResult =
   | { ok: true; already: boolean }
   | { ok: false; error: string }
 
+export type RidingType = 'road' | 'gravel' | 'triathlon' | 'other'
+
 export async function subscribeToNewsletter(
   email: string,
   source: 'popup' | 'footer' | 'notify',
-  honeypot = ''
+  honeypot = '',
+  riding?: RidingType
 ): Promise<SubscribeResult> {
   try {
     const res = await fetch(`${BACKEND_URL}/api/subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, source, website: honeypot }),
+      body: JSON.stringify({ email, source, website: honeypot, riding }),
     })
     const data = await res.json()
     if (!res.ok || data.error) {
