@@ -11,14 +11,17 @@
 export const GENERAL_AUDIENCE_ID = 'ea328582-872e-4425-9d86-1d8533cf81ac';
 export const CUSTOMERS_AUDIENCE_ID = '432695a4-650d-4580-ac1e-3d4759bf66ba';
 export const WOMENS_AUDIENCE_ID = '838e4c6e-4f2d-45e7-8569-8a225ca4dc3f';
+export const WAITLIST_AUDIENCE_ID = '3194a122-c49c-49b9-a15d-d6531c4a156f';
 
-// The Resend plan caps the account at 3 audiences, and General + Customers +
-// Women's line fill it. Back-in-stock requests are therefore recorded via the
-// info@ notification email only (which is the per-product record anyway —
-// Resend contacts can't be tagged by product). If the plan is ever upgraded,
-// create a "Waitlist" audience and paste its ID here; api/notify-me.js picks
-// it up automatically.
-export const WAITLIST_AUDIENCE_ID = null;
+// Riding-type buckets fed by the popup's poll step — like every other
+// audience here, subsets of General. Keys are the wire values the popup
+// sends; subscribe.js validates against them.
+export const RIDING_AUDIENCE_IDS = {
+  road: '2c678ef8-a839-437c-9a77-4564c8727f95',
+  gravel: '1b318fc0-fc7f-4d48-b4f9-b39b530d8f22',
+  triathlon: '0eec67f3-42f1-4072-899d-34c2d00c4e21',
+  other: '37e8ee9a-0291-46ea-b199-2b002fe439fd',
+};
 
 function resendHeaders() {
   const key = process.env.proton_resend_key || process.env.Resend_Backend_Key;

@@ -6,9 +6,11 @@
 // each issued code is also visible in Stripe (promotion code metadata carries
 // the email + source).
 //
-// POST { email, source } — source is 'popup' | 'footer' | 'contact' |
+// POST { email, source, riding } — source is 'popup' | 'footer' | 'contact' |
 // 'notify', recorded on the Stripe promo code so signups can be traced to
-// their surface.
+// their surface. `riding` is the popup poll's answer ('road' | 'gravel' |
+// 'triathlon' | 'other', optional): recorded on the promo code and used to
+// add the contact to the matching riding-type audience alongside General.
 // Responses are deliberately shaped for the frontend forms:
 //   200 { ok: true }                    — subscribed, code on its way
 //   200 { ok: true, already: true }     — was already on the list (no new code)
@@ -22,7 +24,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sendWelcome } from '../lib/email.js';
-import { GENERAL_AUDIENCE_ID, addContactToAudience, contactInAudience } from '../lib/audiences.js';
+import {
+  GENERAL_AUDIENCE_ID,
+  RIDING_AUDIENCE_IDS,
+  addContactToAudience,
+  contactInAudience,
+} from '../lib/audiences.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -95,7 +102,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { email: rawEmail, source, website } = req.body || {};
+  const { email: rawEmail, source, riding, website } = req.body || {};
 
   // Honeypot filled → bot. Pretend success, do nothing.
   if (website) return res.status(200).json({ ok: true });
@@ -105,6 +112,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
   const src = ['footer', 'contact', 'notify'].includes(source) ? source : 'popup';
+  const ride = RIDING_AUDIENCE_IDS[riding] ? riding : '';
 
   try {
     // Dedupe against the General audience — one welcome code per address,
@@ -125,13 +133,15 @@ export default async function handler(req, res) {
       code,
       max_redemptions: 1,
       expires_at: Math.floor(expiresAt.getTime() / 1000),
-      metadata: { source: src, email },
+      metadata: { source: src, email, ...(ride && { riding: ride }) },
     });
 
     // Add to the General audience — the actual mailing list; unsubscribes
-    // are managed in Resend. Failure is logged inside the helper and never
-    // blocks the welcome code.
+    // are managed in Resend — plus the riding-type bucket when the popup's
+    // poll was answered. Failures are logged inside the helper and never
+    // block the welcome code.
     await addContactToAudience(email, GENERAL_AUDIENCE_ID);
+    if (ride) await addContactToAudience(email, RIDING_AUDIENCE_IDS[ride]);
 
     const sent = await sendWelcome(email, { code, expiresAt: expiresAt.toISOString() });
     if (!sent.ok) {

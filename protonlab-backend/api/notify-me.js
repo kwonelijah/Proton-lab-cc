@@ -1,9 +1,9 @@
 // api/notify-me.js
-// Back-in-stock request from a sold-out product page. The durable record is
-// an internal email to info@ (subject carries handle + size — search it when
-// stock returns); the Waitlist audience add is skipped while the Resend plan
-// is at its 3-audience cap (see lib/audiences.js). Joining the mailing list
-// proper is a separate opt-in the frontend sends to /api/subscribe.
+// Back-in-stock request from a sold-out product page. Two records: the
+// Waitlist audience in Resend, and an internal email to info@ whose subject
+// carries handle + size (the per-product record — search it when stock
+// returns). Joining the mailing list proper is a separate opt-in the
+// frontend sends to /api/subscribe.
 //
 // POST { email, handle, size, website }
 //   200 { ok: true }  — recorded
