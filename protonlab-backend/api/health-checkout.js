@@ -18,16 +18,33 @@
 // alert — two distinctly-worded emails on a broken morning is a feature.
 
 import Stripe from 'stripe';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { sendOpsAlert } from '../lib/alerts.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const MAPPING_PATH = path.resolve(__dirname, '..', 'data', 'stripe-products.json');
+// The Meta catalog feed on the live site lists exactly the products customers
+// can currently buy (the Stripe product map also contains hidden/legacy
+// products, which could pass the check while the live range is broken).
+const FEED_URL = 'https://protonlab.cc/proton-lab-meta-catalog-feed.csv';
+const FALLBACK_HANDLE = 'sunset-jersey'; // live Summer 2026 product
+
+// First in-stock handle from the feed; falls back to a known live handle if
+// the feed is unreachable — the session-creation call validates it anyway.
+async function liveHandle() {
+  try {
+    const res = await fetch(FEED_URL);
+    if (res.ok) {
+      const lines = (await res.text()).split('\n').slice(1);
+      for (const line of lines) {
+        const m = line.match(/^"([a-z0-9-]+)"/);
+        if (m && line.includes('"in stock"')) return m[1];
+      }
+    }
+  } catch {
+    // fall through to the fallback
+  }
+  return FALLBACK_HANDLE;
+}
 
 function authorized(req) {
   const secret = process.env.CRON_SECRET;
@@ -41,17 +58,8 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  // Any catalogue product works — the first map entry always exists, so the
-  // check never false-alarms because one specific product was retired.
-  let handle;
-  try {
-    handle = Object.keys(JSON.parse(fs.readFileSync(MAPPING_PATH, 'utf8')))[0];
-  } catch (err) {
-    await sendOpsAlert('Daily checkout health check FAILED', [
-      `Could not read product map: ${err.message}`,
-    ]);
-    return res.status(500).json({ ok: false, error: 'product map unreadable' });
-  }
+  // Test with a product customers can actually buy right now.
+  const handle = await liveHandle();
 
   let outcome;
   try {
@@ -70,7 +78,7 @@ export default async function handler(req, res) {
   }
 
   if (outcome.status !== 200 || !outcome.url) {
-    await sendOpsAlert('Daily checkout health check FAILED', [
+    await sendOpsAlert('Checkout health check FAILED', [
       `Creating a checkout session for "${handle}" did not return a URL.`,
       `HTTP ${outcome.status} — ${outcome.error || 'no error body'}`,
       'Customers likely cannot pay right now. Check Vercel logs for',
