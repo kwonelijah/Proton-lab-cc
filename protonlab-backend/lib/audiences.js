@@ -13,13 +13,16 @@ export const CUSTOMERS_AUDIENCE_ID = '432695a4-650d-4580-ac1e-3d4759bf66ba';
 export const WOMENS_AUDIENCE_ID = '838e4c6e-4f2d-45e7-8569-8a225ca4dc3f';
 export const WAITLIST_AUDIENCE_ID = '3194a122-c49c-49b9-a15d-d6531c4a156f';
 
-// Riding-type buckets fed by the popup's poll step — like every other
-// audience here, subsets of General. Keys are the wire values the popup
-// sends; subscribe.js validates against them.
+// Riding-type buckets fed by the popup's poll step (multi-select — a
+// subscriber can land in several) — like every other audience here, subsets
+// of General. Keys are the wire values the popup sends; subscribe.js
+// validates against them. `triathlon` is labelled "Tri & TT" in the popup
+// but keeps its original key and audience.
 export const RIDING_AUDIENCE_IDS = {
   road: '2c678ef8-a839-437c-9a77-4564c8727f95',
   gravel: '1b318fc0-fc7f-4d48-b4f9-b39b530d8f22',
   triathlon: '0eec67f3-42f1-4072-899d-34c2d00c4e21',
+  indoor: 'e8a5230f-0aea-4eae-8e91-b0a61603aa53',
   other: '37e8ee9a-0291-46ea-b199-2b002fe439fd',
 };
 

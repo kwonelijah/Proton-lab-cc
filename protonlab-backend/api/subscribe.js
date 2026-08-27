@@ -8,9 +8,10 @@
 //
 // POST { email, source, riding } — source is 'popup' | 'footer' | 'contact' |
 // 'notify', recorded on the Stripe promo code so signups can be traced to
-// their surface. `riding` is the popup poll's answer ('road' | 'gravel' |
-// 'triathlon' | 'other', optional): recorded on the promo code and used to
-// add the contact to the matching riding-type audience alongside General.
+// their surface. `riding` is the popup poll's answer — an array of keys from
+// RIDING_AUDIENCE_IDS (a bare string is also accepted, for older cached
+// bundles): recorded on the promo code and used to add the contact to each
+// matching riding-type audience alongside General.
 // Responses are deliberately shaped for the frontend forms:
 //   200 { ok: true }                    — subscribed, code on its way
 //   200 { ok: true, already: true }     — was already on the list (no new code)
@@ -112,7 +113,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
   const src = ['footer', 'contact', 'notify'].includes(source) ? source : 'popup';
-  const ride = RIDING_AUDIENCE_IDS[riding] ? riding : '';
+  const rides = [...new Set(
+    (Array.isArray(riding) ? riding : [riding]).filter(
+      (r) => typeof r === 'string' && RIDING_AUDIENCE_IDS[r]
+    )
+  )];
 
   try {
     // Dedupe against the General audience — one welcome code per address,
@@ -133,15 +138,17 @@ export default async function handler(req, res) {
       code,
       max_redemptions: 1,
       expires_at: Math.floor(expiresAt.getTime() / 1000),
-      metadata: { source: src, email, ...(ride && { riding: ride }) },
+      metadata: { source: src, email, ...(rides.length && { riding: rides.join(', ') }) },
     });
 
     // Add to the General audience — the actual mailing list; unsubscribes
-    // are managed in Resend — plus the riding-type bucket when the popup's
-    // poll was answered. Failures are logged inside the helper and never
-    // block the welcome code.
+    // are managed in Resend — plus every riding-type bucket ticked in the
+    // popup's poll. Sequential to respect Resend's ~2 req/s limit; failures
+    // are logged inside the helper and never block the welcome code.
     await addContactToAudience(email, GENERAL_AUDIENCE_ID);
-    if (ride) await addContactToAudience(email, RIDING_AUDIENCE_IDS[ride]);
+    for (const r of rides) {
+      await addContactToAudience(email, RIDING_AUDIENCE_IDS[r]);
+    }
 
     const sent = await sendWelcome(email, { code, expiresAt: expiresAt.toISOString() });
     if (!sent.ok) {
