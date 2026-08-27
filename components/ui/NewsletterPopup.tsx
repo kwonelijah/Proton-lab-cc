@@ -5,11 +5,12 @@ import { usePathname } from 'next/navigation'
 import { subscribeToNewsletter, type RidingType } from '@/lib/newsletter'
 import { trackGaEvent } from '@/lib/ga'
 
-// Newsletter capture popup, in two steps. Step one is a poll — "What type of
-// cycling do you do?" — with no offer attached; step two makes the 10% offer
-// and takes the email. The poll answer rides along with the signup, where the
-// backend files the contact into the matching riding-type audience (Road /
-// Gravel / Triathlon / Other) alongside General.
+// Newsletter capture popup, in two steps. Step one is a poll — "What types
+// of cycling are you interested in?", multi-select — with no offer attached;
+// step two makes the 10% offer and takes the email. The poll answers ride
+// along with the signup, where the backend files the contact into every
+// matching riding-type audience (Road / Gravel / Tri & TT / Indoor / Other)
+// alongside General.
 //
 // Shows once per visitor — dismissing or subscribing writes a localStorage
 // flag and it never returns. Page-scoped: only the homepage, /shop and
@@ -27,7 +28,8 @@ const MOBILE_DELAY_MS = 15000
 const RIDING_OPTIONS: { key: RidingType; label: string }[] = [
   { key: 'road', label: 'Road' },
   { key: 'gravel', label: 'Gravel' },
-  { key: 'triathlon', label: 'Triathlon' },
+  { key: 'triathlon', label: 'Tri & TT' },
+  { key: 'indoor', label: 'Indoor' },
   { key: 'other', label: 'Other' },
 ]
 
@@ -78,7 +80,7 @@ export default function NewsletterPopup() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState<'poll' | 'offer'>('poll')
-  const [riding, setRiding] = useState<RidingType | null>(null)
+  const [riding, setRiding] = useState<RidingType[]>([])
   const [email, setEmail] = useState('')
   const [honeypot, setHoneypot] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'already'>('idle')
@@ -145,11 +147,17 @@ export default function NewsletterPopup() {
     setIsOpen(false)
   }
 
-  function answerPoll(choice: RidingType) {
-    setRiding(choice)
+  function toggleRiding(choice: RidingType) {
+    setRiding(prev =>
+      prev.includes(choice) ? prev.filter(r => r !== choice) : [...prev, choice]
+    )
+  }
+
+  function continueToOffer() {
+    if (riding.length === 0) return
     setStep('offer')
     // Poll answers are worth counting even when no signup follows.
-    trackGaEvent('newsletter_poll', { riding: choice })
+    trackGaEvent('newsletter_poll', { riding: riding.join(',') })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -157,7 +165,7 @@ export default function NewsletterPopup() {
     if (status === 'sending') return
     setError(null)
     setStatus('sending')
-    const result = await subscribeToNewsletter(email, 'popup', honeypot, riding ?? undefined)
+    const result = await subscribeToNewsletter(email, 'popup', honeypot, riding)
     if (!result.ok) {
       setStatus('idle')
       setError(result.error)
@@ -210,22 +218,39 @@ export default function NewsletterPopup() {
         ) : step === 'poll' ? (
           <>
             <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">
-              What type of cycling do you do?
+              What types of cycling are you interested in?
             </h2>
             <p className="text-xs md:text-sm text-proton-white/60 leading-relaxed mb-4 md:mb-6">
-              One tap — it helps us shape what we make next.
+              Tap all that apply — it helps us shape what we make next.
             </p>
             <div className="grid grid-cols-2 gap-2 md:gap-3">
-              {RIDING_OPTIONS.map(opt => (
-                <button
-                  key={opt.key}
-                  onClick={() => answerPoll(opt.key)}
-                  className="border border-proton-white/30 bg-transparent text-proton-white text-xs uppercase tracking-widest py-3 md:py-4 font-inter transition-all duration-300 hover:bg-proton-white hover:text-proton-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-proton-black"
-                >
-                  {opt.label}
-                </button>
-              ))}
+              {RIDING_OPTIONS.map(opt => {
+                const selected = riding.includes(opt.key)
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => toggleRiding(opt.key)}
+                    aria-pressed={selected}
+                    className={`border text-xs uppercase tracking-widest py-3 md:py-4 font-inter transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-proton-black ${
+                      opt.key === 'other' ? 'col-span-2' : ''
+                    } ${
+                      selected
+                        ? 'border-proton-white bg-proton-white text-proton-black'
+                        : 'border-proton-white/30 bg-transparent text-proton-white hover:border-proton-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                )
+              })}
             </div>
+            <button
+              onClick={continueToOffer}
+              disabled={riding.length === 0}
+              className="w-full mt-3 md:mt-4 border border-proton-white bg-transparent text-proton-white text-xs uppercase tracking-widest py-3 md:py-4 font-inter transition-all duration-300 hover:bg-proton-white hover:text-proton-black disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-proton-black"
+            >
+              Continue
+            </button>
           </>
         ) : (
           <>
