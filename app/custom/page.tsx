@@ -32,7 +32,7 @@ export default function CustomPage() {
   return (
     <PageWrapper noPadding>
       {/* Hero */}
-      <div className="relative min-h-screen bg-proton-black overflow-hidden flex items-end">
+      <div className="relative min-h-[45svh] md:min-h-[48vh] bg-proton-black overflow-hidden flex items-end">
         <Image
           src="/images/hero/Custom.jpg"
           alt=""
@@ -42,7 +42,7 @@ export default function CustomPage() {
           className="object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-proton-black/80 via-proton-black/20 to-transparent" />
-        <div className="relative z-10 max-w-7xl w-full mx-auto px-6 md:px-12 pb-12 md:pb-16">
+        <div className="relative z-10 max-w-7xl w-full mx-auto px-6 md:px-12 pb-8 md:pb-10">
           <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-3">
             Custom Kit
           </p>
@@ -53,7 +53,7 @@ export default function CustomPage() {
       </div>
 
       {/* Intro */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-start">
           <div>
             <p className="font-playfair text-2xl md:text-3xl leading-snug">

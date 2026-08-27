@@ -23,7 +23,7 @@ export default function VideoHero({
   eyebrow,
 }: VideoHeroProps) {
   return (
-    <section className="relative min-h-screen flex items-end overflow-hidden bg-proton-black">
+    <section className="relative min-h-[45svh] md:min-h-[48vh] flex items-end overflow-hidden bg-proton-black">
       {/* Background image */}
       <Image
         src={imageSrc}
@@ -38,21 +38,21 @@ export default function VideoHero({
       <div className="absolute inset-0 bg-gradient-to-t from-proton-black/80 via-proton-black/20 to-transparent" />
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pb-16 md:pb-24">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pb-8 md:pb-10">
         {eyebrow && (
           <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-6">
             {eyebrow}
           </p>
         )}
-        <h1 className="font-playfair text-proton-white text-6xl md:text-8xl lg:text-9xl leading-none max-w-4xl">
+        <h1 className="font-playfair text-proton-white text-5xl md:text-7xl lg:text-8xl leading-none max-w-4xl">
           {headline}
         </h1>
         {subheadline && (
-          <p className="text-proton-white/70 text-base md:text-lg mt-6 max-w-lg leading-relaxed">
+          <p className="text-proton-white/70 text-base md:text-lg mt-4 max-w-lg leading-relaxed">
             {subheadline}
           </p>
         )}
-        <div className="mt-8 md:mt-10 flex flex-wrap gap-3">
+        <div className="mt-6 md:mt-8 flex flex-wrap gap-3">
           <Button
             href={ctaHref}
             variant="secondary"
