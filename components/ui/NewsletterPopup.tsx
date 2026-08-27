@@ -6,7 +6,7 @@ import { subscribeToNewsletter, type RidingType } from '@/lib/newsletter'
 import { trackGaEvent } from '@/lib/ga'
 
 // Newsletter capture popup, in two steps. Step one is a poll — "What types
-// of cycling are you interested in?", multi-select — with no offer attached;
+// of riding do you do?", multi-select — with no offer attached;
 // step two makes the 10% offer and takes the email. The poll answers ride
 // along with the signup, where the backend files the contact into every
 // matching riding-type audience (Road / Gravel / Tri & TT / Indoor / Other)
@@ -28,7 +28,7 @@ const MOBILE_DELAY_MS = 15000
 const RIDING_OPTIONS: { key: RidingType; label: string }[] = [
   { key: 'road', label: 'Road' },
   { key: 'gravel', label: 'Gravel' },
-  { key: 'triathlon', label: 'Tri & TT' },
+  { key: 'triathlon', label: 'Triathlon' },
   { key: 'indoor', label: 'Indoor' },
   { key: 'other', label: 'Other' },
 ]
@@ -47,8 +47,8 @@ function pagePopup(pathname: string): { delayMs: number; copy: () => PopupCopy }
     return {
       delayMs: 8000,
       copy: () => ({
-        headline: 'We’re working on something new.',
-        sub: 'Join the list for first access to new releases, plus a single-use code for 10% off your first order.',
+        headline: 'Want 10% off your first order?',
+        sub: 'Join the mailing list to be first to hear about new releases, plus a discount code.',
       }),
     }
   }
@@ -57,7 +57,7 @@ function pagePopup(pathname: string): { delayMs: number; copy: () => PopupCopy }
       delayMs: 12000,
       copy: () => ({
         headline: 'Get 10% off your first order',
-        sub: 'Join the list and we’ll email you a single-use code to use at checkout.',
+        sub: 'Join the mailing list and we’ll email you a single-use code to use at checkout.',
       }),
     }
   }
@@ -81,6 +81,7 @@ export default function NewsletterPopup() {
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState<'poll' | 'offer'>('poll')
   const [riding, setRiding] = useState<RidingType[]>([])
+  const [ridingOther, setRidingOther] = useState('')
   const [email, setEmail] = useState('')
   const [honeypot, setHoneypot] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'already'>('idle')
@@ -165,7 +166,7 @@ export default function NewsletterPopup() {
     if (status === 'sending') return
     setError(null)
     setStatus('sending')
-    const result = await subscribeToNewsletter(email, 'popup', honeypot, riding)
+    const result = await subscribeToNewsletter(email, 'popup', honeypot, riding, ridingOther)
     if (!result.ok) {
       setStatus('idle')
       setError(result.error)
@@ -207,7 +208,7 @@ export default function NewsletterPopup() {
         {status === 'done' || status === 'already' ? (
           <div className="text-center py-2 md:py-4">
             <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-4">
-              {status === 'already' ? 'You’re already on the list' : 'Check your inbox'}
+              {status === 'already' ? 'You’re already on the mailing list' : 'Check your inbox'}
             </h2>
             <p className="text-sm text-proton-white/60 leading-relaxed">
               {status === 'already'
@@ -217,12 +218,9 @@ export default function NewsletterPopup() {
           </div>
         ) : step === 'poll' ? (
           <>
-            <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-2 md:mb-3 pr-8 md:pr-0">
-              What types of cycling are you interested in?
+            <h2 className="font-playfair text-xl md:text-3xl leading-tight mb-4 md:mb-6 pr-8 md:pr-0">
+              What types of riding do you do?
             </h2>
-            <p className="text-xs md:text-sm text-proton-white/60 leading-relaxed mb-4 md:mb-6">
-              Tap all that apply — it helps us shape what we make next.
-            </p>
             <div className="grid grid-cols-2 gap-2 md:gap-3">
               {RIDING_OPTIONS.map(opt => {
                 const selected = riding.includes(opt.key)
@@ -244,6 +242,17 @@ export default function NewsletterPopup() {
                 )
               })}
             </div>
+            {riding.includes('other') && (
+              <input
+                type="text"
+                value={ridingOther}
+                onChange={e => setRidingOther(e.target.value)}
+                maxLength={80}
+                placeholder="What do you ride? (optional)"
+                aria-label="What do you ride?"
+                className="w-full mt-2 md:mt-3 border border-proton-white/30 bg-transparent px-4 py-2.5 md:py-3 text-sm text-proton-white placeholder:text-proton-white/40 focus:outline-none focus:border-proton-white transition-colors duration-200"
+              />
+            )}
             <button
               onClick={continueToOffer}
               disabled={riding.length === 0}

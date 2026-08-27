@@ -31,7 +31,7 @@ export default function FooterNewsletter() {
     return (
       <p className="text-xs text-proton-white/80 tracking-wide">
         {status === 'already'
-          ? 'You’re already on the list.'
+          ? 'You’re already on the mailing list.'
           : 'Check your inbox — your 10% code is on its way.'}
       </p>
     )

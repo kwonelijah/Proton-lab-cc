@@ -103,7 +103,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { email: rawEmail, source, riding, website } = req.body || {};
+  const { email: rawEmail, source, riding, ridingOther, website } = req.body || {};
 
   // Honeypot filled → bot. Pretend success, do nothing.
   if (website) return res.status(200).json({ ok: true });
@@ -118,6 +118,12 @@ export default async function handler(req, res) {
       (r) => typeof r === 'string' && RIDING_AUDIENCE_IDS[r]
     )
   )];
+  // Free text typed under the "Other" option — recorded on the promo code
+  // only; the contact still lands in the Other audience like any bucket.
+  const rideOther =
+    rides.includes('other') && typeof ridingOther === 'string'
+      ? ridingOther.trim().slice(0, 80)
+      : '';
 
   try {
     // Dedupe against the General audience — one welcome code per address,
@@ -138,7 +144,12 @@ export default async function handler(req, res) {
       code,
       max_redemptions: 1,
       expires_at: Math.floor(expiresAt.getTime() / 1000),
-      metadata: { source: src, email, ...(rides.length && { riding: rides.join(', ') }) },
+      metadata: {
+        source: src,
+        email,
+        ...(rides.length && { riding: rides.join(', ') }),
+        ...(rideOther && { riding_other: rideOther }),
+      },
     });
 
     // Add to the General audience — the actual mailing list; unsubscribes

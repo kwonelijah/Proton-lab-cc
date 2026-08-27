@@ -15,13 +15,14 @@ export async function subscribeToNewsletter(
   email: string,
   source: 'popup' | 'footer' | 'notify',
   honeypot = '',
-  riding?: RidingType[]
+  riding?: RidingType[],
+  ridingOther?: string
 ): Promise<SubscribeResult> {
   try {
     const res = await fetch(`${BACKEND_URL}/api/subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, source, website: honeypot, riding }),
+      body: JSON.stringify({ email, source, website: honeypot, riding, ridingOther }),
     })
     const data = await res.json()
     if (!res.ok || data.error) {
