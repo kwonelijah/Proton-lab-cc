@@ -46,7 +46,7 @@ function rate(displayName, amount, currency, evriService, minDays, maxDays) {
 }
 
 // EU/EEA + nearby European countries Stripe Checkout can collect addresses for.
-const EUROPE_COUNTRIES = [
+export const EUROPE_COUNTRIES = [
   'AT', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR',
   'GR', 'HR', 'HU', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'MT', 'NL',
   'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK',

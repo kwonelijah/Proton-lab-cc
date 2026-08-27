@@ -13,6 +13,7 @@ import {
   formatItems,
   firstName,
 } from './theme.js';
+import { EUROPE_COUNTRIES } from '../config/shipping.js';
 
 export function render(order, dispatch = {}) {
   const greeting = firstName(order);
@@ -22,10 +23,14 @@ export function render(order, dispatch = {}) {
   const { trackingNumber, trackingUrl } = dispatch;
 
   // Delivery estimate depends on the service booked — international is 5–10
-  // working days, next-day is 1, standard 2–4 (config/shipping.js).
+  // working days, next-day is 1, standard 2–4 (config/shipping.js). Checkout
+  // only sells international delivery to Europe, but the dashboard can dispatch
+  // a manual order anywhere, so name the region by the destination.
   const isInternational = order.shippingMethod === 'international';
+  const country = String(order.shipping?.address?.country || '').toUpperCase();
+  const region = EUROPE_COUNTRIES.includes(country) || country === 'IE' ? 'European' : 'International';
   const estimateHtml = isInternational
-    ? 'European delivery usually takes 5&ndash;10 working days.'
+    ? `${region} delivery usually takes 5&ndash;10 working days.`
     : order.shippingMethod === 'next-day'
       ? 'Next-day delivery usually arrives the next working day.'
       : 'Standard delivery usually takes 2&ndash;4 working days.';

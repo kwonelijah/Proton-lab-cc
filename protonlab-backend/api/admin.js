@@ -13,7 +13,7 @@
 //   GET  /api/admin?key=<proton_export_key>&since=60   — the admin page
 //   GET  /api/admin?key=<key>&format=json              — order data as JSON
 //        (consumed by the local order dashboard's Web Shop tab)
-//   POST /api/admin?key=<proton_export_key>            — {pi, tracking} action
+//   POST /api/admin?key=<proton_export_key>            — {pi, tracking, service?} action
 //        (POSTed by the page's buttons and the dashboard)
 //
 // CORS is open (auth is the key param, not the origin) because the order
@@ -38,6 +38,14 @@ const THANK_YOU_DELAY_DAYS = 5;
 // dispatch+5 (the thank-you's own assumption), plus two weeks on the road.
 // Must stay within Resend's 30-day scheduling ceiling.
 const REVIEW_DELAY_DAYS = 19;
+
+// Delivery services the dashboard may set on an order — the keys used by
+// config/shipping.js. Anything else is ignored and the order keeps whatever
+// checkout recorded (or 'standard').
+const SHIPPING_METHODS = ['standard', 'next-day', 'international'];
+function shippingMethodOf(v) {
+  return SHIPPING_METHODS.includes(v) ? v : null;
+}
 
 // Same deterministic order number used in the order emails (webhook.js).
 function orderNumber(id) {
@@ -355,7 +363,7 @@ export default async function handler(req, res) {
         product: order.product || 'your order',
         lineItems: Array.isArray(order.lineItems) ? order.lineItems : [],
         shipping: order.shipping || null,
-        shippingMethod: order.shippingMethod || 'standard',
+        shippingMethod: shippingMethodOf(order.shippingMethod) || 'standard',
         date: order.date || new Date().toISOString(),
       };
       let result;
@@ -385,7 +393,7 @@ export default async function handler(req, res) {
     }
 
     // ── Single-order dispatch ─────────────────────────────────────────────
-    const { pi, tracking } = req.body || {};
+    const { pi, tracking, service } = req.body || {};
     if (!pi || typeof pi !== 'string') {
       return res.status(400).json({ error: 'Missing payment id' });
     }
@@ -404,6 +412,11 @@ export default async function handler(req, res) {
     }
 
     const order = await buildOrder(payment);
+    // The dashboard may override the service chosen at checkout (e.g. a
+    // Standard order sent Next Day). The dispatch email wording follows it, and
+    // it's stamped below so the JSON feed and the Evri export agree.
+    const serviceOverride = shippingMethodOf(service);
+    if (serviceOverride) order.shippingMethod = serviceOverride;
     const trackingNumber = (tracking || '').trim() || null;
     const dispatch = trackingNumber
       ? { trackingNumber, trackingUrl: `https://www.evri.com/track/parcel/${encodeURIComponent(trackingNumber)}` }
@@ -432,6 +445,7 @@ export default async function handler(req, res) {
         metadata: {
           dispatched_at: new Date().toISOString(),
           tracking: trackingNumber || '',
+          ...(serviceOverride ? { shipping_method: serviceOverride } : {}),
           thank_you_scheduled: thankYou.ok ? scheduledAt : 'FAILED',
           review_scheduled: review.ok ? reviewAt : 'FAILED',
         },
