@@ -23,6 +23,9 @@ export default function VariantSelector({ variants, productTitle, productHandle,
   const { addItem, openCart, items } = useCartStore()
 
   const selected = variants.find(v => v.id === selectedId)
+  const selectedSizeLabel = selected
+    ? selected.selectedOptions.find(o => o.name === 'Size')?.value ?? selected.title
+    : ''
 
   // Meta Pixel: product page viewed. Currency rides with the variant data —
   // lib/api.ts already overlays EUR amounts for EUR visitors, so value and
@@ -54,7 +57,9 @@ export default function VariantSelector({ variants, productTitle, productHandle,
   }, [productHandle])
 
   // Whole product gone → the size grid and Add to Cart are dead weight;
-  // swap them for the back-in-stock capture instead.
+  // swap them for the back-in-stock capture instead. A single sold-out size
+  // stays selectable in the grid and swaps only the Add to Cart button for
+  // the same capture, fixed to that size (see below).
   const soldOut = variants.every(v => !v.availableForSale)
   const sizeLabels = useMemo(
     () => variants.map(v => v.selectedOptions.find(o => o.name === 'Size')?.value ?? v.title),
@@ -132,26 +137,30 @@ export default function VariantSelector({ variants, productTitle, productHandle,
         <div className="flex flex-wrap gap-2">
           {variants.map(variant => {
             const isSelected = variant.id === selectedId
+            const inStock = variant.availableForSale
             const sizeLabel = variant.selectedOptions.find(o => o.name === 'Size')?.value ?? variant.title
 
             return (
               <button
                 key={variant.id}
-                onClick={() => variant.availableForSale && setSelectedId(variant.id)}
-                disabled={!variant.availableForSale}
+                onClick={() => { setSelectedId(variant.id); setNote(null) }}
+                aria-pressed={isSelected}
                 className={`min-w-[3rem] h-11 px-3 border text-xs uppercase tracking-widest transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2 ${
-                  isSelected
+                  isSelected && inStock
                     ? 'bg-proton-black text-proton-white border-proton-black'
-                    : variant.availableForSale
+                    : inStock
                     ? 'bg-transparent text-proton-black border-proton-mid hover:border-proton-black'
-                    : 'bg-transparent text-proton-grey border-proton-light cursor-not-allowed relative overflow-hidden'
+                    : isSelected
+                    ? 'bg-transparent text-proton-black border-proton-black relative overflow-hidden'
+                    : 'bg-transparent text-proton-grey border-proton-light hover:border-proton-grey relative overflow-hidden'
                 }`}
-                aria-label={`Size ${sizeLabel}${!variant.availableForSale ? ', sold out' : ''}`}
+                aria-label={`Size ${sizeLabel}${!inStock ? ', sold out' : ''}`}
+                title={!inStock ? "Sold out — select to be notified when it's back" : undefined}
               >
-                {/* Strikethrough for sold out */}
-                {!variant.availableForSale && (
-                  <span className="absolute inset-0 flex items-center justify-center">
-                    <span className="absolute w-full h-px bg-proton-mid rotate-45" />
+                {/* Strikethrough for sold out — still selectable, to request a restock notice */}
+                {!inStock && (
+                  <span className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+                    <span className={`absolute w-full h-px rotate-45 ${isSelected ? 'bg-proton-black' : 'bg-proton-mid'}`} />
                   </span>
                 )}
                 {sizeLabel}
@@ -166,23 +175,29 @@ export default function VariantSelector({ variants, productTitle, productHandle,
         )}
       </div>
 
-      {/* Add to cart */}
-      <div className="pt-2 space-y-2">
-        <Button
-          variant="primary"
-          size="lg"
-          disabled={!selected?.availableForSale || remaining === 0}
-          className="w-full justify-center"
-          onClick={handleAddToCart}
-        >
-          {!selected || !selected.availableForSale
-            ? 'Sold Out'
-            : remaining === 0
-            ? 'Max in cart'
-            : 'Add to Cart'}
-        </Button>
-        {note && <p role="alert" className="text-[11px] text-red-600">{note}</p>}
-      </div>
+      {/* Add to cart — or, for a sold-out size, the restock notice form.
+          Keyed by size so switching between sold-out sizes resets the form. */}
+      {selected && !selected.availableForSale ? (
+        <NotifyMe
+          key={selectedSizeLabel}
+          productHandle={productHandle}
+          sizes={sizeLabels}
+          size={selectedSizeLabel}
+        />
+      ) : (
+        <div className="pt-2 space-y-2">
+          <Button
+            variant="primary"
+            size="lg"
+            disabled={!selected || remaining === 0}
+            className="w-full justify-center"
+            onClick={handleAddToCart}
+          >
+            {!selected ? 'Sold Out' : remaining === 0 ? 'Max in cart' : 'Add to Cart'}
+          </Button>
+          {note && <p role="alert" className="text-[11px] text-red-600">{note}</p>}
+        </div>
+      )}
     </div>
   )
 }
