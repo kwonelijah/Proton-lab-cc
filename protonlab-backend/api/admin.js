@@ -13,6 +13,8 @@
 //   GET  /api/admin?key=<proton_export_key>&since=60   — the admin page
 //   GET  /api/admin?key=<key>&format=json              — order data as JSON
 //        (consumed by the local order dashboard's Web Shop tab)
+//   GET  /api/admin?key=<key>&action=clubs             — club-shop name /
+//        handle / password / url per club (dashboard order editor)
 //   POST /api/admin?key=<proton_export_key>            — {pi, tracking, service?} action
 //        (POSTed by the page's buttons and the dashboard)
 //
@@ -28,6 +30,7 @@ import {
   sendReviewRequest,
 } from '../lib/email.js';
 import { readStock, applyAndCommit } from '../lib/stock.js';
+import { readClubs } from '../lib/clubs.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -473,6 +476,21 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error('stock read failed:', err);
       return res.status(502).json({ error: `Stock read failed: ${err.message}` });
+    }
+  }
+
+  // ── Club-shop access details ──────────────────────────────────────────
+  // ?action=clubs — handle / name / password / url per club shop, read from
+  // data/clubs.ts in the website repo (lib/clubs.js). The dashboard's order
+  // editor shows the password next to the "Web shop club" field.
+  if (req.query.action === 'clubs') {
+    try {
+      const { clubs, sha, gateUrl } = await readClubs();
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ ok: true, clubs, gateUrl, sha, fetchedAt: new Date().toISOString() });
+    } catch (err) {
+      console.error('clubs read failed:', err);
+      return res.status(502).json({ error: `Clubs read failed: ${err.message}` });
     }
   }
 

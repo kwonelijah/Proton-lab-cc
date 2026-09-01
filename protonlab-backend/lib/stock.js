@@ -74,6 +74,18 @@ export async function readStock() {
   return { rows: parseStockCsv(text), sha: data.sha, text };
 }
 
+// Reads any file from the website repo (same token, same branch) — used by
+// lib/clubs.js for data/clubs.ts. Read-only; commits stay stock.csv-only.
+export async function readRepoFile(filePath) {
+  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}?ref=${BRANCH}`;
+  const res = await fetch(url, { headers: ghHeaders() });
+  if (!res.ok) {
+    throw new Error(`GITHUB_READ_FAILED: ${res.status} ${(await res.text()).slice(0, 200)}`);
+  }
+  const data = await res.json();
+  return { text: Buffer.from(data.content, 'base64').toString('utf8'), sha: data.sha };
+}
+
 // Pure. Applies signed movements [{handle, size, qty}] (negative = stock out)
 // to a copy of rows. Duplicate handle::size movements are aggregated first.
 // Unknown keys are skipped with a reason; quantities clamp at 0.
