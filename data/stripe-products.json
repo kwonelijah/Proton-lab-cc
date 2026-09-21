@@ -25,7 +25,13 @@
     "unitAmount": 7000,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Training"
+    "collection": "Training",
+    "clubPrices": {
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pI3x1N43j1uczWAfZhB8",
+        "unitAmount": 6300
+      }
+    }
   },
   "ss-club-jersey": {
     "productId": "prod_UNYWox5km4n8mg",
@@ -38,6 +44,10 @@
     "clubPrices": {
       "ucl-cycling": {
         "priceId": "price_1U30iF3x1N43j1ucapzNq7xH",
+        "unitAmount": 4500
+      },
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3rI3x1N43j1ucylTB18hl",
         "unitAmount": 4500
       }
     }
@@ -75,6 +85,10 @@
       },
       "ucl-cycling": {
         "priceId": "price_1U30iG3x1N43j1ucHLZ44v0l",
+        "unitAmount": 8100
+      },
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pK3x1N43j1ucnwB82NbP",
         "unitAmount": 8100
       }
     }
@@ -119,6 +133,10 @@
       "ucl-cycling": {
         "priceId": "price_1U30iI3x1N43j1ucH4y7zVzt",
         "unitAmount": 8100
+      },
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pM3x1N43j1ucuWpvmC0U",
+        "unitAmount": 8100
       }
     }
   },
@@ -133,6 +151,10 @@
     "clubPrices": {
       "ucl-cycling": {
         "priceId": "price_1U30iJ3x1N43j1uckb1Y8lTK",
+        "unitAmount": 5900
+      },
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pN3x1N43j1ucNiwwXTPP",
         "unitAmount": 5900
       }
     }
@@ -179,6 +201,10 @@
       "ucl-cycling": {
         "priceId": "price_1U30iL3x1N43j1ucUlT6O1Eo",
         "unitAmount": 5000
+      },
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pQ3x1N43j1ucHK69aHWu",
+        "unitAmount": 5000
       }
     }
   },
@@ -206,6 +232,10 @@
       },
       "ucl-cycling": {
         "priceId": "price_1U31WP3x1N43j1ucWrmbTJbk",
+        "unitAmount": 12600
+      },
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pS3x1N43j1uckShu7HPE",
         "unitAmount": 12600
       }
     }
@@ -235,7 +265,13 @@
     "unitAmount": 15000,
     "currency": "gbp",
     "category": "Skinsuits",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3rS3x1N43j1uc1mMr5Sup",
+        "unitAmount": 13500
+      }
+    }
   },
   "sleeveless-trisuit": {
     "productId": "prod_UNYWXjd4oBN0y7",
@@ -257,6 +293,10 @@
     "clubPrices": {
       "ucl-cycling": {
         "priceId": "price_1U30iP3x1N43j1uc1NvZdPU3",
+        "unitAmount": 1800
+      },
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pV3x1N43j1uckxnbihZb",
         "unitAmount": 1800
       }
     }
@@ -297,6 +337,10 @@
       "ucl-cycling": {
         "priceId": "price_1U30iQ3x1N43j1ucS07M9Xh8",
         "unitAmount": 1800
+      },
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pX3x1N43j1ucMmHu77sf",
+        "unitAmount": 1800
       }
     }
   },
@@ -334,7 +378,13 @@
     "unitAmount": 1000,
     "currency": "gbp",
     "category": "Accessories",
-    "collection": "Training"
+    "collection": "Training",
+    "clubPrices": {
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pZ3x1N43j1ucUAznAPUW",
+        "unitAmount": 900
+      }
+    }
   },
   "cycling-cap": {
     "productId": "prod_UNYX3HQkomPQvR",
@@ -449,5 +499,29 @@
     "currency": "gbp",
     "category": "Accessories",
     "collection": "Summer 2026"
+  },
+  "ss-running-tee": {
+    "productId": "prod_VIUEnDs6Xkn5DI",
+    "priceId": "price_1UHtFv3x1N43j1ucAflGV8xk",
+    "name": "SS Running Tee",
+    "unitAmount": 3000,
+    "currency": "gbp",
+    "category": "Running",
+    "collection": "Training",
+    "clubPrices": {
+      "swansea-university-road-team": {
+        "priceId": "price_1UI3pf3x1N43j1ucQi1dPoLZ",
+        "unitAmount": 2700
+      }
+    }
+  },
+  "running-singlet": {
+    "productId": "prod_VIUEgqntVugMpT",
+    "priceId": "price_1UHtFw3x1N43j1uc4Rc7nJBZ",
+    "name": "Running Singlet",
+    "unitAmount": 3000,
+    "currency": "gbp",
+    "category": "Running",
+    "collection": "Training"
   }
 }

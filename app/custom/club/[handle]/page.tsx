@@ -40,7 +40,7 @@ export default function ClubShopPage() {
             <h1 className="font-playfair text-5xl md:text-6xl text-proton-black leading-none mb-4">
               {club.name}
             </h1>
-            <p className="text-sm text-proton-grey">{club.tagline}</p>
+            {club.tagline.includes('\n') ? <ul className="list-disc pl-4 space-y-1.5 text-sm text-proton-grey marker:text-proton-grey">{club.tagline.split('\n').map((line, li) => (<li key={li}>{line.split('**').map((part, i) => i % 2 === 1 ? <strong key={i} className="font-semibold text-proton-black">{part}</strong> : part)}</li>))}</ul> : <p className="text-sm text-proton-grey">{club.tagline.split('**').map((part, i) => i % 2 === 1 ? <strong key={i} className="font-semibold text-proton-black">{part}</strong> : part)}</p>}
           </div>
         </div>
 
@@ -50,6 +50,7 @@ export default function ClubShopPage() {
             { key: 'top', label: 'Tops' },
             { key: 'lower', label: 'Lowers' },
             { key: 'accessories', label: 'Accessories' },
+            { key: 'running', label: 'Running' },
           ] as const).map(section => {
             const products = club.products.filter(p => p.category === section.key)
             if (products.length === 0) return null

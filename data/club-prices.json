@@ -21,5 +21,19 @@
     "aero-socks": 18,
     "training-mitts": 18,
     "arm-warmers": 18
+  },
+  "swansea-university-road-team": {
+    "ss-training-jersey": 63,
+    "ls-fleece-jersey": 81,
+    "summer-gilet": 50,
+    "ss-running-tee": 27,
+    "club-bib-shorts": 59,
+    "training-bib-shorts": 81,
+    "ss-roadsuit": 126,
+    "aero-socks": 18,
+    "arm-warmers": 18,
+    "buff": 9,
+    "ss-club-jersey": 45,
+    "ss-trisuit": 135
   }
 }

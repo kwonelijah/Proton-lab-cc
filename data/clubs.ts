@@ -9,7 +9,9 @@ export interface ClubProduct {
   // into Stripe metadata and the order emails.
   variant?: string
   // Shop-page section the product is listed under.
-  category: 'top' | 'lower' | 'accessories'
+  category: 'top' | 'lower' | 'accessories' | 'running'
+  // Hide the catalogue product's general photos on this club PDP (club design renders only).
+  hideCatalogImages?: boolean
   price: string
   image: string
   customImages?: string[]
@@ -87,6 +89,48 @@ export const clubs: Club[] = [
         customImages: ['/images/clubs/ucl-cycling/ucl-training-mitts-back.jpg'] },
       { name: 'Arm Warmers', handle: 'arm-warmers', category: 'accessories', price: '£18.00',
         image: '/images/clubs/ucl-cycling/ucl-arm-warmers-front.jpg' },
+    ],
+  },
+  {
+    handle: 'swansea-university-road-team',
+    name: 'Swansea University Road Team',
+    password: 'SURT',
+    tagline: 'All prices include the 10% university discount.\nOrder window closes **Wednesday 28th October**.\nDelivery expected end of November.',
+    products: [
+      { name: 'Club Jersey', handle: 'ss-club-jersey', category: 'top', price: '£45.00',
+        image: '/images/clubs/swansea-university-road-team/surt-ss-training-jersey-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-ss-training-jersey-back.jpg'] },
+      { name: 'Training Jersey', handle: 'ss-training-jersey', category: 'top', price: '£63.00',
+        image: '/images/clubs/swansea-university-road-team/surt-ss-training-jersey-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-ss-training-jersey-back.jpg'] },
+      { name: 'LS Fleece Jersey', handle: 'ls-fleece-jersey', category: 'top', price: '£81.00',
+        image: '/images/clubs/swansea-university-road-team/surt-ls-fleece-jersey-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-ls-fleece-jersey-back.jpg'] },
+      { name: 'Summer Gilet', handle: 'summer-gilet', category: 'top', price: '£50.00',
+        image: '/images/clubs/swansea-university-road-team/surt-summer-gilet-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-summer-gilet-back.jpg'] },
+      { name: 'Running Tee', handle: 'ss-running-tee', category: 'running', price: '£27.00',
+        image: '/images/clubs/swansea-university-road-team/surt-ss-running-tee-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-ss-running-tee-back.jpg'] },
+      { name: 'Club Shorts', handle: 'club-bib-shorts', category: 'lower', hideCatalogImages: true, price: '£59.00',
+        image: '/images/clubs/swansea-university-road-team/surt-club-bib-shorts-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-club-bib-shorts-back.jpg'] },
+      { name: 'Training Bib Shorts', handle: 'training-bib-shorts', category: 'lower', price: '£81.00',
+        image: '/images/clubs/swansea-university-road-team/surt-training-bib-shorts-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-training-bib-shorts-back.jpg'] },
+      { name: 'SS Trisuit', handle: 'ss-trisuit', category: 'lower', hideCatalogImages: true, price: '£135.00',
+        image: '/images/clubs/swansea-university-road-team/surt-ss-roadsuit-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-ss-roadsuit-back.jpg'] },
+      { name: 'SS Roadsuit', handle: 'ss-roadsuit', category: 'lower', price: '£126.00',
+        image: '/images/clubs/swansea-university-road-team/surt-ss-roadsuit-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-ss-roadsuit-back.jpg'] },
+      { name: 'Aero Socks', handle: 'aero-socks', category: 'accessories', price: '£18.00',
+        image: '/images/clubs/swansea-university-road-team/surt-aero-socks-front.jpg' },
+      { name: 'Arm Warmers', handle: 'arm-warmers', category: 'accessories', hideCatalogImages: true, price: '£18.00',
+        image: '/images/clubs/swansea-university-road-team/surt-arm-warmers-front.jpg' },
+      { name: 'Buff', handle: 'buff', category: 'accessories', price: '£9.00',
+        image: '/images/clubs/swansea-university-road-team/surt-buff-front.jpg',
+        customImages: ['/images/clubs/swansea-university-road-team/surt-buff-back.jpg'] },
     ],
   },
 ]

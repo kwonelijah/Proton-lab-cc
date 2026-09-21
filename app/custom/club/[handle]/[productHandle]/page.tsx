@@ -60,7 +60,7 @@ export default function ClubProductPage() {
       width: 1200,
       height: 1800,
     }))
-  const generalImages: ProductImage[] = (product?.images.nodes ?? [])
+  const generalImages: ProductImage[] = (clubProduct.hideCatalogImages ? [] : product?.images.nodes ?? [])
     .filter(img => img.url !== clubProduct.image && !img.url.includes('blank.png'))
   const allImages = [featuredImage, ...customImages, ...generalImages]
 
