@@ -96,9 +96,6 @@ export default function ClubProductPage() {
             {/* Details */}
             <div className="md:sticky md:top-24 md:self-start space-y-8">
               <div>
-                <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-2">
-                  {club.name}
-                </p>
                 <h1 className="font-playfair text-3xl md:text-4xl leading-tight mb-4">
                   {clubProduct.name}
                 </h1>
@@ -113,6 +110,7 @@ export default function ClubProductPage() {
                 clubName={club.name}
                 price={clubProduct.price}
                 variant={clubProduct.variant}
+                showFit={clubProduct.category !== 'accessories'}
               />
 
               <DeliveryNote />

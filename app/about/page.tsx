@@ -37,9 +37,6 @@ export default function AboutPage() {
       {/* Header */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-24 md:py-32">
         <div className="max-w-3xl">
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-4">
-            The Brand
-          </p>
           <h1 className="font-playfair text-5xl md:text-7xl leading-none mb-10">
             About Proton Lab CC
           </h1>
@@ -69,9 +66,6 @@ export default function AboutPage() {
 
       {/* Values */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 mb-16">
-        <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-12">
-          What We Stand For
-        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
           {values.map(value => (
             <div key={value.title}>
@@ -88,14 +82,10 @@ export default function AboutPage() {
           <p className="font-playfair text-2xl md:text-3xl">
             Engineered in the United Kingdom.
           </p>
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest">
-            Est. 2026
-          </p>
         </div>
       </div>
 
       <CTABanner
-        eyebrow="The Collections"
         headline="See what we have built."
         ctaText="Shop"
         ctaHref="/shop"

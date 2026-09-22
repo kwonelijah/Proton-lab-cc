@@ -32,9 +32,9 @@ export default function CustomPage() {
   return (
     <PageWrapper noPadding>
       {/* Hero */}
-      <div className="relative min-h-[45svh] md:min-h-[48vh] bg-proton-black overflow-hidden flex items-end">
+      <div className="relative min-h-[70svh] md:min-h-[80vh] bg-proton-black overflow-hidden flex items-end">
         <Image
-          src="/images/hero/Custom.jpg"
+          src="/images/hero/Custom.jpg?v=2"
           alt=""
           fill
           priority
@@ -43,9 +43,6 @@ export default function CustomPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-proton-black/80 via-proton-black/20 to-transparent" />
         <div className="relative z-10 max-w-7xl w-full mx-auto px-6 md:px-12 pb-8 md:pb-10">
-          <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-3">
-            Custom Kit
-          </p>
           <h1 className="font-playfair text-5xl md:text-7xl text-proton-white leading-none max-w-2xl">
             Your Identity.<br />Your Design.
           </h1>
@@ -79,9 +76,6 @@ export default function CustomPage() {
       {/* Process */}
       <div className="border-t border-proton-light py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-12">
-            How It Works
-          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             {process.map(step => (
               <div key={step.step}>
@@ -112,9 +106,6 @@ export default function CustomPage() {
       <div className="border-t border-proton-light py-16 md:py-20 bg-proton-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div>
-            <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">
-              Club Shops
-            </p>
             <h2 className="font-playfair text-3xl md:text-4xl leading-tight max-w-lg">
               Private team stores — order, reorder, and manage your club kit online.
             </h2>

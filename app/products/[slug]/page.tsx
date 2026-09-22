@@ -58,7 +58,6 @@ export default async function ProductPage({ params }: PageProps) {
   const product = await getProductByHandle(params.slug, currency)
   if (!product) notFound()
 
-  const collectionRef = product.collections?.nodes[0]
   const { amount, currencyCode } = product.priceRange.minVariantPrice
 
   // Cross-sell rows — resolved through the same gate as the page itself, so a
@@ -98,11 +97,6 @@ export default async function ProductPage({ params }: PageProps) {
           <div className="md:col-span-2 md:sticky md:top-24 md:self-start space-y-8">
             {/* Title + price */}
             <div>
-              {collectionRef && (
-                <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-2">
-                  {collectionRef.title}
-                </p>
-              )}
               <h1 className="font-playfair text-3xl md:text-4xl leading-tight mb-4">
                 {product.title}
               </h1>

@@ -13,7 +13,7 @@ interface HomeCollectionCarouselProps {
 
 export default function HomeCollectionCarousel({
   products,
-  eyebrow = 'New In',
+  eyebrow,
   heading = 'Summer 2026',
 }: HomeCollectionCarouselProps) {
   if (products.length === 0) return null
@@ -25,7 +25,9 @@ export default function HomeCollectionCarousel({
     <section aria-label={`${heading} collection`} className="py-8 md:py-10 border-t border-proton-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12 mb-5 md:mb-6 flex items-end justify-between">
         <div>
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-2">{eyebrow}</p>
+          {eyebrow && (
+            <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-2">{eyebrow}</p>
+          )}
           <h2 className="font-playfair text-3xl md:text-4xl text-proton-black leading-none">{heading}</h2>
         </div>
         <Link

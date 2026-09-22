@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { getJournalPosts, getJournalPostByHandle } from '@/lib/api'
-import { formatDate } from '@/lib/utils'
 
 interface PageProps {
   params: { slug: string }
@@ -54,9 +53,6 @@ export default async function JournalPostPage({ params }: PageProps) {
 
         {/* Meta */}
         <div className="mb-8">
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">
-            {formatDate(post.publishedAt)} &nbsp;·&nbsp; {post.author.name}
-          </p>
           <h1 className="font-playfair text-4xl md:text-5xl leading-tight">
             {post.title}
           </h1>

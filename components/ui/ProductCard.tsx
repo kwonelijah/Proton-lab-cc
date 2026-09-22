@@ -9,7 +9,6 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
-  const collectionTitle = product.collections?.nodes[0]?.title
   const { amount, currencyCode } = product.priceRange.minVariantPrice
 
   // Fixed 2:3 frame keeps every card the same height. Portrait photos fill it
@@ -70,11 +69,6 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
       {/* Card details */}
       <div className="pt-3 pb-1">
-        {collectionTitle && (
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-1">
-            {collectionTitle}
-          </p>
-        )}
         <h3 className="font-inter text-sm text-proton-black leading-snug group-hover:opacity-60 transition-opacity duration-200">
           {product.title}
         </h3>

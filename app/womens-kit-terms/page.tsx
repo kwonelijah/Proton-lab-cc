@@ -140,9 +140,6 @@ export default function WomensKitTermsPage() {
     <PageWrapper>
       <div className="max-w-[65ch] mx-auto px-6 md:px-12 py-24 md:py-32">
         <div className="mb-16">
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-4">
-            Giveaway Terms
-          </p>
           <h1 className="font-playfair text-3xl md:text-4xl leading-tight">
             Women&apos;s Kit Survey — Giveaway Terms &amp; Conditions
           </h1>

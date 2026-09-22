@@ -17,9 +17,6 @@ export default function DeliveryPage() {
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-24 md:py-32">
         {/* Header */}
         <div className="max-w-2xl mb-16 md:mb-24">
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-4">
-            Delivery Information
-          </p>
           <h1 className="font-playfair text-5xl md:text-7xl leading-none">Delivery</h1>
           <p className="mt-6 text-proton-grey leading-relaxed">
             Every order is dispatched from the United Kingdom with Evri. We ship to the UK,

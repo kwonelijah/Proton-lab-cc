@@ -28,7 +28,6 @@ export default function ClubGatePage() {
       <Navbar />
       <main className="min-h-screen flex items-center justify-center bg-proton-white pt-20">
         <div className="w-full max-w-sm mx-auto px-6 text-center">
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-4">Club Access</p>
           <h1 className="font-playfair text-4xl text-proton-black mb-2">Club Store</h1>
           <p className="text-sm text-proton-grey mb-10 leading-relaxed">
             Enter your club password to access your kit store.

@@ -38,7 +38,6 @@ export default async function HomePage() {
       {/* 1. Hero */}
       <VideoHero
         imageSrc="/images/hero/Home2.jpeg"
-        eyebrow="Proton Lab CC"
         headline="No Compromise."
         subheadline="Premium cycling apparel precision-engineered for those who train and race."
         ctaText="Shop"
@@ -63,7 +62,6 @@ export default async function HomePage() {
             />
             <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
             <div className="relative z-10 p-8 md:p-10">
-              <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-2">Ready to Ship</p>
               <h2 className="font-playfair text-4xl text-proton-white leading-none">Shop</h2>
               <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
                 Shop Now
@@ -80,7 +78,6 @@ export default async function HomePage() {
             />
             <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
             <div className="relative z-10 p-8 md:p-10">
-              <p className="text-[10px] text-proton-white/60 uppercase tracking-widest mb-2">Made to Order</p>
               <h2 className="font-playfair text-4xl text-proton-white leading-none">Custom Kit</h2>
               <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
                 Learn More

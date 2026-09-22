@@ -42,8 +42,6 @@ export default function KitCarousel({ images }: KitCarouselProps) {
       onBlur={() => { pausedRef.current = false }}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <p className="text-[10px] text-proton-white/40 uppercase tracking-widest mb-10 text-center">Kit Gallery</p>
-
         <div className="grid grid-cols-2 gap-4 md:gap-6">
           {[0, 1].map(offset => {
             const slide = getSlide(offset)

@@ -73,14 +73,6 @@ export default function VideoHero({
           )}
         </div>
       </div>
-
-      {/* Scroll indicator */}
-      <div aria-hidden="true" className="absolute bottom-8 right-8 md:right-12 flex flex-col items-center gap-2 opacity-40">
-        <span className="text-proton-white text-[10px] uppercase tracking-widest rotate-90 origin-center translate-y-4">
-          Scroll
-        </span>
-        <div className="w-px h-12 bg-proton-white/50" />
-      </div>
     </section>
   )
 }

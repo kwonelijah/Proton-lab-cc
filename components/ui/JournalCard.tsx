@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { JournalPost } from '@/types/journal'
-import { formatDate } from '@/lib/utils'
 
 interface JournalCardProps {
   post: JournalPost
@@ -25,9 +24,6 @@ export default function JournalCard({ post, featured = false, priority = false }
           />
         </div>
         <div>
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">
-            {formatDate(post.publishedAt)}
-          </p>
           <h2 className="font-playfair text-3xl md:text-4xl text-proton-black leading-tight mb-4 group-hover:opacity-70 transition-opacity duration-200">
             {post.title}
           </h2>
@@ -56,9 +52,6 @@ export default function JournalCard({ post, featured = false, priority = false }
           priority={priority}
         />
       </div>
-      <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-2">
-        {formatDate(post.publishedAt)}
-      </p>
       <h3 className="font-playfair text-xl text-proton-black leading-snug mb-2 group-hover:opacity-70 transition-opacity duration-200">
         {post.title}
       </h3>

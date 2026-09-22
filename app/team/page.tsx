@@ -52,9 +52,6 @@ export default function TeamPage() {
       {/* Header */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-24 md:py-32">
         <div className="max-w-2xl mb-16 md:mb-24">
-          <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-4">
-            The Athletes
-          </p>
           <h1 className="font-playfair text-5xl md:text-7xl leading-none mb-8">
             Our Team
           </h1>
@@ -77,9 +74,6 @@ export default function TeamPage() {
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
-              <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-1">
-                {member.role}
-              </p>
               <h3 className="font-playfair text-xl mb-3">{member.name}</h3>
               <p className="text-sm text-proton-grey leading-relaxed">{member.bio}</p>
             </div>
@@ -92,9 +86,6 @@ export default function TeamPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-2">
-                For Clubs & Teams
-              </p>
               <p className="font-playfair text-2xl md:text-3xl">
                 Interested in a team kit?
               </p>
