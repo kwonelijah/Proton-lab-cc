@@ -36,7 +36,6 @@ export default function ClubShopPage() {
         {/* Header */}
         <div className="border-b border-proton-light">
           <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-16">
-            <p className="text-[10px] text-proton-grey uppercase tracking-widest mb-3">Club Store</p>
             <h1 className="font-playfair text-5xl md:text-6xl text-proton-black leading-none mb-4">
               {club.name}
             </h1>
