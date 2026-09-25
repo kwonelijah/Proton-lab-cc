@@ -145,7 +145,9 @@ async function exportCsv(res) {
 // ─── Handler ─────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', 'https://protonlab.cc');
+  // '*' matches api/admin.js: the GET export is key-gated, and the POST intake
+  // arrives via the frontend's server-side proxy (CORS never applies to it).
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
