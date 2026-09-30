@@ -170,11 +170,11 @@ export const products: Product[] = [
       description: 'Thick fleece lining, softshell construction and relaxed fit. The Proton Lab Winter Jacket is built for riders who train through the coldest months.',
       keywords: 'winter cycling jacket, thermal cycling jacket, softshell cycling jacket, fleece cycling jacket, custom cycling jacket, winter cycling kit, cycling jacket UK',
     },
-    featuredImage: { id: 'img-winter-jacket-1', url: '/images/products/winter-jacket/winter-jacket1.jpg?v=2', altText: 'Winter Jacket', width: 1200, height: 1600 },
+    featuredImage: { id: 'img-winter-jacket-1', url: '/images/products/winter-jacket/winter-jacket1.jpg?v=3', altText: 'Winter Jacket', width: 1200, height: 1600 },
     images: { nodes: [
-      { id: 'img-winter-jacket-1', url: '/images/products/winter-jacket/winter-jacket1.jpg?v=2', altText: 'Winter Jacket', width: 1200, height: 1600 },
-      { id: 'img-winter-jacket-2', url: '/images/products/winter-jacket/winter-jacket2.jpg?v=2', altText: 'Winter Jacket', width: 1200, height: 1600 },
-      { id: 'img-winter-jacket-3', url: '/images/products/winter-jacket/winter-jacket3.jpg?v=2', altText: 'Winter Jacket', width: 1200, height: 1600 },
+      { id: 'img-winter-jacket-1', url: '/images/products/winter-jacket/winter-jacket1.jpg?v=3', altText: 'Winter Jacket', width: 1200, height: 1600 },
+      { id: 'img-winter-jacket-2', url: '/images/products/winter-jacket/winter-jacket2.jpg?v=3', altText: 'Winter Jacket', width: 1200, height: 1600 },
+      { id: 'img-winter-jacket-3', url: '/images/products/winter-jacket/winter-jacket3.jpg?v=3', altText: 'Winter Jacket', width: 1200, height: 1600 },
     ]},
     variants: sizes('006', '110.00'),
     priceRange: { minVariantPrice: { amount: '110.00', currencyCode: 'GBP' } },
@@ -303,7 +303,7 @@ export const products: Product[] = [
     featuredImage: { id: 'img-ls-speedsuit-1', url: '/images/products/ls-speedsuit/ls-speedsuit1.jpg?v=2', altText: 'LS Speedsuit', width: 1600, height: 1066 },
     images: { nodes: [
       { id: 'img-ls-speedsuit-1', url: '/images/products/ls-speedsuit/ls-speedsuit1.jpg?v=2', altText: 'LS Speedsuit', width: 1600, height: 1066 },
-      { id: 'img-ls-speedsuit-2', url: '/images/products/ls-speedsuit/ls-speedsuit2.jpg?v=2', altText: 'LS Speedsuit', width: 810, height: 1080 },
+      { id: 'img-ls-speedsuit-2', url: '/images/products/ls-speedsuit/ls-speedsuit2.jpg?v=3', altText: 'LS Speedsuit', width: 1333, height: 2000 },
       { id: 'img-ls-speedsuit-3', url: '/images/products/ls-speedsuit/ls-speedsuit3.JPG?v=2', altText: 'LS Speedsuit', width: 2000, height: 1333 },
       { id: 'img-ls-speedsuit-4', url: '/images/products/ls-speedsuit/ls-speedsuit4.jpg?v=2', altText: 'LS Speedsuit', width: 1600, height: 1066 },
     ]},
@@ -667,7 +667,10 @@ export const products: Product[] = [
       description: 'Lightweight and versatile. The Proton Lab Buff delivers cold weather protection built to the same standard as the rest of the range.',
       keywords: 'cycling buff, neck warmer, cycling neck warmer, custom cycling buff, winter cycling accessories UK',
     },
-    featuredImage: img('pl-buff'), images: { nodes: [img('pl-buff')] },
+    featuredImage: { id: 'img-buff-1', url: '/images/products/buff/buff1.jpg', altText: 'Buff', width: 1333, height: 2000 },
+    images: { nodes: [
+      { id: 'img-buff-1', url: '/images/products/buff/buff1.jpg', altText: 'Buff', width: 1333, height: 2000 },
+    ] },
     variants: {
       nodes: [
         { id: 'v027_os', title: 'One Size', availableForSale: true, price: { amount: '10.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'One Size' }] },

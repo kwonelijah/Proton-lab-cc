@@ -31,6 +31,10 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
   // No default fit — the customer must choose, so a women's order can't
   // slip through as men's cut by accident.
   const [fit, setFit] = useState<Fit | null>(null)
+  // LS Speedsuit only: the clear race-number pocket is a build option the
+  // factory needs — required, no default, carried on the size string.
+  const hasPocketOption = productHandle === 'ls-speedsuit'
+  const [pocket, setPocket] = useState<'With' | 'Without' | null>(null)
   const [added, setAdded] = useState(false)
   const { addItem, openCart } = useCartStore()
 
@@ -39,8 +43,12 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
   // Fit is prefixed onto the size (e.g. "Women's M") so it reaches Stripe
   // metadata, the order emails and the dashboard alongside the size.
   const fitSize = showFit && fit ? `${fit} ${baseSize}` : baseSize
-  const sizeLabel = variant ? `${fitSize} — ${variant}` : fitSize
+  const variantSize = variant ? `${fitSize} — ${variant}` : fitSize
+  const sizeLabel = hasPocketOption && pocket
+    ? `${variantSize} — ${pocket === 'With' ? 'Clear Race Number Pocket' : 'No Race Number Pocket'}`
+    : variantSize
   const needsFit = showFit && !fit
+  const needsPocket = hasPocketOption && !pocket
 
   // Meta Pixel: club product page viewed
   useEffect(() => {
@@ -69,7 +77,7 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
   }, [productHandle])
 
   function handleAddToCart() {
-    if (!selected || needsFit) return
+    if (!selected || needsFit || needsPocket) return
     addItem({ clubHandle, clubName, productHandle, productName, size: sizeLabel, price })
     trackMetaEvent('AddToCart', {
       content_ids: [productHandle],
@@ -125,6 +133,33 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
         </div>
       )}
 
+      {/* Clear race-number pocket — LS Speedsuit build option */}
+      {hasPocketOption && (
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">Clear Race Number Pocket</p>
+          <div className="flex flex-wrap gap-2">
+            {(['With', 'Without'] as const).map(p => {
+              const isSelected = pocket === p
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => { setPocket(p); setAdded(false) }}
+                  className={`h-11 px-5 border text-xs uppercase tracking-widest transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2 ${
+                    isSelected
+                      ? 'bg-proton-black text-proton-white border-proton-black'
+                      : 'bg-transparent text-proton-black border-proton-mid hover:border-proton-black'
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Size selector */}
       <div>
         <p className="text-[10px] uppercase tracking-widest text-proton-grey mb-3">Size</p>
@@ -155,9 +190,9 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
           size="lg"
           className="w-full justify-center"
           onClick={handleAddToCart}
-          disabled={!selected || needsFit}
+          disabled={!selected || needsFit || needsPocket}
         >
-          {added ? 'Added to Cart' : needsFit ? "Select Men's or Women's" : 'Add to Cart'}
+          {added ? 'Added to Cart' : needsFit ? "Select Men's or Women's" : needsPocket ? 'Select Race Number Pocket' : 'Add to Cart'}
         </Button>
 
         {added && (
