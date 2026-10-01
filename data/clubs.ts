@@ -112,7 +112,7 @@ export const clubs: Club[] = [
       { name: 'Running Tee', handle: 'ss-running-tee', category: 'running', price: '£27.00',
         image: '/images/clubs/swansea-university-road-team/surt-ss-running-tee-front.jpg',
         customImages: ['/images/clubs/swansea-university-road-team/surt-ss-running-tee-back.jpg'] },
-      { name: 'Club Shorts', handle: 'club-bib-shorts', category: 'lower', hideCatalogImages: true, price: '£59.00',
+      { name: 'Club Bib Shorts', handle: 'club-bib-shorts', category: 'lower', price: '£59.00',
         image: '/images/clubs/swansea-university-road-team/surt-club-bib-shorts-front.jpg',
         customImages: ['/images/clubs/swansea-university-road-team/surt-club-bib-shorts-back.jpg'] },
       { name: 'Training Bib Shorts', handle: 'training-bib-shorts', category: 'lower', price: '£81.00',

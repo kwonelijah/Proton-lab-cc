@@ -657,10 +657,7 @@ export const products: Product[] = [
       description: 'Thermal fabric construction for cool weather comfort. The Proton Lab Arm Warmers are built for unpredictable conditions.',
       keywords: 'cycling arm warmers, thermal arm warmers, custom arm warmers, cool weather cycling, cycling accessories UK',
     },
-    featuredImage: { id: 'img-arm-warmers-1', url: '/images/products/arm-warmers/arm-warmers1.JPG?v=2', altText: 'Arm Warmers', width: 668, height: 467 },
-    images: { nodes: [
-      { id: 'img-arm-warmers-1', url: '/images/products/arm-warmers/arm-warmers1.JPG?v=2', altText: 'Arm Warmers', width: 668, height: 467 },
-    ]},
+    featuredImage: img('arm-warmers'), images: { nodes: [img('arm-warmers')] },
     variants: sizes('026', '20.00'),
     priceRange: { minVariantPrice: { amount: '20.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['accessories', 'arm-warmers', 'moq-10'], availableForSale: true,
