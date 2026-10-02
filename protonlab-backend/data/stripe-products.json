@@ -15,6 +15,10 @@
       "ucl-cycling": {
         "priceId": "price_1U30iD3x1N43j1uct9T5nCvl",
         "unitAmount": 8600
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1ULzpV3x1N43j1ucEwNTSonV",
+        "unitAmount": 8600
       }
     }
   },
@@ -29,6 +33,10 @@
     "clubPrices": {
       "swansea-university-road-team": {
         "priceId": "price_1UI3pI3x1N43j1uczWAfZhB8",
+        "unitAmount": 6300
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1ULzpW3x1N43j1ucxOomAdkx",
         "unitAmount": 6300
       }
     }
@@ -48,6 +56,10 @@
       },
       "swansea-university-road-team": {
         "priceId": "price_1UI3rI3x1N43j1ucylTB18hl",
+        "unitAmount": 4500
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1ULzpX3x1N43j1ucNwbZwUJ3",
         "unitAmount": 4500
       }
     }
@@ -89,6 +101,10 @@
       },
       "swansea-university-road-team": {
         "priceId": "price_1UI3pK3x1N43j1ucnwB82NbP",
+        "unitAmount": 8100
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1ULzpZ3x1N43j1ucKf9MqfGr",
         "unitAmount": 8100
       }
     }
@@ -137,6 +153,10 @@
       "swansea-university-road-team": {
         "priceId": "price_1UI3pM3x1N43j1ucuWpvmC0U",
         "unitAmount": 8100
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1ULzpb3x1N43j1ucGzKdgtAN",
+        "unitAmount": 8100
       }
     }
   },
@@ -155,6 +175,10 @@
       },
       "swansea-university-road-team": {
         "priceId": "price_1UI3pN3x1N43j1ucNiwwXTPP",
+        "unitAmount": 5900
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1ULzpc3x1N43j1ucLP6i6LF0",
         "unitAmount": 5900
       }
     }
@@ -205,6 +229,10 @@
       "swansea-university-road-team": {
         "priceId": "price_1UI3pQ3x1N43j1ucHK69aHWu",
         "unitAmount": 5000
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1ULzpe3x1N43j1ucviJScX0L",
+        "unitAmount": 5000
       }
     }
   },
@@ -236,6 +264,10 @@
       },
       "swansea-university-road-team": {
         "priceId": "price_1UI3pS3x1N43j1uckShu7HPE",
+        "unitAmount": 12600
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1UM09X3x1N43j1ucfnPCGY87",
         "unitAmount": 12600
       }
     }
@@ -340,6 +372,10 @@
       },
       "swansea-university-road-team": {
         "priceId": "price_1UI3pX3x1N43j1ucMmHu77sf",
+        "unitAmount": 1800
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1ULzpj3x1N43j1uc6WhgZ337",
         "unitAmount": 1800
       }
     }

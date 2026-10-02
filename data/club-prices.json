@@ -35,5 +35,16 @@
     "buff": 9,
     "ss-club-jersey": 45,
     "ss-trisuit": 135
+  },
+  "university-of-bristol-cycling-club": {
+    "ss-race-jersey": 86,
+    "ss-training-jersey": 63,
+    "ss-club-jersey": 45,
+    "ls-fleece-jersey": 81,
+    "summer-gilet": 50,
+    "training-bib-shorts": 81,
+    "club-bib-shorts": 59,
+    "arm-warmers": 18,
+    "ss-roadsuit": 126
   }
 }

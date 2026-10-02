@@ -646,7 +646,7 @@ export const products: Product[] = [
   },
   {
     id: 'prod_026', handle: 'arm-warmers', title: 'Arm Warmers',
-    description: 'The simplest way to add warmth without adding kit. The Arm Warmers are built for the rides where the temperature is unpredictable — easy to pull on at the start, easy to remove and pocket when the sun breaks through.',
+    description: 'The simplest way to add warmth without the bulk, the Arm Warmers are built for the rides where the temperature is unpredictable and packable for when the sun breaks through.',
     bullets: [
       'Thermal fabric construction for cool weather comfort',
       'Easy on, easy off — packable into a rear pocket',
