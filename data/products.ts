@@ -571,8 +571,8 @@ export const products: Product[] = [
     images: { nodes: [
       { id: 'img-mtb-jersey-1', url: '/images/products/mtb-jersey/mtb-jersey1.jpg?v=2', altText: 'MTB Jersey', width: 1066, height: 1600 },
     ]},
-    variants: sizes('022', '30.00'),
-    priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
+    variants: sizes('022', '35.00'),
+    priceRange: { minVariantPrice: { amount: '35.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['jersey', 'mtb', 'off-road'], availableForSale: true,
   },
   {

@@ -111,12 +111,18 @@
   },
   "mtb-jersey": {
     "productId": "prod_UNYWjIZqcRt34u",
-    "priceId": "price_1TOnPj3x1N43j1ucDaQXlBaY",
+    "priceId": "price_1UMC4i3x1N43j1ucsm15HDSC",
     "name": "MTB Jersey",
-    "unitAmount": 3000,
+    "unitAmount": 3500,
     "currency": "gbp",
     "category": "Jerseys",
-    "collection": "Training"
+    "collection": "Training",
+    "clubPrices": {
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1UMC4j3x1N43j1uckPSZjW9L",
+        "unitAmount": 3150
+      }
+    }
   },
   "race-bib-shorts": {
     "productId": "prod_UNYWBZi4CP2irA",
