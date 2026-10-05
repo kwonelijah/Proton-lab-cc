@@ -223,8 +223,8 @@ export const clubs: Club[] = [
         image: '/images/clubs/university-of-bath-cycling-club/bath-training-bib-tights-front.jpg',
         customImages: ['/images/clubs/university-of-bath-cycling-club/bath-training-bib-tights-back.jpg'] },
       { name: 'SS Roadsuit', handle: 'ss-roadsuit', category: 'lower', price: '£126.00',
-        image: '/images/clubs/university-of-bath-cycling-club/bath-ss-roadsuit-front.jpg',
-        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-ss-roadsuit-back.jpg'] },
+        image: '/images/clubs/university-of-bath-cycling-club/bath-ss-roadsuit-front.jpg?v=2',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-ss-roadsuit-back.jpg?v=2'] },
     ],
   },
 ]
