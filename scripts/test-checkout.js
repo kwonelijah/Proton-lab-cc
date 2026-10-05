@@ -69,7 +69,10 @@ async function main() {
         name: 'Test Customer',
         email: 'test@example.com',
         product: items.map(i => mapping[i.handle].name).join(', '),
-        items: JSON.stringify(items.map(i => ({ handle: i.handle, size: i.size, qty: i.quantity }))),
+        // Same compact tuple format production writes (see
+        // protonlab-backend/lib/order-items.js encodeItems — this script is
+        // CommonJS so it mirrors the format rather than importing the module).
+        items: JSON.stringify(items.map(i => [i.handle, i.size, i.quantity])),
       },
     },
     success_url: 'https://protonlab.cc/success?session_id={CHECKOUT_SESSION_ID}',

@@ -20,6 +20,7 @@
 import Stripe from 'stripe';
 import { Resend } from 'resend';
 import { applyAndCommit } from '../lib/stock.js';
+import { decodeItems, hasItems } from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -34,14 +35,11 @@ function authorized(req) {
 }
 
 function parseItems(meta) {
-  // metadata.items is a JSON string capped at 500 chars by Stripe — treat
-  // anything unparseable as a reported skip, never a crash.
-  try {
-    const items = JSON.parse(meta?.items || '');
-    return Array.isArray(items) ? items : null;
-  } catch {
-    return null;
-  }
+  // Line items live in the `items`, `items_2`… metadata chunks (lib/order-items.js
+  // decodes both the chunked tuple format and the legacy single value). An
+  // order that carries items but yields none is a reported skip, never a crash.
+  const items = decodeItems(meta);
+  return items.length ? items : null;
 }
 
 async function sendSummary({ to, subject, lines }) {
@@ -86,7 +84,7 @@ export default async function handler(req, res) {
   for (const p of payments) {
     if (p.status !== 'succeeded') continue;
     if (p.metadata?.stock_synced) continue;
-    if (!p.metadata?.items) continue; // pre-metadata era or non-shop payment
+    if (!hasItems(p.metadata)) continue; // pre-metadata era or non-shop payment
     const items = parseItems(p.metadata);
     if (!items) {
       parseFailures.push(p.id);

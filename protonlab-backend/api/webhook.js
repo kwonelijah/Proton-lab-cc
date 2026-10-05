@@ -4,10 +4,8 @@
 // Phase 2: uncomment the sheets + agent lines once Google is set up
 
 import Stripe from 'stripe';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { sendOrderConfirmation, sendInternalNotification } from '../lib/email.js';
+import { loadProductMap as loadSharedProductMap, decodeItems } from '../lib/order-items.js';
 import { sendMetaEvent, buildUserData } from '../lib/meta-capi.js';
 import { sendGa4Purchase } from '../lib/ga4-mp.js';
 import {
@@ -22,20 +20,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Unit prices for GA4 item data — same source and club/EUR resolution as
 // api/checkout-session.js, so the server-side purchase reports the same item
-// prices as the browser event.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const MAPPING_PATH = path.resolve(__dirname, '..', 'data', 'stripe-products.json');
-
-let productMap = null;
+// prices as the browser event. Tolerant: a missing map must never fail the
+// webhook (Stripe would retry and re-send the order emails).
 function loadProductMap() {
-  if (productMap) return productMap;
   try {
-    productMap = JSON.parse(fs.readFileSync(MAPPING_PATH, 'utf8'));
+    return loadSharedProductMap();
   } catch {
-    productMap = {};
+    return {};
   }
-  return productMap;
 }
 
 // Deterministic 5-digit order number derived from the Stripe payment id, so the
@@ -159,12 +151,8 @@ export default async function handler(req, res) {
     }
 
     // Line items with sizes, captured at checkout: [{ name, handle, size, qty }]
-    let lineItems = [];
-    try {
-      lineItems = JSON.parse(payment.metadata?.items || '[]');
-    } catch {
-      lineItems = [];
-    }
+    // (decoded from the `items`, `items_2`… metadata chunks — lib/order-items.js).
+    const lineItems = decodeItems(payment.metadata);
 
     const club = payment.metadata?.club || 'N/A';
 

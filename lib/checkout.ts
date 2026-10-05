@@ -17,6 +17,20 @@ export interface CheckoutItem {
 // ignore it anyway.
 export type ShippingRegion = 'uk' | 'ireland' | 'europe'
 
+// Thrown when the backend refuses or fails to create a session. `userFacing`
+// is true for 4xx responses — validation the customer can act on (too many
+// different items, unknown product) — so the cart can show the message as is.
+export class CheckoutError extends Error {
+  status: number
+  userFacing: boolean
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'CheckoutError'
+    this.status = status
+    this.userFacing = status >= 400 && status < 500
+  }
+}
+
 export async function redirectToCheckout(
   items: CheckoutItem[],
   shippingRegion: ShippingRegion = 'uk'
@@ -34,9 +48,9 @@ export async function redirectToCheckout(
     body: JSON.stringify({ items, shippingRegion, fbp, fbc, gaClientId, gaSessionId }),
   })
 
-  const data = await res.json()
-  if (data.error) throw new Error(data.error)
-  if (!data.url) throw new Error('No checkout URL returned')
+  const data = await res.json().catch(() => ({}))
+  if (data.error) throw new CheckoutError(data.error, res.status)
+  if (!data.url) throw new CheckoutError('No checkout URL returned', res.status)
 
   window.location.href = data.url
 }

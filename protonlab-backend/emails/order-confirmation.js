@@ -15,7 +15,16 @@ import {
 
 export function render(order) {
   const greeting = firstName(order);
-  const products = order.product || 'your order';
+  // Subject line: the first two product names, then "+N more" — a 20-line club
+  // order must not produce a 500-character subject. The body lists every line.
+  const names = Array.isArray(order.lineItems)
+    ? [...new Set(order.lineItems.map((i) => i.name || i.handle).filter(Boolean))]
+    : [];
+  const products = names.length
+    ? names.length <= 2
+      ? names.join(', ')
+      : `${names.slice(0, 2).join(', ')} +${names.length - 2} more`
+    : order.product || 'your order';
   const club = order.club && order.club !== 'N/A' ? order.club : null;
   const orderRef = order.ref || order.id;
   const sym = currencySymbol(order.currency);

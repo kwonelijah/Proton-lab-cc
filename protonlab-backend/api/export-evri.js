@@ -13,6 +13,7 @@
 // per-item weights in a later pass). Service defaults to Standard.
 
 import Stripe from 'stripe';
+import { decodeItems, summariseItems } from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -86,17 +87,11 @@ function parseSince(since) {
   return Number.isNaN(t) ? Math.floor((Date.now() - 60 * 86400000) / 1000) : Math.floor(t / 1000);
 }
 
+// Parcel contents — every line, same "Name (Size) ×qty" format the dashboard
+// shows (lib/order-items.js decodes both metadata formats).
 function contentsFromMetadata(meta) {
-  try {
-    const items = JSON.parse(meta?.items || '[]');
-    if (Array.isArray(items) && items.length) {
-      return items
-        .map((i) => `${i.name || i.handle}${i.size ? ` (${i.size})` : ''}${i.qty > 1 ? ` x${i.qty}` : ''}`)
-        .join(', ');
-    }
-  } catch {
-    /* fall through */
-  }
+  const items = decodeItems(meta);
+  if (items.length) return summariseItems(items, Infinity);
   return meta?.product || 'Cycling apparel';
 }
 

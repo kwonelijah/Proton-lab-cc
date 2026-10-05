@@ -31,6 +31,7 @@ import {
 } from '../lib/email.js';
 import { readStock, applyAndCommit } from '../lib/stock.js';
 import { readClubs } from '../lib/clubs.js';
+import { decodeItems, summariseItems } from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -68,22 +69,17 @@ function esc(s) {
     .replaceAll('"', '&quot;');
 }
 
+// Line items from the PaymentIntent metadata (both the chunked tuple format and
+// the legacy single JSON value) — lib/order-items.js.
 function parseLineItems(meta) {
-  try {
-    const items = JSON.parse(meta?.items || '[]');
-    return Array.isArray(items) ? items : [];
-  } catch {
-    return [];
-  }
+  return decodeItems(meta);
 }
 
+// "Name (Size) ×qty, …" — the dashboard parses this string for item counts and
+// writes it into the Evri CSV, so it is never truncated here.
 function itemsSummary(meta) {
   const items = parseLineItems(meta);
-  if (items.length) {
-    return items
-      .map((i) => `${i.name || i.handle}${i.size ? ` (${i.size})` : ''}${i.qty > 1 ? ` ×${i.qty}` : ''}`)
-      .join(', ');
-  }
+  if (items.length) return summariseItems(items, Infinity);
   return meta?.product || '—';
 }
 

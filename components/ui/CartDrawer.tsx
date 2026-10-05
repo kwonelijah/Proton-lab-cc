@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '@/stores/cart'
 import { COUNTRY_COOKIE, CURRENCY_SYMBOL, EUR_COUNTRIES, FREE_SHIPPING_THRESHOLD, type Currency } from '@/lib/currency'
-import { redirectToCheckout, type ShippingRegion } from '@/lib/checkout'
+import { redirectToCheckout, CheckoutError, type ShippingRegion } from '@/lib/checkout'
 import { trackMetaEvent, parsePrice } from '@/lib/meta'
 import { trackGaEvent } from '@/lib/ga'
 import { getClubByHandle } from '@/data/clubs'
@@ -146,9 +146,15 @@ export default function CartDrawer() {
         })),
         clubDelivery ? 'uk' : region
       )
-    } catch {
+    } catch (err) {
       setLoading(false)
-      setError('Could not connect to payment server. Please try again.')
+      // A 4xx carries a message the customer can act on (e.g. too many
+      // different items); anything else really is a connection/server problem.
+      setError(
+        err instanceof CheckoutError && err.userFacing
+          ? err.message
+          : 'Could not connect to payment server. Please try again.'
+      )
     }
   }
 

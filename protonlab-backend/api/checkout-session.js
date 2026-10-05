@@ -6,27 +6,19 @@
 // Returns only value/currency/item handles — no names, emails or addresses.
 
 import Stripe from 'stripe';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { loadProductMap as loadSharedProductMap, decodeItems } from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Unit prices for analytics item data — same source create-checkout-session
 // prices from, so reported item prices always match what was charged.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const MAPPING_PATH = path.resolve(__dirname, '..', 'data', 'stripe-products.json');
-
-let productMap = null;
+// Tolerant: analytics must never 404 the success page over a missing map.
 function loadProductMap() {
-  if (productMap) return productMap;
   try {
-    productMap = JSON.parse(fs.readFileSync(MAPPING_PATH, 'utf8'));
+    return loadSharedProductMap();
   } catch {
-    productMap = {};
+    return {};
   }
-  return productMap;
 }
 
 export default async function handler(req, res) {
@@ -54,12 +46,8 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Not found' });
     }
 
-    let items = [];
-    try {
-      items = JSON.parse(session.payment_intent?.metadata?.items || '[]');
-    } catch {
-      items = [];
-    }
+    // Line items from the `items`, `items_2`… metadata chunks (lib/order-items.js).
+    const items = decodeItems(session.payment_intent?.metadata);
 
     // Storefront channel — retail orders carry club metadata "Proton Lab";
     // any other club name means the order came through a club store.

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "sync-stock": "node scripts/sync-stock.mjs",
+    "audit:stripe": "node scripts/stripe-audit.mjs",
     "predev": "node scripts/sync-stock.mjs",
     "prebuild": "node scripts/sync-stock.mjs",
     "dev": "next dev",

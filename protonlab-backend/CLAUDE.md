@@ -37,6 +37,7 @@ lib/agent.js   →  Claude API (flags/processes order, updates sheet)
 | `api/admin.js` | Dispatch admin page (`?key=proton_export_key`) — sends dispatch email, schedules thank-you (+5 days), stamps PaymentIntent metadata. `&format=json` mode feeds the local order dashboard's Web Shop tab (CORS open; auth via key). POST `{action:'production', club}` emails all un-notified customers of a club that their order is in production. POST `{action:'send', kind, order, tracking?}` sends lifecycle emails for dashboard-managed manual (non-Stripe) orders (`order.shippingMethod` — `standard` / `next-day` / `international` / `club` — picks the delivery wording). The dispatch POST `{pi, tracking, service?}` accepts the same `service` keys to override the checkout choice; it's stamped as `shipping_method` so the feed and Evri export agree |
 | `api/export-evri.js` | Evri bulk-despatch CSV export, read from Stripe (`?key=proton_export_key`) |
 | `api/stock-sync.js` | Nightly stock sync (Vercel cron 20:00 UTC) — tallies un-synced paid orders from PI `metadata.items`, commits decremented `inventory/stock.csv` to the website repo via GitHub API, stamps PIs `stock_synced`. `?dryRun=1&key=...` for a report-only run |
+| `lib/order-items.js` | The ONE encoder/decoder for an order's line items in PaymentIntent metadata. Stripe caps each metadata value at 500 chars, so lines are stored as compact `[handle, size, qty]` tuples split across `items`, `items_2`, … (names come from the product map at read time); `decodeItems()` also reads the legacy single-value `[{name,handle,size,qty}]` format of pre-Oct-2026 orders. Also owns the cached `loadProductMap()`, `summariseItems()` (≤500-char human list for `metadata.product`, the admin feed and the Evri Contents column) and `sizesNote()` (≤1,200-char Stripe submit note). Writers: `create-checkout-session.js`. Readers: `webhook.js`, `admin.js`, `export-evri.js`, `stock-sync.js`, `checkout-session.js` |
 | `lib/clubs.js` | Reads `data/clubs.ts` from the website repo (via `lib/stock.js` `readRepoFile`) and extracts club-shop handle / name / password / url — served by `api/admin.js` `?action=clubs` for the dashboard's order editor |
 | `lib/stock.js` | All stock CSV + GitHub Contents API logic. Quantity-only invariant: never adds/removes/renames rows, so a commit can never break the site build. Signed-delta movements, clamp at 0, skip unknown handle::size (club kit), 3× sha-conflict retry |
 | `api/checkout-session.js` | Non-PII order summary (value/currency/handles) for a paid session — the frontend `/success` page uses it to fire the browser Meta Purchase event |
@@ -87,8 +88,13 @@ The agent writes to Status (col H) and Notes (col I) automatically.
 
 ## Common tasks for Claude Code
 
-**Add a new product or price:**
-Update `frontend-snippet.js` with the new product name and price in cents.
+**Add a new product or price (the real checklist — `frontend-snippet.js` is legacy):**
+1. Website repo `data/products.ts`: add the product (copy a sibling block; next free `prod_0NN` id, `sizes('0NN', '<price>.00')`, images per the image conventions or the `img()` placeholder). Retail products also need rows in `inventory/stock.csv` (`handle,size,quantity`) and, to appear in the live shop, their handle in `lib/api.ts` `SUMMER_2026_HANDLES`.
+2. `PLPricelist.csv`: add the row (`Category,Product,handle,Price (GBP),Collection,Notes`). Club prices go in `data/club-prices.json` under the club handle.
+3. `node scripts/stripe-sync.js` — creates the Stripe product/prices and rewrites BOTH `data/stripe-products.json` and `protonlab-backend/data/stripe-products.json` (never edit those by hand).
+4. `npm run audit:stripe` — must end "NO ISSUES". It cross-checks pricelist ↔ catalogue ↔ club tiles ↔ price maps ↔ live Stripe.
+5. Push. The backend redeploys automatically because its JSON changed; the checkout health cron (`api/health-checkout.js`) probes a 12-line basket four times a day.
+Nothing about order size needs touching: line items are encoded by `lib/order-items.js` into as many metadata values as needed, so adding products or lengthening names cannot reintroduce a basket limit.
 
 **Change order statuses the agent can assign:**
 Edit the prompt in `lib/agent.js` — the status values are defined there in plain English.

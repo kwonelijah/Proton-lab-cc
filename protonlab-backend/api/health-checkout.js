@@ -19,8 +19,50 @@
 
 import Stripe from 'stripe';
 import { sendOpsAlert } from '../lib/alerts.js';
+import { loadProductMap } from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// Second probe: a big basket. Checkout used to fail above ~7 distinct lines
+// (Stripe's 500-char metadata cap) and nobody knew until a customer hit it;
+// this keeps that class of regression visible. 12 lines is well past the old
+// failure point and well under Stripe's 100-line-item ceiling.
+const LARGE_BASKET_LINES = 12;
+const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
+
+function largeBasketItems() {
+  const handles = Object.keys(loadProductMap());
+  const picked = handles.slice(0, LARGE_BASKET_LINES);
+  return picked.map((handle, i) => ({ handle, size: SIZES[i % SIZES.length], quantity: 1 }));
+}
+
+async function probe(host, items) {
+  try {
+    const resp = await fetch(`https://${host}/api/create-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, shippingRegion: 'uk' }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    return { status: resp.status, url: data.url, error: data.error };
+  } catch (err) {
+    return { status: 0, error: err.message };
+  }
+}
+
+// Expire a created session so it never shows as an abandoned checkout.
+// An expire failure is not a checkout failure.
+async function expireSession(url) {
+  const id = url?.match(/cs_(?:live|test)_[A-Za-z0-9]+/)?.[0];
+  if (!id) return { id: null, expired: false };
+  try {
+    await stripe.checkout.sessions.expire(id);
+    return { id, expired: true };
+  } catch (err) {
+    console.warn('Health check session expire failed (harmless):', err.message);
+    return { id, expired: false };
+  }
+}
 
 // The Meta catalog feed on the live site lists exactly the products customers
 // can currently buy (the Stripe product map also contains hidden/legacy
@@ -58,48 +100,44 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  // Test with a product customers can actually buy right now.
+  // Probe 1: a product customers can actually buy right now.
   const handle = await liveHandle();
+  const single = await probe(req.headers.host, [{ handle, size: 'M', quantity: 1 }]);
 
-  let outcome;
-  try {
-    const resp = await fetch(`https://${req.headers.host}/api/create-checkout-session`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items: [{ handle, size: 'M', quantity: 1 }],
-        shippingRegion: 'uk',
-      }),
-    });
-    const data = await resp.json().catch(() => ({}));
-    outcome = { status: resp.status, url: data.url, error: data.error };
-  } catch (err) {
-    outcome = { status: 0, error: err.message };
-  }
-
-  if (outcome.status !== 200 || !outcome.url) {
+  if (single.status !== 200 || !single.url) {
     await sendOpsAlert('Checkout health check FAILED', [
       `Creating a checkout session for "${handle}" did not return a URL.`,
-      `HTTP ${outcome.status} — ${outcome.error || 'no error body'}`,
+      `HTTP ${single.status} — ${single.error || 'no error body'}`,
       'Customers likely cannot pay right now. Check Vercel logs for',
       'create-checkout-session and Stripe Workbench → Logs.',
     ]);
-    return res.status(500).json({ ok: false, ...outcome });
+    return res.status(500).json({ ok: false, probe: 'single', ...single });
   }
+  const singleExpire = await expireSession(single.url);
 
-  // Session created — checkout works. Expire it so it never shows up as an
-  // abandoned checkout in Stripe. An expire failure is not a checkout failure.
-  let expired = false;
-  const id = outcome.url.match(/cs_(?:live|test)_[A-Za-z0-9]+/)?.[0];
-  if (id) {
-    try {
-      await stripe.checkout.sessions.expire(id);
-      expired = true;
-    } catch (err) {
-      console.warn('Health check session expire failed (harmless):', err.message);
-    }
+  // Probe 2: a large basket (many distinct lines) — guards the metadata encoding.
+  const largeItems = largeBasketItems();
+  const large = await probe(req.headers.host, largeItems);
+  if (large.status !== 200 || !large.url) {
+    await sendOpsAlert('Checkout health check FAILED for a large basket', [
+      `A ${largeItems.length}-line basket did not return a checkout URL (a single item did).`,
+      `HTTP ${large.status} — ${large.error || 'no error body'}`,
+      'Customers with big baskets cannot pay. Suspect the line-item metadata',
+      'encoding (protonlab-backend/lib/order-items.js) or a Stripe limit change.',
+    ]);
+    return res.status(500).json({ ok: false, probe: 'large', lines: largeItems.length, ...large });
   }
+  const largeExpire = await expireSession(large.url);
 
-  console.log(`✓ Checkout health check passed (${handle}, session ${id || '?'}, expired: ${expired})`);
-  return res.status(200).json({ ok: true, handle, sessionExpired: expired });
+  console.log(
+    `✓ Checkout health check passed (${handle}, session ${singleExpire.id || '?'} expired: ${singleExpire.expired}; ` +
+    `${largeItems.length}-line basket session ${largeExpire.id || '?'} expired: ${largeExpire.expired})`
+  );
+  return res.status(200).json({
+    ok: true,
+    handle,
+    sessionExpired: singleExpire.expired,
+    largeBasketLines: largeItems.length,
+    largeBasketSessionExpired: largeExpire.expired,
+  });
 }
