@@ -183,6 +183,10 @@
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpb3x1N43j1ucGzKdgtAN",
         "unitAmount": 8100
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNER03x1N43j1uc9M5hIzRg",
+        "unitAmount": 8100
       }
     }
   },
@@ -205,10 +209,6 @@
       },
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpc3x1N43j1ucLP6i6LF0",
-        "unitAmount": 5900
-      },
-      "university-of-bath-cycling-club": {
-        "priceId": "price_1UNDwm3x1N43j1ucD8LbMRc7",
         "unitAmount": 5900
       }
     }

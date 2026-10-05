@@ -216,9 +216,12 @@ export const clubs: Club[] = [
         catalogHandle: 'race-bib-shorts', variant: 'Black', price: '£99.00',
         image: '/images/clubs/university-of-bath-cycling-club/bath-black-race-bib-shorts-front.jpg',
         customImages: ['/images/clubs/university-of-bath-cycling-club/bath-black-race-bib-shorts-back.jpg'] },
-      { name: 'Club Bib Shorts', handle: 'club-bib-shorts', category: 'lower', price: '£59.00',
-        image: '/images/clubs/university-of-bath-cycling-club/bath-club-bib-shorts-front.jpg',
-        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-club-bib-shorts-back.jpg'] },
+      // Elijah's call (2026-10-05): the flat strap artwork looked odd, so this
+      // shows the catalogue photo (same as the Bristol product's second image)
+      // instead of a club render. Must match the products.ts URL exactly so
+      // the gallery doesn't repeat it.
+      { name: 'Training Bib Shorts', handle: 'training-bib-shorts', category: 'lower', price: '£81.00',
+        image: '/images/products/training-bib-shorts/training-bib-shorts1.jpg?v=3' },
       { name: 'Training Bib Tights', handle: 'training-bib-tights', category: 'lower', price: '£108.00',
         image: '/images/clubs/university-of-bath-cycling-club/bath-training-bib-tights-front.jpg',
         customImages: ['/images/clubs/university-of-bath-cycling-club/bath-training-bib-tights-back.jpg'] },
