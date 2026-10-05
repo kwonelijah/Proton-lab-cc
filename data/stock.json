@@ -196,7 +196,7 @@
   "ocean-blue-jersey": {
     "XS": 0,
     "S": 0,
-    "M": 3,
+    "M": 2,
     "L": 1,
     "XL": 1
   },
@@ -204,21 +204,21 @@
     "XS": 3,
     "S": 2,
     "M": 6,
-    "L": 2,
-    "XL": 2
+    "L": 1,
+    "XL": 1
   },
   "black-bib-shorts": {
     "XS": 3,
-    "S": 7,
+    "S": 6,
     "M": 3,
-    "L": 2,
+    "L": 0,
     "XL": 0
   },
   "granite-bib-shorts": {
     "XS": 3,
     "S": 4,
     "M": 0,
-    "L": 3,
+    "L": 2,
     "XL": 1
   },
   "white-bib-shorts": {
@@ -229,7 +229,8 @@
     "XL": 1
   },
   "white-cotton-socks": {
-    "S/M": 10,
-    "L/XL": 8
+    "S": 5,
+    "M": 5,
+    "L": 8
   }
 }

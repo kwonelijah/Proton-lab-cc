@@ -152,10 +152,6 @@
       "edinburgh-bike-fitting-club": {
         "priceId": "price_1U17nB3x1N43j1uceokhW1si",
         "unitAmount": 9000
-      },
-      "university-of-bath-cycling-club": {
-        "priceId": "price_1UNDpz3x1N43j1ucbhtyrpPr",
-        "unitAmount": 9900
       }
     }
   },
@@ -334,7 +330,13 @@
     "unitAmount": 17000,
     "currency": "gbp",
     "category": "Skinsuits",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNJEe3x1N43j1ucB2hd3bGv",
+        "unitAmount": 15300
+      }
+    }
   },
   "ss-trisuit": {
     "productId": "prod_UNYWQICGV8rddi",
@@ -375,6 +377,10 @@
       },
       "swansea-university-road-team": {
         "priceId": "price_1UI3pV3x1N43j1uckxnbihZb",
+        "unitAmount": 1800
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNJRy3x1N43j1uc7X0i7YnN",
         "unitAmount": 1800
       }
     }
@@ -423,6 +429,10 @@
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpj3x1N43j1uc6WhgZ337",
         "unitAmount": 1800
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNJS03x1N43j1ucLLNG1el8",
+        "unitAmount": 1800
       }
     }
   },
@@ -433,7 +443,13 @@
     "unitAmount": 2500,
     "currency": "gbp",
     "category": "Accessories",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNJS13x1N43j1ucyZ0ghl6O",
+        "unitAmount": 2250
+      }
+    }
   },
   "knee-warmers": {
     "productId": "prod_UNYXANieBTmEal",
@@ -451,7 +467,28 @@
     "unitAmount": 3000,
     "currency": "gbp",
     "category": "Accessories",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNJS23x1N43j1ucepD7zS3c",
+        "unitAmount": 2700
+      }
+    }
+  },
+  "aero-leg-warmers": {
+    "productId": "prod_VO5d4Pg5CC60Qk",
+    "priceId": "price_1UNJS33x1N43j1ucjLgJnfWv",
+    "name": "Aero Leg Warmers",
+    "unitAmount": 3500,
+    "currency": "gbp",
+    "category": "Accessories",
+    "collection": "Race",
+    "clubPrices": {
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNJS33x1N43j1uceL5p24N9",
+        "unitAmount": 3150
+      }
+    }
   },
   "buff": {
     "productId": "prod_UNYXCkuHdmHAfG",
@@ -580,7 +617,25 @@
     "unitAmount": 1200,
     "currency": "gbp",
     "category": "Accessories",
-    "collection": "Summer 2026"
+    "collection": "Summer 2026",
+    "clubPrices": {
+      "ucl-cycling": {
+        "priceId": "price_1UNJS83x1N43j1uc0VCR6PBN",
+        "unitAmount": 1080
+      },
+      "swansea-university-road-team": {
+        "priceId": "price_1UNJS93x1N43j1ucFoK4CPPU",
+        "unitAmount": 1080
+      },
+      "university-of-bristol-cycling-club": {
+        "priceId": "price_1UNJS93x1N43j1ucBXsUDYxI",
+        "unitAmount": 1080
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNJS93x1N43j1ucdIIWMTMG",
+        "unitAmount": 1080
+      }
+    }
   },
   "ss-running-tee": {
     "productId": "prod_VIUEnDs6Xkn5DI",

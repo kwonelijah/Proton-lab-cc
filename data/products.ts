@@ -471,6 +471,25 @@ export const products: Product[] = [
     priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['accessories', 'leg-warmers', 'moq-10'], availableForSale: true,
   },
+  {
+    id: 'prod_038', handle: 'aero-leg-warmers', title: 'Aero Leg Warmers',
+    description: 'Full leg coverage, cut for speed. The Aero Leg Warmers use a smooth, close-fitting fabric that sits flush against the leg and holds its line at race pace — warmth for cold starts and early-season racing without giving anything away to the wind.',
+    bullets: [
+      'Close-fitting aero construction that holds its shape at speed',
+      'Brushed inner face for warmth on cold starts',
+      'Easy on, easy off — packable into a rear pocket',
+      'Designed and developed by riders, for cold race-day conditions',
+    ],
+    seo: {
+      title: 'Aero Leg Warmers | Race Leg Warmers | Proton Lab',
+      description: 'Smooth, close-fitting construction that holds its line at race pace. The Proton Lab Aero Leg Warmers bring full leg warmth to cold starts and early-season racing.',
+      keywords: 'aero leg warmers, race leg warmers, cycling leg warmers, custom leg warmers, cold weather racing, cycling accessories UK',
+    },
+    featuredImage: img('aero-leg-warmers'), images: { nodes: [img('aero-leg-warmers')] },
+    variants: sizes('038', '35.00'),
+    priceRange: { minVariantPrice: { amount: '35.00', currencyCode: 'GBP' } },
+    ...col('race', 'Race'), tags: ['accessories', 'leg-warmers', 'aero', 'moq-10'], availableForSale: true,
+  },
 
   // ─── TRAINING COLLECTION ──────────────────────────────────────────────────
 
@@ -892,8 +911,9 @@ export const products: Product[] = [
     featuredImage: img('white-cotton-socks', 1600, 1066), images: { nodes: [img('white-cotton-socks', 1600, 1066)] },
     variants: {
       nodes: [
-        { id: 'v035_sm', title: 'S/M', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S/M' }] },
-        { id: 'v035_lx', title: 'L/XL', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'L/XL' }] },
+        { id: 'v035_s', title: 'S', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S' }] },
+        { id: 'v035_m', title: 'M', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'M' }] },
+        { id: 'v035_l', title: 'L', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'L' }] },
       ],
     },
     priceRange: { minVariantPrice: { amount: '12.00', currencyCode: 'GBP' } },

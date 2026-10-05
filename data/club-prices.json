@@ -20,7 +20,8 @@
     "training-bib-tights": 108,
     "aero-socks": 18,
     "training-mitts": 18,
-    "arm-warmers": 18
+    "arm-warmers": 18,
+    "white-cotton-socks": 10.8
   },
   "swansea-university-road-team": {
     "ss-training-jersey": 63,
@@ -34,7 +35,8 @@
     "arm-warmers": 18,
     "buff": 9,
     "ss-club-jersey": 45,
-    "ss-trisuit": 135
+    "ss-trisuit": 135,
+    "white-cotton-socks": 10.8
   },
   "university-of-bristol-cycling-club": {
     "ss-race-jersey": 86,
@@ -46,7 +48,8 @@
     "club-bib-shorts": 59,
     "arm-warmers": 18,
     "ss-roadsuit": 126,
-    "mtb-jersey": 31.5
+    "mtb-jersey": 31.5,
+    "white-cotton-socks": 10.8
   },
   "university-of-bath-cycling-club": {
     "ss-race-jersey": 86,
@@ -57,7 +60,13 @@
     "mtb-jersey": 31.5,
     "winter-jacket": 99,
     "summer-gilet": 50,
-    "race-bib-shorts": 99,
-    "ss-roadsuit": 126
+    "ss-roadsuit": 126,
+    "ls-speedsuit": 153,
+    "arm-warmers": 18,
+    "leg-warmers": 27,
+    "aero-arm-warmers": 22.5,
+    "aero-leg-warmers": 31.5,
+    "aero-socks": 18,
+    "white-cotton-socks": 10.8
   }
 }
