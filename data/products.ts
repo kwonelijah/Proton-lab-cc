@@ -916,7 +916,11 @@ export const products: Product[] = [
       description: 'Soft cotton-blend construction in a clean white finish. The White Cotton Socks from the Proton Lab Summer 2026 collection.',
       keywords: 'white cotton cycling socks, summer cycling socks, cotton cycling socks, custom cycling socks, premium cycling socks UK',
     },
-    featuredImage: img('white-cotton-socks', 1600, 1066), images: { nodes: [img('white-cotton-socks', 1600, 1066)] },
+    featuredImage: { id: 'img-white-cotton-socks-1', url: '/images/products/white-cotton-socks/white-cotton-socks1.jpg', altText: 'White Cotton Socks', width: 638, height: 851 },
+    images: { nodes: [
+      { id: 'img-white-cotton-socks-1', url: '/images/products/white-cotton-socks/white-cotton-socks1.jpg', altText: 'White Cotton Socks', width: 638, height: 851 },
+      { id: 'img-white-cotton-socks-2', url: '/images/products/white-cotton-socks/white-cotton-socks2.jpg', altText: 'White Cotton Socks', width: 1332, height: 1776 },
+    ]},
     variants: {
       nodes: [
         { id: 'v035_s', title: 'S', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S' }] },
