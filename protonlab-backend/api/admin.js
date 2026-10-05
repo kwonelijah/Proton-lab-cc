@@ -43,9 +43,10 @@ const THANK_YOU_DELAY_DAYS = 5;
 const REVIEW_DELAY_DAYS = 19;
 
 // Delivery services the dashboard may set on an order — the keys used by
-// config/shipping.js. Anything else is ignored and the order keeps whatever
-// checkout recorded (or 'standard').
-const SHIPPING_METHODS = ['standard', 'next-day', 'international'];
+// config/shipping.js, plus 'club' (one consignment to the club's distributor,
+// recorded by the webhook for CLUB_DELIVERY_CLUBS shops). Anything else is
+// ignored and the order keeps whatever checkout recorded (or 'standard').
+const SHIPPING_METHODS = ['standard', 'next-day', 'international', 'club'];
 function shippingMethodOf(v) {
   return SHIPPING_METHODS.includes(v) ? v : null;
 }

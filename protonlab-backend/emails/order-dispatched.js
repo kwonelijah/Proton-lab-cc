@@ -27,14 +27,23 @@ export function render(order, dispatch = {}) {
   // only sells international delivery to Europe, but the dashboard can dispatch
   // a manual order anywhere, so name the region by the destination.
   const isInternational = order.shippingMethod === 'international';
+  // Club delivery: the parcel goes to the club's distributor, who hands the kit
+  // out — so the dispatch note names the club, not a courier to the customer.
+  const clubDelivery = order.shippingMethod === 'club';
+  const club = order.club && order.club !== 'N/A' ? order.club : 'your club';
   const country = String(order.shipping?.address?.country || '').toUpperCase();
   const region = EUROPE_COUNTRIES.includes(country) || country === 'IE' ? 'European' : 'International';
-  const estimateHtml = isInternational
-    ? `${region} delivery usually takes 5&ndash;10 working days.`
-    : order.shippingMethod === 'next-day'
-      ? 'Next-day delivery usually arrives the next working day.'
-      : 'Standard delivery usually takes 2&ndash;4 working days.';
+  const estimateHtml = clubDelivery
+    ? `The club's consignment usually arrives within 2&ndash;4 working days, and the club will hand your kit out.`
+    : isInternational
+      ? `${region} delivery usually takes 5&ndash;10 working days.`
+      : order.shippingMethod === 'next-day'
+        ? 'Next-day delivery usually arrives the next working day.'
+        : 'Standard delivery usually takes 2&ndash;4 working days.';
   const estimateText = estimateHtml.replace(/&ndash;/g, '-');
+  const dispatchedLine = clubDelivery
+    ? `Your order has been dispatched to ${club} as part of the club's consignment.`
+    : 'Your order has been dispatched with Evri.';
 
   const customsNote = isInternational
     ? "Customs charges and import duties are covered by Proton Lab — there's nothing extra to pay on arrival."
@@ -45,7 +54,7 @@ export function render(order, dispatch = {}) {
 
       <p style="${bodyStyle}margin:0 0 8px 0;">Hi ${greeting},</p>
       <p style="${bodyStyle}margin:0 0 32px 0;">
-        Your order has been dispatched with Evri. ${estimateHtml}
+        ${dispatchedLine} ${estimateHtml}
       </p>
 
       ${detailTable([
@@ -66,7 +75,7 @@ export function render(order, dispatch = {}) {
 
   const text = `Hi ${greeting},
 
-Your order has been dispatched with Evri. ${estimateText}
+${dispatchedLine} ${estimateText}
 
 Order: ${orderRef}
 Items:

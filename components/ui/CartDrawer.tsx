@@ -6,6 +6,7 @@ import { COUNTRY_COOKIE, CURRENCY_SYMBOL, EUR_COUNTRIES, FREE_SHIPPING_THRESHOLD
 import { redirectToCheckout, type ShippingRegion } from '@/lib/checkout'
 import { trackMetaEvent, parsePrice } from '@/lib/meta'
 import { trackGaEvent } from '@/lib/ga'
+import { getClubByHandle } from '@/data/clubs'
 import stripeProducts from '@/data/stripe-products.json'
 
 // Cart line prices are recomputed from the price map at render time so the
@@ -44,6 +45,13 @@ export default function CartDrawer() {
   const regionCurrency: Currency = region === 'uk' ? 'GBP' : 'EUR'
   const cartCurrency: Currency = items.some(i => i.clubHandle !== 'protonlab') ? 'GBP' : regionCurrency
   const symbol = CURRENCY_SYMBOL[cartCurrency]
+
+  // Every line from a club whose kit goes to its own distributor (data/clubs.ts
+  // `centralDelivery`): nothing to post, so no region to pick and no
+  // free-delivery nudge. A mixed cart (club kit plus retail) ships as a parcel
+  // and pays the normal rates — the backend applies the same rule.
+  const clubDelivery = items.length > 0 && items.every(i => getClubByHandle(i.clubHandle)?.centralDelivery)
+  const clubDeliveryName = clubDelivery ? Array.from(new Set(items.map(i => i.clubName))).join(', ') : ''
 
   const drawerRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
@@ -136,7 +144,7 @@ export default function CartDrawer() {
           clubName: item.clubName,
           clubHandle: item.clubHandle,
         })),
-        region
+        clubDelivery ? 'uk' : region
       )
     } catch {
       setLoading(false)
@@ -217,34 +225,44 @@ export default function CartDrawer() {
               const remaining = FREE_SHIPPING_THRESHOLD[cartCurrency] - subtotal
               return (
                 <div className="px-6 py-6 border-t border-proton-light space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="cart-region" className="text-[10px] uppercase tracking-widest text-proton-grey">
-                      Deliver to
-                    </label>
-                    <select
-                      id="cart-region"
-                      value={region}
-                      onChange={e => setRegion(e.target.value as ShippingRegion)}
-                      className="text-sm text-proton-black bg-transparent text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black"
-                    >
-                      <option value="uk">United Kingdom</option>
-                      <option value="ireland">Ireland</option>
-                      <option value="europe">Europe</option>
-                    </select>
-                  </div>
+                  {!clubDelivery && (
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="cart-region" className="text-[10px] uppercase tracking-widest text-proton-grey">
+                        Deliver to
+                      </label>
+                      <select
+                        id="cart-region"
+                        value={region}
+                        onChange={e => setRegion(e.target.value as ShippingRegion)}
+                        className="text-sm text-proton-black bg-transparent text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black"
+                      >
+                        <option value="uk">United Kingdom</option>
+                        <option value="ireland">Ireland</option>
+                        <option value="europe">Europe</option>
+                      </select>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] uppercase tracking-widest text-proton-grey">Total</p>
                     <p className="text-sm text-proton-black">{symbol}{subtotal.toFixed(2)}</p>
                   </div>
-                  <p className="text-[10px] text-proton-grey text-center">
-                    {remaining > 0
-                      ? `Add ${symbol}${remaining.toFixed(2)} more for free standard delivery`
-                      : 'Free standard delivery unlocked'}
-                  </p>
-                  <p className="text-[10px] text-proton-grey text-center">
-                    We currently ship to the UK, Ireland &amp; Europe only
-                  </p>
-                  {region === 'europe' && (
+                  {clubDelivery ? (
+                    <p className="text-[10px] text-proton-grey text-center">
+                      Delivered to {clubDeliveryName} for collection — no delivery charge
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-[10px] text-proton-grey text-center">
+                        {remaining > 0
+                          ? `Add ${symbol}${remaining.toFixed(2)} more for free standard delivery`
+                          : 'Free standard delivery unlocked'}
+                      </p>
+                      <p className="text-[10px] text-proton-grey text-center">
+                        We currently ship to the UK, Ireland &amp; Europe only
+                      </p>
+                    </>
+                  )}
+                  {!clubDelivery && region === 'europe' && (
                     <p className="text-[10px] text-proton-grey text-center">
                       Customs charges &amp; import duties are covered — nothing extra to pay on arrival
                     </p>

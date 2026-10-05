@@ -127,12 +127,18 @@ export default async function handler(req, res) {
 
     // Which delivery service the customer picked. `evri_service` metadata is set
     // on every rate in config/shipping.js; fall back to 'standard' for legacy
-    // orders created before shipping options existed.
+    // orders created before shipping options existed. Club-delivery orders
+    // (create-checkout-session stamps `delivery: 'club'` for the shops in
+    // CLUB_DELIVERY_CLUBS) have no rate and no address — the kit goes to the
+    // club's distributor in one consignment — so they get their own method.
+    const clubDelivery = payment.metadata?.delivery === 'club';
     const shippingRate = session?.shipping_cost?.shipping_rate;
-    const shippingMethod =
-      (typeof shippingRate === 'object' && shippingRate?.metadata?.evri_service) || 'standard';
-    const shippingLabel =
-      (typeof shippingRate === 'object' && shippingRate?.display_name) || 'Standard Delivery';
+    const shippingMethod = clubDelivery
+      ? 'club'
+      : (typeof shippingRate === 'object' && shippingRate?.metadata?.evri_service) || 'standard';
+    const shippingLabel = clubDelivery
+      ? 'Club delivery'
+      : (typeof shippingRate === 'object' && shippingRate?.display_name) || 'Standard Delivery';
     const shippingAmount = session?.shipping_cost?.amount_total ?? 0; // pence
 
     // Discount details, if a promotion code was applied at checkout.

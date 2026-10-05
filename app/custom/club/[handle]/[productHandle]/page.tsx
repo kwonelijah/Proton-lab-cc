@@ -113,7 +113,7 @@ export default function ClubProductPage() {
                 showFit={clubProduct.category !== 'accessories'}
               />
 
-              <DeliveryNote />
+              <DeliveryNote collectionVia={club.centralDelivery ? club.name : undefined} />
 
               {product?.description && (
                 <div className="pt-4 border-t border-proton-light">

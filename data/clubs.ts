@@ -21,7 +21,16 @@ export interface Club {
   handle: string
   name: string
   password: string
+  // Extra passwords the gate also accepts (all compared case-insensitively).
+  // The dashboard's access box only shows `password`.
+  altPasswords?: string[]
   tagline: string
+  // Kit for this club ships in one consignment to the club's own distributor,
+  // so checkout charges no delivery and collects no address. Ask the club when
+  // setting the shop up. Display only — the backend decides for real, so the
+  // handle must ALSO be in protonlab-backend/config/shipping.js
+  // CLUB_DELIVERY_CLUBS, or checkout will still charge postage.
+  centralDelivery?: boolean
   products: ClubProduct[]
 }
 
@@ -53,6 +62,7 @@ export const clubs: Club[] = [
     handle: 'ucl-cycling',
     name: 'UCL Cycling',
     password: 'UCLSHOP',
+    centralDelivery: true,
     tagline: 'All prices include the 10% university discount.\nOrder window open **Monday 12th October – Sunday 25th October**.\nDelivery expected end of November.',
     products: [
       { name: 'Club Jersey', handle: 'ss-club-jersey', category: 'top', price: '£45.00',
@@ -95,6 +105,7 @@ export const clubs: Club[] = [
     handle: 'swansea-university-road-team',
     name: 'Swansea University Road Team',
     password: 'SURT',
+    centralDelivery: true,
     tagline: 'All prices include the 10% university discount.\nOrder window closes **Wednesday 28th October**.\nDelivery expected end of November.',
     products: [
       { name: 'Club Jersey', handle: 'ss-club-jersey', category: 'top', price: '£45.00',
@@ -137,6 +148,7 @@ export const clubs: Club[] = [
     handle: 'university-of-bristol-cycling-club',
     name: 'University of Bristol Cycling Club',
     password: 'BRISTOL',
+    centralDelivery: true,
     tagline: 'All prices include the 10% university discount.\nOrder window open **Tuesday 6th October – Thursday 22nd October** (closes midnight).\nDelivery expected end of November.',
     products: [
       { name: 'SS Race Jersey', handle: 'ss-race-jersey', category: 'top', price: '£86.00',
@@ -170,6 +182,51 @@ export const clubs: Club[] = [
         image: '/images/clubs/university-of-bristol-cycling-club/uobcc-arm-warmers-front.jpg' },
     ],
   },
+  {
+    handle: 'university-of-bath-cycling-club',
+    name: 'University of Bath Cycling Club',
+    password: 'bath',
+    altPasswords: ['uptheUOBCC2026'],
+    centralDelivery: true,
+    tagline: 'All prices include the 10% university discount.\nOrder window open **Monday 5th October – Sunday 18th October** (closes midnight).\nDelivery expected late November.',
+    products: [
+      { name: 'SS Race Jersey', handle: 'ss-race-jersey', category: 'top', price: '£86.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-ss-race-jersey-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-ss-race-jersey-back.jpg'] },
+      { name: 'SS Club Jersey', handle: 'ss-club-jersey', category: 'top', price: '£45.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-ss-club-jersey-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-ss-club-jersey-back.jpg'] },
+      { name: 'LS MTB Jersey', handle: 'mtb-jersey', category: 'top', hideCatalogImages: true, price: '£31.50',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-mtb-jersey-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-mtb-jersey-back.jpg'] },
+      { name: 'LS Fleece Jersey', handle: 'ls-fleece-jersey', category: 'top', price: '£81.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-ls-fleece-jersey-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-ls-fleece-jersey-back.jpg'] },
+      { name: 'Winter Jacket', handle: 'winter-jacket', category: 'top', price: '£99.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-winter-jacket-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-winter-jacket-back.jpg'] },
+      { name: 'Summer Gilet', handle: 'summer-gilet', category: 'top', price: '£50.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-summer-gilet-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-summer-gilet-back.jpg'] },
+      { name: 'White Race Bib Shorts', handle: 'white-race-bib-shorts', category: 'lower',
+        catalogHandle: 'race-bib-shorts', variant: 'White', price: '£99.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-white-race-bib-shorts-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-white-race-bib-shorts-back.jpg'] },
+      { name: 'Black Race Bib Shorts', handle: 'black-race-bib-shorts', category: 'lower',
+        catalogHandle: 'race-bib-shorts', variant: 'Black', price: '£99.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-black-race-bib-shorts-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-black-race-bib-shorts-back.jpg'] },
+      { name: 'Club Bib Shorts', handle: 'club-bib-shorts', category: 'lower', price: '£59.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-club-bib-shorts-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-club-bib-shorts-back.jpg'] },
+      { name: 'Training Bib Tights', handle: 'training-bib-tights', category: 'lower', price: '£108.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-training-bib-tights-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-training-bib-tights-back.jpg'] },
+      { name: 'SS Roadsuit', handle: 'ss-roadsuit', category: 'lower', price: '£126.00',
+        image: '/images/clubs/university-of-bath-cycling-club/bath-ss-roadsuit-front.jpg',
+        customImages: ['/images/clubs/university-of-bath-cycling-club/bath-ss-roadsuit-back.jpg'] },
+    ],
+  },
 ]
 
 export function getClubByHandle(handle: string): Club | undefined {
@@ -177,5 +234,8 @@ export function getClubByHandle(handle: string): Club | undefined {
 }
 
 export function getClubByPassword(password: string): Club | undefined {
-  return clubs.find(c => c.password.toLowerCase() === password.toLowerCase())
+  const entered = password.toLowerCase()
+  return clubs.find(c =>
+    [c.password].concat(c.altPasswords ?? []).some(p => p.toLowerCase() === entered)
+  )
 }

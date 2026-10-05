@@ -19,6 +19,10 @@
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpV3x1N43j1ucEwNTSonV",
         "unitAmount": 8600
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNDpu3x1N43j1ucRxW1Ifcg",
+        "unitAmount": 8600
       }
     }
   },
@@ -60,6 +64,10 @@
       },
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpX3x1N43j1ucNwbZwUJ3",
+        "unitAmount": 4500
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNDpv3x1N43j1ucC4JTn4OX",
         "unitAmount": 4500
       }
     }
@@ -106,6 +114,10 @@
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpZ3x1N43j1ucKf9MqfGr",
         "unitAmount": 8100
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNE7R3x1N43j1uchJjqkyqC",
+        "unitAmount": 8100
       }
     }
   },
@@ -120,6 +132,10 @@
     "clubPrices": {
       "university-of-bristol-cycling-club": {
         "priceId": "price_1UMC4j3x1N43j1uckPSZjW9L",
+        "unitAmount": 3150
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNDpy3x1N43j1ucAyo5f7Y1",
         "unitAmount": 3150
       }
     }
@@ -136,6 +152,10 @@
       "edinburgh-bike-fitting-club": {
         "priceId": "price_1U17nB3x1N43j1uceokhW1si",
         "unitAmount": 9000
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNDpz3x1N43j1ucbhtyrpPr",
+        "unitAmount": 9900
       }
     }
   },
@@ -186,6 +206,10 @@
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpc3x1N43j1ucLP6i6LF0",
         "unitAmount": 5900
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNDwm3x1N43j1ucD8LbMRc7",
+        "unitAmount": 5900
       }
     }
   },
@@ -201,6 +225,10 @@
       "ucl-cycling": {
         "priceId": "price_1U30iK3x1N43j1uc2ZPcslRM",
         "unitAmount": 10800
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNDwn3x1N43j1ucYjBhPhHP",
+        "unitAmount": 10800
       }
     }
   },
@@ -215,6 +243,10 @@
     "clubPrices": {
       "ucl-cycling": {
         "priceId": "price_1U30iK3x1N43j1ucpivfUoXc",
+        "unitAmount": 9900
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNDq23x1N43j1ucjwpODyid",
         "unitAmount": 9900
       }
     }
@@ -238,6 +270,10 @@
       },
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpe3x1N43j1ucviJScX0L",
+        "unitAmount": 5000
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNDq33x1N43j1ucKqsiEKbz",
         "unitAmount": 5000
       }
     }
@@ -274,6 +310,10 @@
       },
       "university-of-bristol-cycling-club": {
         "priceId": "price_1UM09X3x1N43j1ucfnPCGY87",
+        "unitAmount": 12600
+      },
+      "university-of-bath-cycling-club": {
+        "priceId": "price_1UNDq53x1N43j1ucmzFReQc1",
         "unitAmount": 12600
       }
     }

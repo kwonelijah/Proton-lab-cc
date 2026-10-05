@@ -128,6 +128,9 @@ export default async function handler(req, res) {
     const meta = p.metadata || {};
     const club = meta.club || '';
     if (clubFilter && !club.toLowerCase().includes(clubFilter)) continue;
+    // Club-delivery orders travel to the club's distributor in one consignment
+    // (no address was collected) — there is no per-member parcel to book.
+    if (meta.shipping_method === 'club') continue;
 
     const ship = p.shipping || {};
     const addr = ship.address || {};

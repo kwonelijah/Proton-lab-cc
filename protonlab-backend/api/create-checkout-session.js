@@ -7,7 +7,7 @@ import Stripe from 'stripe';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ZONES, resolveZone } from '../config/shipping.js';
+import { ZONES, resolveZone, isClubDelivery } from '../config/shipping.js';
 import { sendOpsAlert } from '../lib/alerts.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -124,6 +124,12 @@ export default async function handler(req, res) {
     resolved.map(i => i.clubHandle).filter(h => h && h !== 'protonlab')
   )].join(', ');
 
+  // Club-delivery shops (config/shipping.js CLUB_DELIVERY_CLUBS) send the whole
+  // club's kit to its distributor in one consignment, so the member pays no
+  // delivery and enters no address. Decided server-side from the handles, so a
+  // client can't opt itself out of postage.
+  const clubDelivery = isClubDelivery(resolved.map(i => i.clubHandle));
+
   try {
     const sessionParams = {
       payment_method_types: ['card'],
@@ -131,19 +137,24 @@ export default async function handler(req, res) {
 
       customer_email: customerEmail || undefined,
 
-      // Collect a delivery address on the hosted page. Stripe copies this onto
-      // the resulting PaymentIntent's `shipping` field, which the webhook reads.
-      // Countries are restricted to the zone the customer picked in the cart,
-      // so the shipping price always matches the destination.
-      shipping_address_collection: {
-        allowed_countries: zone.allowedCountries,
-      },
+      ...(clubDelivery
+        ? {}
+        : {
+            // Collect a delivery address on the hosted page. Stripe copies this
+            // onto the resulting PaymentIntent's `shipping` field, which the
+            // webhook reads. Countries are restricted to the zone the customer
+            // picked in the cart, so the shipping price always matches the
+            // destination.
+            shipping_address_collection: {
+              allowed_countries: zone.allowedCountries,
+            },
+            // Rates come from config/shipping.js — UK & Ireland get free
+            // standard delivery at/over the threshold, next-day stays paid
+            // either way.
+            shipping_options: zone.optionsFor(subtotal, sessionCurrency),
+          }),
       // Phone is required at checkout so we can reach the customer about their order.
       phone_number_collection: { enabled: true },
-
-      // Rates come from config/shipping.js — UK & Ireland get free standard
-      // delivery at/over the threshold, next-day stays paid either way.
-      shipping_options: zone.optionsFor(subtotal, sessionCurrency),
 
       // Customers can enter discount codes (created in the Stripe dashboard
       // under Product catalogue → Coupons) on the hosted page.
@@ -164,11 +175,13 @@ export default async function handler(req, res) {
       // Price ID, so surface size info via custom_text so the customer sees it
       // on the hosted page. Fulfillment still uses metadata.items (authoritative).
       custom_text: {
-        shipping_address: {
-          message: zone.customText(subtotal, sessionCurrency),
-        },
+        ...(clubDelivery
+          ? {}
+          : { shipping_address: { message: zone.customText(subtotal, sessionCurrency) } }),
         submit: {
-          message: 'Sizes: ' + resolved.map(i => `${i.name} — ${i.size}`).join(', '),
+          message:
+            'Sizes: ' + resolved.map(i => `${i.name} — ${i.size}`).join(', ') +
+            (clubDelivery ? ` · Delivered to ${club} for collection — no delivery charge.` : ''),
         },
       },
 
@@ -178,6 +191,10 @@ export default async function handler(req, res) {
           email: customerEmail || '',
           club,
           club_handle: clubHandleMeta,
+          // 'club' = one consignment to the club's distributor (no address, no
+          // charge); 'post' = a parcel to the customer. The webhook turns this
+          // into shipping_method so every downstream reader agrees.
+          delivery: clubDelivery ? 'club' : 'post',
           shipping_region: region,
           currency: sessionCurrency,
           subtotal: String(subtotal),

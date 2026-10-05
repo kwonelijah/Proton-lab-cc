@@ -40,13 +40,19 @@ export function render(order) {
     ? "Customs charges and import duties are covered by Proton Lab — there's nothing extra to pay on arrival."
     : null;
 
+  // Club-delivery orders travel to the club's distributor with the rest of the
+  // club's kit — no parcel to this customer, so say where it will turn up.
+  const nextStep = order.shippingMethod === 'club'
+    ? `Your order is confirmed. Your kit will be delivered to ${club || 'your club'} with the rest of the club's order, and the club will hand it out — there's nothing to post.`
+    : "Your order is confirmed and we'll be in touch once it's shipped.";
+
   const html = layout(`
       ${heading('Your order is confirmed')}
 
       <p style="${bodyStyle}margin:0 0 8px 0;">Hi ${greeting},</p>
       <p style="${bodyStyle}margin:0 0 32px 0;">
         Thank you for your order at ${club || 'Proton Lab'}.
-        Your order is confirmed and we'll be in touch once it's shipped.
+        ${nextStep}
       </p>
 
       ${detailTable([
@@ -68,7 +74,7 @@ export function render(order) {
 
   const text = `Hi ${greeting},
 
-Thank you for your order at ${club || 'Proton Lab'}. Your order is confirmed and we'll be in touch once it's shipped.
+Thank you for your order at ${club || 'Proton Lab'}. ${nextStep}
 
 Order: ${orderRef}
 Items:

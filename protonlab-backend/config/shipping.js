@@ -52,6 +52,29 @@ export const EUROPE_COUNTRIES = [
   'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK',
 ];
 
+// Club shops whose kit goes to the club's own distributor in one consignment
+// (a committee member hands it out). Checkout charges no delivery and collects
+// no address; the PaymentIntent is stamped `delivery: 'club'` and the webhook
+// records `shipping_method: 'club'`, which the emails, admin feed, dashboard
+// and Evri export (where such orders are skipped) all understand. Decided per
+// club when its shop is set up — the handle must match the club's
+// `centralDelivery: true` flag in the website's data/clubs.ts, and this list
+// is what checkout actually trusts.
+export const CLUB_DELIVERY_CLUBS = new Set([
+  'ucl-cycling',
+  'swansea-university-road-team',
+  'university-of-bristol-cycling-club',
+  'university-of-bath-cycling-club',
+]);
+
+// True when every line in the cart belongs to a club-delivery shop. A mixed
+// cart (club kit plus retail, or two clubs where one posts) still ships as a
+// parcel and pays the normal zone rates.
+export function isClubDelivery(clubHandles) {
+  const handles = Array.isArray(clubHandles) ? clubHandles : [];
+  return handles.length > 0 && handles.every((h) => CLUB_DELIVERY_CLUBS.has(h));
+}
+
 // Each zone carries the currency its customers are CHARGED in — the charged
 // currency is a function of where the order ships, never a client choice
 // (paying GBP requires a GB delivery address). The `currency` param on

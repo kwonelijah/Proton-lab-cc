@@ -47,5 +47,17 @@
     "arm-warmers": 18,
     "ss-roadsuit": 126,
     "mtb-jersey": 31.5
+  },
+  "university-of-bath-cycling-club": {
+    "ss-race-jersey": 86,
+    "ss-club-jersey": 45,
+    "ls-fleece-jersey": 81,
+    "club-bib-shorts": 59,
+    "training-bib-tights": 108,
+    "mtb-jersey": 31.5,
+    "winter-jacket": 99,
+    "summer-gilet": 50,
+    "race-bib-shorts": 99,
+    "ss-roadsuit": 126
   }
 }
