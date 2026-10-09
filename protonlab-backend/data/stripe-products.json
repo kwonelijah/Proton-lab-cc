@@ -8,10 +8,6 @@
     "category": "Jerseys",
     "collection": "Race",
     "clubPrices": {
-      "edinburgh-bike-fitting-club": {
-        "priceId": "price_1U17n63x1N43j1ucQwZyts0m",
-        "unitAmount": 8000
-      },
       "ucl-cycling": {
         "priceId": "price_1U30iD3x1N43j1uct9T5nCvl",
         "unitAmount": 8600
@@ -99,10 +95,6 @@
     "category": "Jerseys",
     "collection": "Race",
     "clubPrices": {
-      "edinburgh-bike-fitting-club": {
-        "priceId": "price_1U17n93x1N43j1ucoMVZ3lco",
-        "unitAmount": 8500
-      },
       "ucl-cycling": {
         "priceId": "price_1U30iG3x1N43j1ucHLZ44v0l",
         "unitAmount": 8100
@@ -147,13 +139,7 @@
     "unitAmount": 11000,
     "currency": "gbp",
     "category": "Shorts",
-    "collection": "Race",
-    "clubPrices": {
-      "edinburgh-bike-fitting-club": {
-        "priceId": "price_1U17nB3x1N43j1uceokhW1si",
-        "unitAmount": 9000
-      }
-    }
+    "collection": "Race"
   },
   "training-bib-shorts": {
     "productId": "prod_UNYW77LhFq5UO3",
@@ -292,10 +278,6 @@
     "category": "Skinsuits",
     "collection": "Race",
     "clubPrices": {
-      "edinburgh-bike-fitting-club": {
-        "priceId": "price_1U31Ht3x1N43j1ucsM6MjlVS",
-        "unitAmount": 12000
-      },
       "ucl-cycling": {
         "priceId": "price_1U31WP3x1N43j1ucWrmbTJbk",
         "unitAmount": 12600
