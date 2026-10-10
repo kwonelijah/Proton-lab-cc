@@ -62,5 +62,15 @@
     "aero-leg-warmers": 31.5,
     "aero-socks": 18,
     "white-cotton-socks": 10.8
+  },
+  "edinburgh-university-cycling-club": {
+    "ss-race-jersey": 86,
+    "ss-club-jersey": 45,
+    "ls-fleece-jersey": 81,
+    "winter-jacket": 99,
+    "mtb-jersey": 32,
+    "summer-gilet": 50,
+    "ss-roadsuit": 126,
+    "aero-socks": 18
   }
 }

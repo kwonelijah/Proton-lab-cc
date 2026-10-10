@@ -19,6 +19,10 @@
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNDpu3x1N43j1ucRxW1Ifcg",
         "unitAmount": 8600
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UP2sH3x1N43j1uc2IySG1Vk",
+        "unitAmount": 8600
       }
     }
   },
@@ -65,6 +69,10 @@
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNDpv3x1N43j1ucC4JTn4OX",
         "unitAmount": 4500
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UP2sK3x1N43j1ucaEjdtGvi",
+        "unitAmount": 4500
       }
     }
   },
@@ -110,6 +118,10 @@
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNE7R3x1N43j1uchJjqkyqC",
         "unitAmount": 8100
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UP2sO3x1N43j1ucqYQuALS9",
+        "unitAmount": 8100
       }
     }
   },
@@ -129,6 +141,10 @@
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNDpy3x1N43j1ucAyo5f7Y1",
         "unitAmount": 3150
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UP2sQ3x1N43j1uc8U01ECF0",
+        "unitAmount": 3200
       }
     }
   },
@@ -230,6 +246,10 @@
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNDq23x1N43j1ucjwpODyid",
         "unitAmount": 9900
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UP2sW3x1N43j1ucg50rOWaq",
+        "unitAmount": 9900
       }
     }
   },
@@ -256,6 +276,10 @@
       },
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNDq33x1N43j1ucKqsiEKbz",
+        "unitAmount": 5000
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UP2sj3x1N43j1uc9zkqeRNp",
         "unitAmount": 5000
       }
     }
@@ -292,6 +316,10 @@
       },
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNDq53x1N43j1ucmzFReQc1",
+        "unitAmount": 12600
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UP2sx3x1N43j1ucxpcA2ihQ",
         "unitAmount": 12600
       }
     }
@@ -363,6 +391,10 @@
       },
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNJRy3x1N43j1uc7X0i7YnN",
+        "unitAmount": 1800
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UP2t53x1N43j1ucwLB5UX9k",
         "unitAmount": 1800
       }
     }
