@@ -185,6 +185,10 @@
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNER03x1N43j1uc9M5hIzRg",
         "unitAmount": 8100
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UP3Cy3x1N43j1ucttFeE22Z",
+        "unitAmount": 8100
       }
     }
   },
