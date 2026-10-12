@@ -212,6 +212,10 @@
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpc3x1N43j1ucLP6i6LF0",
         "unitAmount": 5900
+      },
+      "edinburgh-university-cycling-club": {
+        "priceId": "price_1UPjgt3x1N43j1ucUqVhSYfl",
+        "unitAmount": 5900
       }
     }
   },
