@@ -17,6 +17,12 @@ export interface CheckoutItem {
 // ignore it anyway.
 export type ShippingRegion = 'uk' | 'ireland' | 'europe'
 
+// How the kit reaches the customer. 'collection' is only offered for carts
+// made up entirely of a club with `collectionOption` (data/clubs.ts) and is
+// verified server-side against the backend's COLLECTION_OPTION_CLUBS; the
+// session then collects no address and charges no delivery.
+export type DeliveryChoice = 'post' | 'collection'
+
 // Thrown when the backend refuses or fails to create a session. `userFacing`
 // is true for 4xx responses — validation the customer can act on (too many
 // different items, unknown product) — so the cart can show the message as is.
@@ -33,7 +39,8 @@ export class CheckoutError extends Error {
 
 export async function redirectToCheckout(
   items: CheckoutItem[],
-  shippingRegion: ShippingRegion = 'uk'
+  shippingRegion: ShippingRegion = 'uk',
+  delivery: DeliveryChoice = 'post'
 ): Promise<void> {
   // Meta attribution cookies ride along so the backend can stamp them onto the
   // PaymentIntent and send a fully-attributed Conversions API Purchase event.
@@ -45,7 +52,7 @@ export async function redirectToCheckout(
   const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items, shippingRegion, fbp, fbc, gaClientId, gaSessionId }),
+    body: JSON.stringify({ items, shippingRegion, delivery, fbp, fbc, gaClientId, gaSessionId }),
   })
 
   const data = await res.json().catch(() => ({}))

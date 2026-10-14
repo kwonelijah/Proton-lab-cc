@@ -25,12 +25,19 @@ export interface Club {
   // The dashboard's access box only shows `password`.
   altPasswords?: string[]
   tagline: string
-  // Kit for this club ships in one consignment to the club's own distributor,
-  // so checkout charges no delivery and collects no address. Ask the club when
-  // setting the shop up. Display only — the backend decides for real, so the
-  // handle must ALSO be in protonlab-backend/config/shipping.js
-  // CLUB_DELIVERY_CLUBS, or checkout will still charge postage.
+  // Delivery mode — ask the club when setting the shop up; set at most one.
+  // Both flags are display only: the backend decides for real, so the handle
+  // must ALSO be in the matching list in protonlab-backend/config/shipping.js
+  // or checkout will still charge postage (`npm run audit:stripe` checks).
+  //   centralDelivery  — every order ships in one consignment to the club's
+  //                      own distributor: no delivery charge, no address
+  //                      (CLUB_DELIVERY_CLUBS).
+  //   collectionOption — the member chooses in the cart between standard
+  //                      posted delivery and free "Collection from committee"
+  //                      (COLLECTION_OPTION_CLUBS).
+  //   neither          — every order is posted at the normal rates.
   centralDelivery?: boolean
+  collectionOption?: boolean
   products: ClubProduct[]
 }
 
@@ -108,8 +115,8 @@ export const clubs: Club[] = [
     handle: 'swansea-university-road-team',
     name: 'Swansea University Road Team',
     password: 'SURT',
-    centralDelivery: true,
-    tagline: 'All prices include the 10% university discount.\nOrder window closes **Wednesday 28th October**.\nDelivery expected end of November.',
+    collectionOption: true,
+    tagline: 'All prices include the 10% university discount.\nOrder window closes **Wednesday 28th October**.\nDelivery expected end of November.\nFree collection from the committee, or standard delivery to your door — choose in your basket.',
     products: [
       { name: 'Club Jersey', handle: 'ss-club-jersey', category: 'top', price: '£45.00',
         image: '/images/clubs/swansea-university-road-team/surt-ss-training-jersey-front.jpg',

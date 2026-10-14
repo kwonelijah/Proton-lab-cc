@@ -10,8 +10,13 @@ import { useCurrencyStore } from '@/stores/region'
 // hydration mismatch since the server pass doesn't know the cookie.
 // `collectionVia` names a club whose kit goes to its own distributor
 // (data/clubs.ts `centralDelivery`): no postage and no address, so the rates
-// copy is replaced with where the kit will turn up.
-export default function DeliveryNote({ collectionVia }: { collectionVia?: string } = {}) {
+// copy is replaced with where the kit will turn up. `collectionChoice` names a
+// club whose members pick free collection or posted delivery in the basket
+// (`collectionOption`); club prices are GBP, so the UK rates are quoted.
+export default function DeliveryNote({
+  collectionVia,
+  collectionChoice,
+}: { collectionVia?: string; collectionChoice?: string } = {}) {
   const currency = useCurrencyStore(s => s.currency)
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -21,6 +26,21 @@ export default function DeliveryNote({ collectionVia }: { collectionVia?: string
       <p className="text-xs text-proton-grey leading-relaxed">
         Delivered to {collectionVia} for collection with the club&apos;s order — no delivery
         charge, and no address needed at checkout.
+      </p>
+    )
+  }
+
+  if (collectionChoice) {
+    return (
+      <p className="text-xs text-proton-grey leading-relaxed">
+        Free collection from the {collectionChoice} committee, or standard delivery to your door
+        (UK from £2.99, free over £110) — choose in your basket.{' '}
+        <Link
+          href="/delivery"
+          className="underline underline-offset-2 hover:text-proton-black transition-colors duration-200"
+        >
+          Delivery details
+        </Link>
       </p>
     )
   }

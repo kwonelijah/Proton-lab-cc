@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '@/stores/cart'
 import { COUNTRY_COOKIE, CURRENCY_SYMBOL, EUR_COUNTRIES, FREE_SHIPPING_THRESHOLD, type Currency } from '@/lib/currency'
-import { redirectToCheckout, CheckoutError, type ShippingRegion } from '@/lib/checkout'
+import { redirectToCheckout, CheckoutError, type ShippingRegion, type DeliveryChoice } from '@/lib/checkout'
 import { trackMetaEvent, parsePrice } from '@/lib/meta'
 import { trackGaEvent } from '@/lib/ga'
 import { getClubByHandle } from '@/data/clubs'
@@ -39,6 +39,7 @@ export default function CartDrawer() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [region, setRegion] = useState<ShippingRegion>(defaultRegion)
+  const [delivery, setDelivery] = useState<DeliveryChoice>('collection')
 
   // Currency follows the delivery region; a club item pins the whole cart to
   // GBP (club prices are GBP agreements).
@@ -52,6 +53,16 @@ export default function CartDrawer() {
   // and pays the normal rates — the backend applies the same rule.
   const clubDelivery = items.length > 0 && items.every(i => getClubByHandle(i.clubHandle)?.centralDelivery)
   const clubDeliveryName = clubDelivery ? Array.from(new Set(items.map(i => i.clubName))).join(', ') : ''
+
+  // Every line from a club that offers collection (`collectionOption`): the
+  // member picks free "Collection from committee" or standard posted delivery
+  // here, before Stripe. Collection takes the same no-address/no-charge path as
+  // club delivery; the backend only honours it for an all-one-club basket.
+  const collectionOption = items.length > 0 && items.every(i => getClubByHandle(i.clubHandle)?.collectionOption)
+  const collectionClubName = collectionOption ? Array.from(new Set(items.map(i => i.clubName))).join(', ') : ''
+  const collection = collectionOption && delivery === 'collection'
+  // Nothing is posted — no region, no address, no delivery charge.
+  const noPostage = clubDelivery || collection
 
   const drawerRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
@@ -144,7 +155,8 @@ export default function CartDrawer() {
           clubName: item.clubName,
           clubHandle: item.clubHandle,
         })),
-        clubDelivery ? 'uk' : region
+        noPostage ? 'uk' : region,
+        collection ? 'collection' : 'post'
       )
     } catch (err) {
       setLoading(false)
@@ -231,7 +243,31 @@ export default function CartDrawer() {
               const remaining = FREE_SHIPPING_THRESHOLD[cartCurrency] - subtotal
               return (
                 <div className="px-6 py-6 border-t border-proton-light space-y-4">
-                  {!clubDelivery && (
+                  {collectionOption && (
+                    <fieldset className="space-y-2">
+                      <legend className="text-[10px] uppercase tracking-widest text-proton-grey mb-2">Delivery</legend>
+                      {([
+                        ['collection', 'Collection from committee', 'Free'],
+                        ['post', 'Standard delivery', 'from £2.99'],
+                      ] as [DeliveryChoice, string, string][]).map(([value, label, cost]) => (
+                        <label key={value} className="flex items-center justify-between gap-3 cursor-pointer">
+                          <span className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="cart-delivery"
+                              value={value}
+                              checked={delivery === value}
+                              onChange={() => setDelivery(value)}
+                              className="h-3.5 w-3.5 accent-proton-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2"
+                            />
+                            <span className="text-sm text-proton-black">{label}</span>
+                          </span>
+                          <span className="text-sm text-proton-black">{cost}</span>
+                        </label>
+                      ))}
+                    </fieldset>
+                  )}
+                  {!noPostage && (
                     <div className="flex items-center justify-between">
                       <label htmlFor="cart-region" className="text-[10px] uppercase tracking-widest text-proton-grey">
                         Deliver to
@@ -256,6 +292,10 @@ export default function CartDrawer() {
                     <p className="text-[10px] text-proton-grey text-center">
                       Delivered to {clubDeliveryName} for collection — no delivery charge
                     </p>
+                  ) : collection ? (
+                    <p className="text-[10px] text-proton-grey text-center">
+                      Collect your kit from the {collectionClubName} committee — no delivery charge, no address needed
+                    </p>
                   ) : (
                     <>
                       <p className="text-[10px] text-proton-grey text-center">
@@ -268,7 +308,7 @@ export default function CartDrawer() {
                       </p>
                     </>
                   )}
-                  {!clubDelivery && region === 'europe' && (
+                  {!noPostage && region === 'europe' && (
                     <p className="text-[10px] text-proton-grey text-center">
                       Customs charges &amp; import duties are covered — nothing extra to pay on arrival
                     </p>

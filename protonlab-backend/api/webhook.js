@@ -8,6 +8,7 @@ import { sendOrderConfirmation, sendInternalNotification } from '../lib/email.js
 import { loadProductMap as loadSharedProductMap, decodeItems } from '../lib/order-items.js';
 import { sendMetaEvent, buildUserData } from '../lib/meta-capi.js';
 import { sendGa4Purchase } from '../lib/ga4-mp.js';
+import { COLLECTION_LABEL } from '../config/shipping.js';
 import {
   GENERAL_AUDIENCE_ID,
   CUSTOMERS_AUDIENCE_ID,
@@ -119,18 +120,25 @@ export default async function handler(req, res) {
 
     // Which delivery service the customer picked. `evri_service` metadata is set
     // on every rate in config/shipping.js; fall back to 'standard' for legacy
-    // orders created before shipping options existed. Club-delivery orders
-    // (create-checkout-session stamps `delivery: 'club'` for the shops in
-    // CLUB_DELIVERY_CLUBS) have no rate and no address — the kit goes to the
-    // club's distributor in one consignment — so they get their own method.
-    const clubDelivery = payment.metadata?.delivery === 'club';
+    // orders created before shipping options existed. Two kinds of order have
+    // no rate and no address (create-checkout-session stamps `delivery`):
+    // 'club' — CLUB_DELIVERY_CLUBS, the kit goes to the club's distributor in
+    // one consignment; 'collection' — the member chose to collect from the
+    // club committee (COLLECTION_OPTION_CLUBS). Each gets its own method.
+    const delivery = payment.metadata?.delivery;
+    const clubDelivery = delivery === 'club';
+    const collection = delivery === 'collection';
     const shippingRate = session?.shipping_cost?.shipping_rate;
     const shippingMethod = clubDelivery
       ? 'club'
-      : (typeof shippingRate === 'object' && shippingRate?.metadata?.evri_service) || 'standard';
+      : collection
+        ? 'collection'
+        : (typeof shippingRate === 'object' && shippingRate?.metadata?.evri_service) || 'standard';
     const shippingLabel = clubDelivery
       ? 'Club delivery'
-      : (typeof shippingRate === 'object' && shippingRate?.display_name) || 'Standard Delivery';
+      : collection
+        ? COLLECTION_LABEL
+        : (typeof shippingRate === 'object' && shippingRate?.display_name) || 'Standard Delivery';
     const shippingAmount = session?.shipping_cost?.amount_total ?? 0; // pence
 
     // Discount details, if a promotion code was applied at checkout.

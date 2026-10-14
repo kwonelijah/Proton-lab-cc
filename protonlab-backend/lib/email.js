@@ -184,14 +184,23 @@ export async function sendInternalNotification(order) {
   const itemsFmt = formatItems(order);
 
   // Delivery service line — this is what tells us which Evri service to book.
-  const serviceNames = { standard: 'Standard', 'next-day': 'NEXT-DAY', international: 'International', club: 'CLUB DELIVERY' };
+  const serviceNames = {
+    standard: 'Standard',
+    'next-day': 'NEXT-DAY',
+    international: 'International',
+    club: 'CLUB DELIVERY',
+    collection: 'COLLECTION FROM COMMITTEE',
+  };
   const shippingCost = parseFloat(order.shippingAmount || '0');
   const service = serviceNames[order.shippingMethod] || 'Standard';
   // Club delivery = the kit travels to the club's distributor with the rest of
-  // the club's order; nothing to book with Evri for this customer.
+  // the club's order; collection = the member picks it up from the club
+  // committee. Nothing to book with Evri for this customer either way.
   const deliveryLine = order.shippingMethod === 'club'
     ? 'CLUB DELIVERY — goes to the club in one consignment, no parcel to book'
-    : `${service} (${order.shippingLabel || 'Standard Delivery'}) — ${shippingCost > 0 ? `${sym}${shippingCost.toFixed(2)}` : 'Free'}`;
+    : order.shippingMethod === 'collection'
+      ? 'COLLECTION FROM COMMITTEE — goes to the club committee with the other collection orders, no parcel to book'
+      : `${service} (${order.shippingLabel || 'Standard Delivery'}) — ${shippingCost > 0 ? `${sym}${shippingCost.toFixed(2)}` : 'Free'}`;
   const discountValue = parseFloat(order.discountAmount || '0');
   const discountLine = discountValue > 0
     ? `−${sym}${discountValue.toFixed(2)}${order.promoCode ? ` (code: ${order.promoCode})` : ''}`

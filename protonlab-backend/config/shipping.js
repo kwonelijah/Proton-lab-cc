@@ -52,27 +52,52 @@ export const EUROPE_COUNTRIES = [
   'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK',
 ];
 
-// Club shops whose kit goes to the club's own distributor in one consignment
-// (a committee member hands it out). Checkout charges no delivery and collects
-// no address; the PaymentIntent is stamped `delivery: 'club'` and the webhook
-// records `shipping_method: 'club'`, which the emails, admin feed, dashboard
-// and Evri export (where such orders are skipped) all understand. Decided per
-// club when its shop is set up — the handle must match the club's
-// `centralDelivery: true` flag in the website's data/clubs.ts, and this list
-// is what checkout actually trusts.
+// Club shops come in three delivery modes, decided per club when its shop is
+// set up (ask the club). Each list below must match the flag on the club in
+// the website's data/clubs.ts — the site only uses the flag for display, this
+// file is what checkout actually trusts (scripts/stripe-audit.mjs checks the
+// two agree). A club appears in at most one list; a club in neither posts
+// every order at the normal zone rates.
+//
+// CLUB_DELIVERY_CLUBS (`centralDelivery: true`): every order goes to the
+// club's own distributor in one consignment and a committee member hands it
+// out. Checkout charges no delivery and collects no address; the
+// PaymentIntent is stamped `delivery: 'club'` and the webhook records
+// `shipping_method: 'club'`, which the emails, admin feed, dashboard and Evri
+// export (where such orders are skipped) all understand.
 export const CLUB_DELIVERY_CLUBS = new Set([
   'ucl-cycling',
-  'swansea-university-road-team',
   'university-of-bristol-cycling-club',
   'university-of-bath-cycling-club',
 ]);
+
+// COLLECTION_OPTION_CLUBS (`collectionOption: true`): the member chooses in
+// the cart between standard posted delivery (address + normal zone rates) and
+// free collection from the club committee. A collection order follows the
+// club-delivery path at checkout (no address, no charge) but is stamped
+// `delivery: 'collection'` → `shipping_method: 'collection'`, labelled
+// COLLECTION_LABEL everywhere it is shown.
+export const COLLECTION_OPTION_CLUBS = new Set([
+  'swansea-university-road-team',
+]);
+export const COLLECTION_LABEL = 'Collection from committee';
+
+function everyLineFrom(set, clubHandles) {
+  const handles = Array.isArray(clubHandles) ? clubHandles : [];
+  return handles.length > 0 && handles.every((h) => set.has(h));
+}
 
 // True when every line in the cart belongs to a club-delivery shop. A mixed
 // cart (club kit plus retail, or two clubs where one posts) still ships as a
 // parcel and pays the normal zone rates.
 export function isClubDelivery(clubHandles) {
-  const handles = Array.isArray(clubHandles) ? clubHandles : [];
-  return handles.length > 0 && handles.every((h) => CLUB_DELIVERY_CLUBS.has(h));
+  return everyLineFrom(CLUB_DELIVERY_CLUBS, clubHandles);
+}
+
+// True when every line in the cart belongs to a shop that offers collection —
+// only then may the client's `delivery: 'collection'` request be honoured.
+export function isCollectionOption(clubHandles) {
+  return everyLineFrom(COLLECTION_OPTION_CLUBS, clubHandles);
 }
 
 // Each zone carries the currency its customers are CHARGED in — the charged

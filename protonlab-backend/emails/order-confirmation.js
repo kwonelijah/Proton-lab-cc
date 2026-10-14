@@ -50,10 +50,13 @@ export function render(order) {
     : null;
 
   // Club-delivery orders travel to the club's distributor with the rest of the
-  // club's kit — no parcel to this customer, so say where it will turn up.
+  // club's kit, and collection orders are picked up from the club committee —
+  // no parcel to this customer either way, so say where it will turn up.
   const nextStep = order.shippingMethod === 'club'
     ? `Your order is confirmed. Your kit will be delivered to ${club || 'your club'} with the rest of the club's order, and the club will hand it out — there's nothing to post.`
-    : "Your order is confirmed and we'll be in touch once it's shipped.";
+    : order.shippingMethod === 'collection'
+      ? `Your order is confirmed. Your kit will go to the ${club || 'club'} committee for you to collect — there's nothing to post, and they'll let you know when it's ready.`
+      : "Your order is confirmed and we'll be in touch once it's shipped.";
 
   const html = layout(`
       ${heading('Your order is confirmed')}

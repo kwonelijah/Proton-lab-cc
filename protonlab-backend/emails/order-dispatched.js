@@ -28,22 +28,29 @@ export function render(order, dispatch = {}) {
   // a manual order anywhere, so name the region by the destination.
   const isInternational = order.shippingMethod === 'international';
   // Club delivery: the parcel goes to the club's distributor, who hands the kit
-  // out — so the dispatch note names the club, not a courier to the customer.
+  // out; collection: it goes to the club committee for the member to pick up.
+  // Either way the dispatch note names the club, not a courier to the customer.
   const clubDelivery = order.shippingMethod === 'club';
+  const collection = order.shippingMethod === 'collection';
   const club = order.club && order.club !== 'N/A' ? order.club : 'your club';
+  const committee = order.club && order.club !== 'N/A' ? `the ${order.club} committee` : 'your club committee';
   const country = String(order.shipping?.address?.country || '').toUpperCase();
   const region = EUROPE_COUNTRIES.includes(country) || country === 'IE' ? 'European' : 'International';
   const estimateHtml = clubDelivery
     ? `The club's consignment usually arrives within 2&ndash;4 working days, and the club will hand your kit out.`
-    : isInternational
-      ? `${region} delivery usually takes 5&ndash;10 working days.`
-      : order.shippingMethod === 'next-day'
-        ? 'Next-day delivery usually arrives the next working day.'
-        : 'Standard delivery usually takes 2&ndash;4 working days.';
+    : collection
+      ? `It usually reaches the committee within 2&ndash;4 working days, and they'll let you know when it's ready to collect.`
+      : isInternational
+        ? `${region} delivery usually takes 5&ndash;10 working days.`
+        : order.shippingMethod === 'next-day'
+          ? 'Next-day delivery usually arrives the next working day.'
+          : 'Standard delivery usually takes 2&ndash;4 working days.';
   const estimateText = estimateHtml.replace(/&ndash;/g, '-');
   const dispatchedLine = clubDelivery
     ? `Your order has been dispatched to ${club} as part of the club's consignment.`
-    : 'Your order has been dispatched with Evri.';
+    : collection
+      ? `Your order has been sent to ${committee} for collection.`
+      : 'Your order has been dispatched with Evri.';
 
   const customsNote = isInternational
     ? "Customs charges and import duties are covered by Proton Lab — there's nothing extra to pay on arrival."

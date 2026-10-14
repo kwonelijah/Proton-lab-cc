@@ -11,13 +11,18 @@
 //   3. every club tile in data/clubs.ts resolves to a catalogue handle that has a
 //      club price for that club in both club-prices.json and the stripe map, and
 //      the £ shown on the tile matches it
-//   4. every price id in the map is active in Stripe with the same amount/currency;
+//   4. the delivery-mode flags on each club in data/clubs.ts (centralDelivery /
+//      collectionOption) match the lists checkout trusts in
+//      protonlab-backend/config/shipping.js (CLUB_DELIVERY_CLUBS /
+//      COLLECTION_OPTION_CLUBS), and no club is in both
+//   5. every price id in the map is active in Stripe with the same amount/currency;
 //      every product id is active
 //
 // Exit code 1 when anything is wrong (so it can gate a push); pricelist handles
 // with no catalogue product are reported as warnings only (they can't be sold).
 //
 // Needs STRIPE_SECRET_KEY — read from .env.local like scripts/stripe-sync.js.
+// `--static` runs checks 1–4 only (no key, no network) — a fast pre-push check.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -35,6 +40,7 @@ function stripeKey() {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const STATIC_ONLY = process.argv.includes('--static');
 const issues = [];
 const warnings = [];
 
@@ -91,15 +97,60 @@ for (const [club, prices] of Object.entries(clubPrices)) {
   for (const h of Object.keys(prices)) if (!map[h]) issues.push(`club-prices.json: "${club}" prices unknown handle "${h}"`);
 }
 
-// ─── 3. live Stripe ─────────────────────────────────────────────────────────
+// ─── 3. club delivery modes ─────────────────────────────────────────────────
+// The site's flags only drive display; the backend lists decide what checkout
+// charges. If they drift a shop can hide the address while postage is still
+// charged (or the reverse), so both directions are checked.
+{
+  const shippingJs = read('protonlab-backend/config/shipping.js');
+  const listOf = (name) => {
+    const m = shippingJs.match(new RegExp(`export const ${name} = new Set\\(\\[([\\s\\S]*?)\\]\\);`));
+    if (!m) issues.push(`protonlab-backend/config/shipping.js: could not find ${name}`);
+    return new Set(m ? [...m[1].matchAll(/'([a-z0-9-]+)'/g)].map((x) => x[1]) : []);
+  };
+  const modes = [
+    ['centralDelivery', 'CLUB_DELIVERY_CLUBS', listOf('CLUB_DELIVERY_CLUBS')],
+    ['collectionOption', 'COLLECTION_OPTION_CLUBS', listOf('COLLECTION_OPTION_CLUBS')],
+  ];
+  const flagged = {};
+  for (const [block, handle] of clubBlocks) {
+    const head = block.slice(0, block.indexOf('products:'));
+    flagged[handle] = modes.filter(([flag]) => new RegExp(`${flag}:\\s*true`).test(head)).map(([flag]) => flag);
+    if (flagged[handle].length > 1) issues.push(`${handle}: data/clubs.ts sets both ${flagged[handle].join(' and ')} — a club has at most one delivery mode`);
+  }
+  for (const [flag, list, set] of modes) {
+    for (const [, handle] of clubBlocks) {
+      if (flagged[handle].includes(flag) && !set.has(handle)) issues.push(`${handle}: ${flag} in data/clubs.ts but not in ${list} — checkout will still charge postage`);
+    }
+    for (const handle of set) {
+      if (!flagged[handle]?.includes(flag)) issues.push(`${handle}: in ${list} but data/clubs.ts has no ${flag} flag (or no such shop) — the site shows postage the backend won't charge`);
+    }
+  }
+  const [, , clubSet] = modes[0];
+  const [, , collectionSet] = modes[1];
+  for (const h of clubSet) if (collectionSet.has(h)) issues.push(`${h}: in both CLUB_DELIVERY_CLUBS and COLLECTION_OPTION_CLUBS`);
+  console.log(`club delivery modes: ${clubSet.size} club-delivery, ${collectionSet.size} collection-option — flags checked against the backend lists`);
+}
+
+// ─── 4. live Stripe ─────────────────────────────────────────────────────────
+if (STATIC_ONLY) {
+  console.log('live Stripe checks skipped (--static)');
+  report();
+}
 const H = { Authorization: 'Bearer ' + stripeKey() };
 async function get(url) {
+  let last = 'rate limited';
   for (let attempt = 0; attempt < 3; attempt++) {
-    const r = await fetch(url, { headers: H });
-    if (r.status !== 429) return r.json();
+    try {
+      const r = await fetch(url, { headers: H });
+      if (r.status !== 429) return r.json();
+    } catch (err) {
+      // Transient timeouts must not abort the whole audit — retry, then report.
+      last = `network error (${err.cause?.code || err.message})`;
+    }
     await sleep(1500 * (attempt + 1));
   }
-  return { error: { message: 'rate limited' } };
+  return { error: { message: last } };
 }
 const priceChecks = [];
 for (const [h, e] of Object.entries(map)) {
@@ -129,9 +180,15 @@ for (const id of productIds) {
 console.log(`live products active: ${productOk}/${productIds.length}`);
 
 // ─── report ─────────────────────────────────────────────────────────────────
-if (warnings.length) console.log(`\nWARNINGS (${warnings.length}):\n- ` + warnings.join('\n- '));
-if (issues.length) {
-  console.log(`\nISSUES (${issues.length}):\n- ` + issues.join('\n- '));
-  process.exit(1);
+report();
+function report() {
+  if (warnings.length) console.log(`\nWARNINGS (${warnings.length}):\n- ` + warnings.join('\n- '));
+  if (issues.length) {
+    console.log(`\nISSUES (${issues.length}):\n- ` + issues.join('\n- '));
+    process.exit(1);
+  }
+  console.log(STATIC_ONLY
+    ? '\nNO ISSUES — pricelist, catalogue, club shops and price maps agree (Stripe not checked)'
+    : '\nNO ISSUES — pricelist, catalogue, club shops, price maps and Stripe all agree');
+  process.exit(0);
 }
-console.log('\nNO ISSUES — pricelist, catalogue, club shops, price maps and Stripe all agree');
