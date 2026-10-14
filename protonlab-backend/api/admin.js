@@ -31,7 +31,7 @@ import {
 } from '../lib/email.js';
 import { readStock, applyAndCommit } from '../lib/stock.js';
 import { readClubs } from '../lib/clubs.js';
-import { decodeItems, summariseItems } from '../lib/order-items.js';
+import { decodeItems, summariseItems, loadProductMap } from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -44,10 +44,12 @@ const THANK_YOU_DELAY_DAYS = 5;
 const REVIEW_DELAY_DAYS = 19;
 
 // Delivery services the dashboard may set on an order — the keys used by
-// config/shipping.js, plus 'club' (one consignment to the club's distributor,
-// recorded by the webhook for CLUB_DELIVERY_CLUBS shops). Anything else is
-// ignored and the order keeps whatever checkout recorded (or 'standard').
-const SHIPPING_METHODS = ['standard', 'next-day', 'international', 'club'];
+// config/shipping.js, plus the two no-parcel methods the webhook records:
+// 'club' (one consignment to the club's distributor, CLUB_DELIVERY_CLUBS) and
+// 'collection' (member collects from the club committee,
+// COLLECTION_OPTION_CLUBS). Anything else is ignored and the order keeps
+// whatever checkout recorded (or 'standard').
+const SHIPPING_METHODS = ['standard', 'next-day', 'international', 'club', 'collection'];
 function shippingMethodOf(v) {
   return SHIPPING_METHODS.includes(v) ? v : null;
 }
@@ -81,6 +83,34 @@ function itemsSummary(meta) {
   const items = parseLineItems(meta);
   if (items.length) return summariseItems(items, Infinity);
   return meta?.product || '—';
+}
+
+// Minor-unit metadata (pence — webhook.js stamps shipping_amount/discount_amount)
+// → the same "12.34" string format as entry.amount. Absent/malformed → null so
+// the dashboard can tell "unknown" from zero.
+function moneyFromMinor(v) {
+  if (v == null || v === '' || !/^\d+$/.test(String(v))) return null;
+  return (Number(v) / 100).toFixed(2);
+}
+
+// Structured line items for the dashboard feed, each priced the way checkout
+// resolved it: clubPrices[club_handle] ?? eur ?? base (unitAmount stays in
+// minor units). club_handle may be a comma-joined list for a multi-club cart —
+// the first handle priced the club lines.
+function feedLineItems(items, meta, currency) {
+  if (!items.length) return [];
+  let map = {};
+  try { map = loadProductMap(); } catch { /* the feed must not fail over the map */ }
+  const clubKey = (meta?.club_handle || '').split(',')[0].trim();
+  const isEur = currency === 'eur';
+  return items.map((li) => {
+    const product = map[li.handle];
+    const unitAmount =
+      product?.clubPrices?.[clubKey]?.unitAmount ??
+      (isEur ? product?.eur?.unitAmount : undefined) ??
+      product?.unitAmount ?? null;
+    return { handle: li.handle, name: li.name, size: li.size, qty: li.qty, unitAmount };
+  });
 }
 
 // Builds the order object the email templates expect — same shape as
@@ -510,6 +540,7 @@ export default async function handler(req, res) {
   for (const p of payments) {
     if (p.status !== 'succeeded') continue;
     const meta = p.metadata || {};
+    const lineItems = parseLineItems(meta);
     const club = meta.club || '';
     const number = orderNumber(p.id);
     const addr = p.shipping?.address || {};
@@ -532,7 +563,12 @@ export default async function handler(req, res) {
       address: [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
         .filter(Boolean)
         .join(', '),
-      items: itemsSummary(meta),
+      items: lineItems.length ? summariseItems(lineItems, Infinity) : meta?.product || '—',
+      clubHandle: meta.club_handle || '',
+      lineItems: feedLineItems(lineItems, meta, p.currency),
+      shippingAmount: moneyFromMinor(meta.shipping_amount),
+      discountAmount: moneyFromMinor(meta.discount_amount),
+      promoCode: meta.promo_code || '',
       place: [addr.city, addr.postal_code].filter(Boolean).join(', ') || '—',
       amount: (p.amount / 100).toFixed(2),
       symbol: p.currency === 'eur' ? '€' : '£',
