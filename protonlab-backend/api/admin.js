@@ -28,6 +28,7 @@ import {
   sendOrderDelivered,
   sendOrderInProduction,
   sendReviewRequest,
+  sendSampleDispatched,
 } from '../lib/email.js';
 import { readStock, applyAndCommit } from '../lib/stock.js';
 import { readClubs } from '../lib/clubs.js';
@@ -375,7 +376,7 @@ export default async function handler(req, res) {
     // the order record and its state; this endpoint only renders and sends.
     if (req.body?.action === 'send') {
       const { kind, order, tracking: manualTracking } = req.body;
-      if (!['confirmation', 'production', 'dispatch'].includes(kind)) {
+      if (!['confirmation', 'production', 'dispatch', 'sample'].includes(kind)) {
         return res.status(400).json({ error: 'Unknown email kind' });
       }
       if (!order || !order.email || !order.name) {
@@ -401,6 +402,14 @@ export default async function handler(req, res) {
         result = await sendOrderConfirmation(o);
       } else if (kind === 'production') {
         result = await sendOrderInProduction(o);
+      } else if (kind === 'sample') {
+        // Samples flow: a dispatch note only — the template shows no prices,
+        // and unlike 'dispatch' no thank-you or review follow-up is scheduled.
+        const trackingNumber = (manualTracking || '').trim() || null;
+        const dispatch = trackingNumber
+          ? { trackingNumber, trackingUrl: `https://www.evri.com/track/parcel/${encodeURIComponent(trackingNumber)}` }
+          : {};
+        result = await sendSampleDispatched(o, dispatch);
       } else {
         const trackingNumber = (manualTracking || '').trim() || null;
         const dispatch = trackingNumber

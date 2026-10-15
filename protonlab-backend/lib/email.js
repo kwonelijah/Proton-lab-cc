@@ -8,6 +8,7 @@ import { COLORS, FONTS, formatShipping, formatItems, currencySymbol } from '../e
 import { render as renderConfirmation } from '../emails/order-confirmation.js';
 import { render as renderProduction } from '../emails/order-production.js';
 import { render as renderDispatched } from '../emails/order-dispatched.js';
+import { render as renderSampleDispatched } from '../emails/sample-dispatched.js';
 import { render as renderDelivered } from '../emails/order-delivered.js';
 import { render as renderReviewRequest } from '../emails/review-request.js';
 import { render as renderWelcome } from '../emails/welcome.js';
@@ -71,6 +72,12 @@ export async function sendOrderInProduction(order) {
 // dispatch: { trackingNumber?, trackingUrl? }
 export async function sendOrderDispatched(order, dispatch = {}) {
   return sendToCustomer(order, renderDispatched(order, dispatch));
+}
+
+// Samples flow dispatch note — no prices and no follow-up scheduling.
+// dispatch: { trackingNumber?, trackingUrl? }
+export async function sendSampleDispatched(order, dispatch = {}) {
+  return sendToCustomer(order, renderSampleDispatched(order, dispatch));
 }
 
 // options.scheduledAt (ISO string) lets the dispatch flow schedule this for a
