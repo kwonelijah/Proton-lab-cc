@@ -268,7 +268,7 @@ export const clubs: Club[] = [
     handle: 'edinburgh-university-cycling-club',
     name: 'Edinburgh University Cycling Club',
     password: 'EDINBURGH',
-    tagline: 'All prices include the 10% university discount.\nOrder window open **Monday 12th October – Sunday 25th October**.\nDelivery expected end of November.',
+    tagline: 'All prices include the 10% university discount.\nOrder window open **Monday 12th October – Friday 30th October**.\nDelivery expected end of November.',
     products: [
       { name: 'SS Race Jersey', handle: 'ss-race-jersey', category: 'top', price: '£86.00',
         image: '/images/clubs/edinburgh-university-cycling-club/eucc-ss-race-jersey-front.jpg?v=2',
