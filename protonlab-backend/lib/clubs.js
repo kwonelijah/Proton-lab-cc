@@ -16,14 +16,23 @@ const CLUB_RE = /handle:\s*(['"])(.*?)\1,\s*name:\s*(['"])(.*?)\3,\s*password:\s
 const unescape = (s) => s.replace(/\\(['"])/g, '$1');
 
 export function parseClubs(source) {
+  const src = String(source);
   const clubs = [];
-  for (const m of String(source).matchAll(CLUB_RE)) {
+  for (const m of src.matchAll(CLUB_RE)) {
     const handle = unescape(m[2]);
+    // The club's header block runs from the triplet to its products array —
+    // windowStart/windowEnd (ISO dates) live there when the shop has a
+    // declared order window; the dashboard seeds its window from them.
+    const headEnd = src.indexOf('products:', m.index);
+    const head = src.slice(m.index, headEnd === -1 ? m.index + 1500 : headEnd);
+    const win = (f) => (head.match(new RegExp(`${f}:\\s*(['"])(\\d{4}-\\d{2}-\\d{2})\\1`)) || [])[2] || null;
     clubs.push({
       handle,
       name: unescape(m[4]),
       password: unescape(m[6]),
       url: `${SITE_URL}/custom/club/${handle}`,
+      windowStart: win('windowStart'),
+      windowEnd: win('windowEnd'),
     });
   }
   return clubs;

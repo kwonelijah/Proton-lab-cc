@@ -25,6 +25,11 @@ export interface Club {
   // The dashboard's access box only shows `password`.
   altPasswords?: string[]
   tagline: string
+  // Current order window (ISO dates, inclusive). The dashboard's Club Shops
+  // tab reads these via the backend (?action=clubs) and seeds the club's
+  // order window from them — update when a shop opens or its dates change.
+  windowStart?: string
+  windowEnd?: string
   // Delivery mode — ask the club when setting the shop up; set at most one.
   // Both flags are display only: the backend decides for real, so the handle
   // must ALSO be in the matching list in protonlab-backend/config/shipping.js
@@ -47,6 +52,8 @@ export const clubs: Club[] = [
     name: 'Edinburgh Bike Fitting Club',
     password: 'EBFSHOP',
     tagline: 'Order window closes **Sunday 18th October**.\nDelivery expected end of November.',
+    windowStart: '2026-10-05',
+    windowEnd: '2026-10-18',
     products: [
       { name: 'SS Race Jersey', handle: 'ss-race-jersey', category: 'top', price: '£95.00',
         image: '/images/clubs/edinburgh-bike-fitting-club/ebfshop-ss-race-jersey-front.jpg',
@@ -71,6 +78,8 @@ export const clubs: Club[] = [
     password: 'UCLSHOP',
     centralDelivery: true,
     tagline: 'All prices include the 10% university discount.\nOrder window open **Monday 12th October – Sunday 25th October**.\nDelivery expected end of November.',
+    windowStart: '2026-10-12',
+    windowEnd: '2026-10-25',
     products: [
       { name: 'Club Jersey', handle: 'ss-club-jersey', category: 'top', price: '£45.00',
         image: '/images/clubs/ucl-cycling/ucl-ss-club-jersey-front.jpg',
@@ -117,6 +126,8 @@ export const clubs: Club[] = [
     password: 'SURT',
     collectionOption: true,
     tagline: 'All prices include the 10% university discount.\nOrder window closes **Wednesday 28th October**.\nDelivery expected end of November.\nFree collection from the committee, or standard delivery to your door — choose in your basket.',
+    windowStart: '2026-10-14',
+    windowEnd: '2026-10-28',
     products: [
       { name: 'Club Jersey', handle: 'ss-club-jersey', category: 'top', price: '£45.00',
         image: '/images/clubs/swansea-university-road-team/surt-ss-training-jersey-front.jpg',
@@ -163,6 +174,8 @@ export const clubs: Club[] = [
     password: 'BRISTOL',
     centralDelivery: true,
     tagline: 'All prices include the 10% university discount.\nOrder window open **Tuesday 6th October – Thursday 22nd October** (closes midnight).\nDelivery expected end of November.',
+    windowStart: '2026-10-06',
+    windowEnd: '2026-10-22',
     products: [
       { name: 'SS Race Jersey', handle: 'ss-race-jersey', category: 'top', price: '£86.00',
         image: '/images/clubs/university-of-bristol-cycling-club/uobcc-ss-training-jersey-front.jpg',
@@ -205,6 +218,8 @@ export const clubs: Club[] = [
     altPasswords: ['uptheUOBCC2026'],
     centralDelivery: true,
     tagline: 'All prices include the 10% university discount.\nOrder window open **Monday 5th October – Sunday 18th October** (closes midnight).\nDelivery expected late November.',
+    windowStart: '2026-10-05',
+    windowEnd: '2026-10-18',
     products: [
       { name: 'SS Race Jersey', handle: 'ss-race-jersey', category: 'top', price: '£86.00',
         image: '/images/clubs/university-of-bath-cycling-club/bath-ss-race-jersey-front.jpg',
@@ -269,6 +284,8 @@ export const clubs: Club[] = [
     name: 'Edinburgh University Cycling Club',
     password: 'EDINBURGH',
     tagline: 'All prices include the 10% university discount.\nOrder window open **Monday 12th October – Friday 30th October**.\nDelivery expected end of November.',
+    windowStart: '2026-10-12',
+    windowEnd: '2026-10-30',
     products: [
       { name: 'SS Race Jersey', handle: 'ss-race-jersey', category: 'top', price: '£86.00',
         image: '/images/clubs/edinburgh-university-cycling-club/eucc-ss-race-jersey-front.jpg?v=2',
