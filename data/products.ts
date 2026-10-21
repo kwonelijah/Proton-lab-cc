@@ -9,21 +9,33 @@ const img = (seed: string, w = 800, h = 1000) => ({
   height: h,
 })
 
+// Size runs. Labels follow the site convention (2XS / 2XL, never XXS / XXL —
+// the order dashboard and stock.csv use the same spelling).
+//   sizes()        — XS–XL (+ optional extras): retail stock products and the
+//                    sized accessories (mitts, arm/knee/leg warmers).
+//   garmentSizes() — 2XS–2XL: every made-to-order garment (jerseys, jackets,
+//                    gilets, bibs, tights, skinsuits, running tops), i.e. what
+//                    the club shops sell. Club PDPs show every variant as
+//                    orderable, so no stock.csv rows are needed for 2XS/2XL.
+// scripts/sync-stock.mjs text-parses these calls and mirrors BOTH lists —
+// change it in step with any edit here.
+const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL']
+const GARMENT_SIZES = ['2XS', 'XS', 'S', 'M', 'L', 'XL', '2XL']
+
+const variantNode = (id: string, price: string, label: string) => ({
+  id: `${id}_${label.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+  title: label,
+  availableForSale: true,
+  price: { amount: price, currencyCode: 'GBP' },
+  selectedOptions: [{ name: 'Size', value: label }],
+})
+
 const sizes = (id: string, price: string, extra: string[] = []) => ({
-  nodes: [
-    { id: `${id}_xs`, title: 'XS', availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'XS' }] },
-    { id: `${id}_s`,  title: 'S',  availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S' }] },
-    { id: `${id}_m`,  title: 'M',  availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'M' }] },
-    { id: `${id}_l`,  title: 'L',  availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'L' }] },
-    { id: `${id}_xl`, title: 'XL', availableForSale: true, price: { amount: price, currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'XL' }] },
-    ...extra.map(label => ({
-      id: `${id}_${label.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
-      title: label,
-      availableForSale: true,
-      price: { amount: price, currencyCode: 'GBP' },
-      selectedOptions: [{ name: 'Size', value: label }],
-    })),
-  ],
+  nodes: [...STANDARD_SIZES, ...extra].map(label => variantNode(id, price, label)),
+})
+
+const garmentSizes = (id: string, price: string) => ({
+  nodes: GARMENT_SIZES.map(label => variantNode(id, price, label)),
 })
 
 const col = (handle: string, title: string) => ({
@@ -56,7 +68,7 @@ export const products: Product[] = [
       { id: 'img-ss-race-jersey-3', url: '/images/products/ss-race-jersey/ss-race-jersey3.jpg?v=3', altText: 'SS Race Jersey', width: 1333, height: 2000 },
       { id: 'img-ss-race-jersey-4', url: '/images/products/ss-race-jersey/ss-race-jersey4.jpg', altText: 'SS Race Jersey', width: 1333, height: 2000 },
     ]},
-    variants: sizes('001', '95.00'),
+    variants: garmentSizes('001', '95.00'),
     priceRange: { minVariantPrice: { amount: '95.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['jersey', 'race', 'short-sleeve'], availableForSale: true,
   },
@@ -76,7 +88,7 @@ export const products: Product[] = [
       keywords: 'zipperless cycling jersey, zipless cycling jersey, aero cycling jersey, warm weather cycling jersey, race fit jersey, custom cycling kit, premium cycling apparel UK',
     },
     featuredImage: img('ss-zipperless-jersey'), images: { nodes: [img('ss-zipperless-jersey')] },
-    variants: sizes('002', '80.00'),
+    variants: garmentSizes('002', '80.00'),
     priceRange: { minVariantPrice: { amount: '80.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['jersey', 'race', 'short-sleeve', 'zipperless'], availableForSale: true,
   },
@@ -102,7 +114,7 @@ export const products: Product[] = [
       { id: 'img-ls-fleece-jersey-3', url: '/images/products/ls-fleece-jersey/ls-fleece-jersey3.jpg?v=3', altText: 'LS Fleece Jersey — custom design example, front', width: 1365, height: 2048 },
       { id: 'img-ls-fleece-jersey-4', url: '/images/products/ls-fleece-jersey/ls-fleece-jersey4.jpg?v=3', altText: 'LS Fleece Jersey — custom design example, back', width: 1365, height: 2048 },
     ]},
-    variants: sizes('003', '90.00'),
+    variants: garmentSizes('003', '90.00'),
     priceRange: { minVariantPrice: { amount: '90.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['jersey', 'race', 'long-sleeve', 'fleece', 'winter'], availableForSale: true,
   },
@@ -126,7 +138,7 @@ export const products: Product[] = [
       { id: 'img-race-bib-shorts-1', url: '/images/products/race-bib-shorts/race-bib-shorts1.jpg?v=2', altText: 'Race Bib Shorts', width: 1333, height: 2000 },
       { id: 'img-race-bib-shorts-2', url: '/images/products/race-bib-shorts/race-bib-shorts2.jpg', altText: 'Race Bib Shorts', width: 1333, height: 2000 },
     ]},
-    variants: sizes('004', '110.00'),
+    variants: garmentSizes('004', '110.00'),
     priceRange: { minVariantPrice: { amount: '110.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['shorts', 'race', 'bib'], availableForSale: true,
   },
@@ -151,7 +163,7 @@ export const products: Product[] = [
       { id: 'img-training-bib-tights-2', url: '/images/products/training-bib-tights/training-bib-tights2.jpg', altText: 'Training Bib Tights', width: 1333, height: 2000 },
       { id: 'img-training-bib-tights-3', url: '/images/products/training-bib-tights/training-bib-tights3.jpg', altText: 'Training Bib Tights', width: 1333, height: 2000 },
     ]},
-    variants: sizes('005', '120.00'),
+    variants: garmentSizes('005', '120.00'),
     priceRange: { minVariantPrice: { amount: '120.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['shorts', 'tights', 'winter', 'race'], availableForSale: true,
   },
@@ -176,7 +188,7 @@ export const products: Product[] = [
       { id: 'img-winter-jacket-2', url: '/images/products/winter-jacket/winter-jacket2.jpg?v=3', altText: 'Winter Jacket', width: 1333, height: 2000 },
       { id: 'img-winter-jacket-3', url: '/images/products/winter-jacket/winter-jacket3.jpg?v=3', altText: 'Winter Jacket', width: 1333, height: 2000 },
     ]},
-    variants: sizes('006', '110.00'),
+    variants: garmentSizes('006', '110.00'),
     priceRange: { minVariantPrice: { amount: '110.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['jacket', 'winter', 'outerwear'], availableForSale: true,
   },
@@ -204,7 +216,7 @@ export const products: Product[] = [
       { id: 'img-summer-gilet-4', url: '/images/products/summer-gilet/summer-gilet4.jpg?v=2', altText: 'Summer Gilet', width: 1333, height: 2000 },
       { id: 'img-summer-gilet-5', url: '/images/products/summer-gilet/summer-gilet5.jpg?v=3', altText: 'Summer Gilet', width: 1333, height: 2000 },
     ]},
-    variants: sizes('007', '55.00', ['2XL']),
+    variants: garmentSizes('007', '55.00'),
     priceRange: { minVariantPrice: { amount: '55.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['gilet', 'summer', 'outerwear', 'packable'], availableForSale: true,
   },
@@ -225,7 +237,7 @@ export const products: Product[] = [
       keywords: 'winter cycling gilet, thermal cycling gilet, layering cycling gilet, 2-way zip gilet, custom cycling gilet, winter cycling kit, cycling gilet UK',
     },
     featuredImage: img('winter-gilet'), images: { nodes: [img('winter-gilet')] },
-    variants: sizes('008', '70.00'),
+    variants: garmentSizes('008', '70.00'),
     priceRange: { minVariantPrice: { amount: '70.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['gilet', 'winter', 'outerwear'], availableForSale: true,
   },
@@ -251,7 +263,7 @@ export const products: Product[] = [
       { id: 'img-ss-roadsuit-2', url: '/images/products/ss-roadsuit/ss-roadsuit2.jpg?v=4', altText: 'SS Roadsuit', width: 1333, height: 2000 },
       { id: 'img-ss-roadsuit-3', url: '/images/products/ss-roadsuit/ss-roadsuit3.jpg?v=3', altText: 'SS Roadsuit', width: 1333, height: 2000 },
     ]},
-    variants: sizes('009', '140.00'),
+    variants: garmentSizes('009', '140.00'),
     priceRange: { minVariantPrice: { amount: '140.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero'], availableForSale: true,
   },
@@ -278,7 +290,7 @@ export const products: Product[] = [
       { id: 'img-ss-aerosuit-4', url: '/images/products/ss-aerosuit/ss-aerosuit4.jpg', altText: 'SS Aerosuit', width: 1333, height: 2000 },
       { id: 'img-ss-aerosuit-5', url: '/images/products/ss-aerosuit/ss-aerosuit5.jpg', altText: 'SS Aerosuit', width: 1333, height: 2000 },
     ]},
-    variants: sizes('010', '160.00'),
+    variants: garmentSizes('010', '160.00'),
     priceRange: { minVariantPrice: { amount: '160.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero', 'tt'], availableForSale: true,
   },
@@ -304,7 +316,7 @@ export const products: Product[] = [
       { id: 'img-ls-speedsuit-2', url: '/images/products/ls-speedsuit/ls-speedsuit2.jpg?v=4', altText: 'LS Speedsuit', width: 1333, height: 2000 },
       { id: 'img-ls-speedsuit-3', url: '/images/products/ls-speedsuit/ls-speedsuit3.jpg?v=2', altText: 'LS Speedsuit', width: 1333, height: 2000 },
     ]},
-    variants: sizes('011', '170.00'),
+    variants: garmentSizes('011', '170.00'),
     priceRange: { minVariantPrice: { amount: '170.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero', 'long-sleeve'], availableForSale: true,
   },
@@ -329,7 +341,7 @@ export const products: Product[] = [
       { id: 'img-ss-trisuit-1', url: '/images/products/ss-trisuit/ss-trisuit1.JPG?v=2', altText: 'SS Trisuit', width: 546, height: 795 },
       { id: 'img-ss-trisuit-2', url: '/images/products/ss-trisuit/ss-trisuit2.JPG?v=2', altText: 'SS Trisuit', width: 558, height: 862 },
     ]},
-    variants: sizes('012', '150.00'),
+    variants: garmentSizes('012', '150.00'),
     priceRange: { minVariantPrice: { amount: '150.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['trisuit', 'triathlon', 'race'], availableForSale: true,
   },
@@ -353,7 +365,7 @@ export const products: Product[] = [
       { id: 'img-sleeveless-trisuit-1', url: '/images/products/sleeveless-trisuit/sleeveless-trisuit1.jpg?v=2', altText: 'Sleeveless Trisuit', width: 1333, height: 2000 },
       { id: 'img-sleeveless-trisuit-2', url: '/images/products/sleeveless-trisuit/sleeveless-trisuit2.jpg?v=2', altText: 'Sleeveless Trisuit', width: 1333, height: 2000 },
     ]},
-    variants: sizes('013', '140.00'),
+    variants: garmentSizes('013', '140.00'),
     priceRange: { minVariantPrice: { amount: '140.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['trisuit', 'triathlon', 'race', 'sleeveless'], availableForSale: true,
   },
@@ -520,7 +532,7 @@ export const products: Product[] = [
       { id: 'img-ss-training-jersey-3', url: '/images/products/ss-training-jersey/ss-training-jersey3.jpg?v=3', altText: 'SS Training Jersey', width: 1333, height: 2000 },
       { id: 'img-ss-training-jersey-4', url: '/images/products/ss-training-jersey/ss-training-jersey4.jpg?v=3', altText: 'SS Training Jersey', width: 1333, height: 2000 },
     ]},
-    variants: sizes('019', '70.00'),
+    variants: garmentSizes('019', '70.00'),
     priceRange: { minVariantPrice: { amount: '70.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['jersey', 'training', 'short-sleeve'], availableForSale: true,
   },
@@ -546,7 +558,7 @@ export const products: Product[] = [
       { id: 'img-ss-club-jersey-4', url: '/images/products/ss-club-jersey/ss-club-jersey4.jpg', altText: 'SS Club Jersey', width: 1333, height: 2000 },
       { id: 'img-ss-club-jersey-5', url: '/images/products/ss-club-jersey/ss-club-jersey5.jpg', altText: 'SS Club Jersey', width: 1333, height: 2000 },
     ]},
-    variants: sizes('020', '50.00', ['2XL']),
+    variants: garmentSizes('020', '50.00'),
     priceRange: { minVariantPrice: { amount: '50.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['jersey', 'training', 'club', 'short-sleeve'], availableForSale: true,
   },
@@ -572,7 +584,7 @@ export const products: Product[] = [
       { id: 'img-ls-training-jersey-3', url: '/images/products/ls-training-jersey/ls-training-jersey3.jpg?v=2', altText: 'LS Training Jersey', width: 1333, height: 2000 },
       { id: 'img-ls-training-jersey-4', url: '/images/products/ls-training-jersey/ls-training-jersey4.jpg', altText: 'LS Training Jersey', width: 1333, height: 2000 },
     ]},
-    variants: sizes('021', '75.00'),
+    variants: garmentSizes('021', '75.00'),
     priceRange: { minVariantPrice: { amount: '75.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['jersey', 'training', 'long-sleeve'], availableForSale: true,
   },
@@ -595,7 +607,7 @@ export const products: Product[] = [
     images: { nodes: [
       { id: 'img-mtb-jersey-1', url: '/images/products/mtb-jersey/mtb-jersey1.jpg?v=2', altText: 'MTB Jersey', width: 1066, height: 1600 },
     ]},
-    variants: sizes('022', '35.00'),
+    variants: garmentSizes('022', '35.00'),
     priceRange: { minVariantPrice: { amount: '35.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['jersey', 'mtb', 'off-road'], availableForSale: true,
   },
@@ -618,7 +630,7 @@ export const products: Product[] = [
     images: { nodes: [
       { id: 'img-training-bib-shorts-1', url: '/images/products/training-bib-shorts/training-bib-shorts1.jpg?v=3', altText: 'Training Bib Shorts', width: 1333, height: 2000 },
     ]},
-    variants: sizes('023', '90.00'),
+    variants: garmentSizes('023', '90.00'),
     priceRange: { minVariantPrice: { amount: '90.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['shorts', 'training', 'bib'], availableForSale: true,
   },
@@ -641,7 +653,7 @@ export const products: Product[] = [
       { id: 'img-club-bib-shorts-1', url: '/images/products/club-bib-shorts/club-bib-shorts1.jpg?v=3', altText: 'Club Bib Shorts', width: 1333, height: 2000 },
       { id: 'img-club-bib-shorts-2', url: '/images/products/club-bib-shorts/club-bib-shorts2.jpg', altText: 'Club Bib Shorts', width: 1333, height: 2000 },
     ]},
-    variants: sizes('024', '65.00'),
+    variants: garmentSizes('024', '65.00'),
     priceRange: { minVariantPrice: { amount: '65.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['shorts', 'training', 'club', 'bib'], availableForSale: true,
   },
@@ -947,7 +959,7 @@ export const products: Product[] = [
       keywords: 'running tee, performance running top, short sleeve running shirt, custom running kit, club running top, breathable running tee UK',
     },
     featuredImage: img('ss-running-tee'), images: { nodes: [img('ss-running-tee')] },
-    variants: sizes('036', '30.00'),
+    variants: garmentSizes('036', '30.00'),
     priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['running', 'short-sleeve'], availableForSale: true,
   },
@@ -967,7 +979,7 @@ export const products: Product[] = [
       keywords: 'running singlet, racing vest, running vest, custom running kit, club running singlet, lightweight running vest UK',
     },
     featuredImage: img('running-singlet'), images: { nodes: [img('running-singlet')] },
-    variants: sizes('037', '30.00'),
+    variants: garmentSizes('037', '30.00'),
     priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['running', 'singlet'], availableForSale: true,
   },

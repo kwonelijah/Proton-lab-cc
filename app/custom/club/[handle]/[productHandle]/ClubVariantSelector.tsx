@@ -27,7 +27,9 @@ type Fit = "Men's" | "Women's"
 const FITS: Fit[] = ["Men's", "Women's"]
 
 export default function ClubVariantSelector({ variants, productHandle, productName, clubHandle, clubName, price, variant, showFit = true }: Props) {
-  const [selectedId, setSelectedId] = useState<string | null>(variants[0]?.id ?? null)
+  // No default size — 2XS sits first on made-to-order garments, so a
+  // preselected first variant would silently order the smallest cut.
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   // No default fit — the customer must choose, so a women's order can't
   // slip through as men's cut by accident.
   const [fit, setFit] = useState<Fit | null>(null)
@@ -49,6 +51,7 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
     : variantSize
   const needsFit = showFit && !fit
   const needsPocket = hasPocketOption && !pocket
+  const needsSize = !selected
 
   // Meta Pixel: club product page viewed
   useEffect(() => {
@@ -170,6 +173,8 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
             return (
               <button
                 key={variant.id}
+                type="button"
+                aria-pressed={isSelected}
                 onClick={() => { setSelectedId(variant.id); setAdded(false) }}
                 className={`min-w-[3rem] h-11 px-3 border text-xs uppercase tracking-widest transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2 ${
                   isSelected
@@ -192,7 +197,7 @@ export default function ClubVariantSelector({ variants, productHandle, productNa
           onClick={handleAddToCart}
           disabled={!selected || needsFit || needsPocket}
         >
-          {added ? 'Added to Cart' : needsFit ? "Select Men's or Women's" : needsPocket ? 'Select Race Number Pocket' : 'Add to Cart'}
+          {added ? 'Added to Cart' : needsFit ? "Select Men's or Women's" : needsPocket ? 'Select Race Number Pocket' : needsSize ? 'Select a Size' : 'Add to Cart'}
         </Button>
 
         {added && (

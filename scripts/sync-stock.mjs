@@ -58,11 +58,16 @@ for (const block of productBlocks) {
   const handle = handleMatch[1]
   const set = new Set()
 
-  // `sizes('id', 'price'[, ['2XL', ...]])` → XS–XL plus any extras.
-  const sizesCall = block.match(/variants:\s*sizes\(\s*'[^']+'\s*,\s*'[^']+'(?:\s*,\s*\[([^\]]*)\])?\s*\)/)
+  // Mirrors the helpers in data/products.ts — keep the lists in step:
+  //   `sizes('id', 'price'[, ['2XL', ...]])` → XS–XL plus any extras.
+  //   `garmentSizes('id', 'price')`          → 2XS–2XL (made-to-order garments).
+  const sizesCall = block.match(/variants:\s*(sizes|garmentSizes)\(\s*'[^']+'\s*,\s*'[^']+'(?:\s*,\s*\[([^\]]*)\])?\s*\)/)
   if (sizesCall) {
-    ;['XS', 'S', 'M', 'L', 'XL'].forEach(s => set.add(s))
-    const extraArgs = sizesCall[1]
+    const base = sizesCall[1] === 'garmentSizes'
+      ? ['2XS', 'XS', 'S', 'M', 'L', 'XL', '2XL']
+      : ['XS', 'S', 'M', 'L', 'XL']
+    base.forEach(s => set.add(s))
+    const extraArgs = sizesCall[2]
     if (extraArgs) {
       for (const m of extraArgs.matchAll(/'([^']+)'/g)) set.add(m[1])
     }

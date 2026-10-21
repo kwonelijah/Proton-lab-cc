@@ -155,11 +155,15 @@ export default function ClubProductPage() {
                     </thead>
                     <tbody>
                       {[
+                        // 2XS / 2XL extrapolated from the XS–XL steps (+4 chest,
+                        // +6 waist, +6 hip per size) — confirm against the factory chart.
+                        ['2XS', '80', '66', '81'],
                         ['XS', '84', '72', '87'],
                         ['S',  '88', '78', '93'],
                         ['M',  '92', '84', '99'],
                         ['L',  '96', '90', '105'],
                         ['XL', '100', '96', '111'],
+                        ['2XL', '104', '102', '117'],
                       ].map(([size, chest, waist, hip], i) => (
                         <tr key={size} className={`border-b border-proton-light/60 ${i % 2 === 1 ? 'bg-proton-light/30' : ''}`}>
                           <td className="py-2.5 pr-6 text-sm text-proton-black font-inter">{size}</td>
