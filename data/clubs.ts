@@ -77,9 +77,9 @@ export const clubs: Club[] = [
     name: 'UCL Cycling',
     password: 'UCLSHOP',
     centralDelivery: true,
-    tagline: 'All prices include the 10% university discount.\nOrder window open **Monday 12th October – Sunday 25th October**.\nDelivery expected end of November.',
-    windowStart: '2026-10-12',
-    windowEnd: '2026-10-25',
+    tagline: 'All prices include the 10% university discount.\nOrder window open **Wednesday 21st October – Wednesday 28th October**.\nDelivery expected end of November.',
+    windowStart: '2026-10-21',
+    windowEnd: '2026-10-28',
     products: [
       { name: 'Club Jersey', handle: 'ss-club-jersey', category: 'top', price: '£45.00',
         image: '/images/clubs/ucl-cycling/ucl-ss-club-jersey-front.jpg',
