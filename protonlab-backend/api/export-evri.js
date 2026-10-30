@@ -13,7 +13,7 @@
 // per-item weights in a later pass). Service defaults to Standard.
 
 import Stripe from 'stripe';
-import { decodeItems, summariseItems } from '../lib/order-items.js';
+import { decodeItems, summariseItems, effectiveShipping } from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -128,7 +128,8 @@ export default async function handler(req, res) {
     // was collected for either) — there is no per-member parcel to book.
     if (meta.shipping_method === 'club' || meta.shipping_method === 'collection') continue;
 
-    const ship = p.shipping || {};
+    // Corrected-after-purchase addresses live in ship_* metadata (admin update-order).
+    const ship = effectiveShipping(p) || {};
     const addr = ship.address || {};
     const number = orderNumber(p.id);
     const ref = club ? `${club} #${number}` : `Order #${number}`;

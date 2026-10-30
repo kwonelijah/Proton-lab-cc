@@ -41,6 +41,8 @@ import {
   summariseItems,
   loadProductMap,
   CHECKOUT_MAX_LINES,
+  effectiveShipping,
+  shippingOverrideMetadata,
 } from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -131,11 +133,13 @@ function feedLineItems(items, meta, currency) {
 }
 
 // Address fields as the dashboard feed presents them (addr / address / place /
-// shippingName), from the PaymentIntent's shipping block. Shared by the GET
+// shippingName), from the order's effective delivery address (the ship_*
+// override if the address was corrected after purchase, else the checkout block). Shared by the GET
 // feed and the update-order response so an edit repaints exactly what a
 // reload would show.
 function feedAddress(p) {
-  const raw = p.shipping?.address || {};
+  const ship = effectiveShipping(p);
+  const raw = ship?.address || {};
   const addr = {
     line1: raw.line1 || '',
     line2: raw.line2 || '',
@@ -150,7 +154,7 @@ function feedAddress(p) {
       .filter(Boolean)
       .join(', '),
     place: [addr.city, addr.postal_code].filter(Boolean).join(', ') || '—',
-    shippingName: p.shipping?.name || '',
+    shippingName: ship?.name || '',
   };
 }
 
@@ -178,11 +182,13 @@ function normaliseEditLines(items) {
   return { lines };
 }
 
-// Stripe replaces the PaymentIntent's shipping hash wholesale, so this builds
-// the complete block: name + line1 + postcode + 2-letter country are required,
-// empty optional fields are omitted (not posted as ''), and the phone already
-// on the order is kept unless a new one is supplied.
-function normaliseEditShipping(s, current) {
+// Validates the complete corrected address: name + line1 + postcode + a
+// 2-letter country are required; optional fields stay '' so the override
+// written from it clears anything stale. Stripe rejects `shipping` updates on
+// a succeeded PaymentIntent, so the result is stored as ship_* metadata
+// (lib/order-items.js shippingOverrideMetadata) that every address reader
+// prefers via effectiveShipping(); the phone on the order is untouched.
+function normaliseEditShipping(s) {
   if (!s || typeof s !== 'object' || !s.address || typeof s.address !== 'object') {
     return { error: 'shipping needs a name and an address' };
   }
@@ -202,10 +208,7 @@ function normaliseEditShipping(s, current) {
   if (!address.line1) return { error: 'Address line 1 is required' };
   if (!address.postal_code) return { error: 'Postcode is required' };
   if (!/^[A-Z]{2}$/.test(country)) return { error: 'Country must be a 2-letter ISO code (e.g. GB)' };
-  const shipping = { name, address: Object.fromEntries(Object.entries(address).filter(([, v]) => v !== '')) };
-  const phone = str(s.phone, 40) || current?.phone || '';
-  if (phone) shipping.phone = phone;
-  return { shipping };
+  return { shipping: { name, address } };
 }
 
 // Builds the order object the email templates expect — same shape as
@@ -223,7 +226,7 @@ async function buildOrder(payment) {
   const meta = payment.metadata || {};
   const club = meta.club || 'N/A';
   const number = orderNumber(payment.id);
-  const shipping = payment.shipping || null;
+  const shipping = effectiveShipping(payment);
 
   return {
     id: payment.id,
@@ -531,9 +534,10 @@ export default async function handler(req, res) {
     //             re-encoded wholesale via lib/order-items.js over blankItems()
     //             (every chunk key cleared first, so a shorter list leaves no
     //             stale items_N tail) and metadata.product is refreshed from it.
-    //   shipping: {name, phone?, address:{line1, line2?, city?, state?,
-    //             postal_code, country}} — replaces the PaymentIntent's
-    //             shipping block (the phone on file is kept if none is sent).
+    //   shipping: {name, address:{line1, line2?, city?, state?, postal_code,
+    //             country}} — stored as the ship_* metadata override (Stripe
+    //             locks `shipping` once a payment has succeeded); the phone on
+    //             file is untouched.
     // Used by the dashboard's "Edit sizes / address" on club-shop orders (a
     // member picked the wrong size, or has moved). Succeeded orders only.
     // Sends NO emails and never touches the amount — the customer keeps what
@@ -570,9 +574,9 @@ export default async function handler(req, res) {
         update.metadata = { ...blankItems(), ...encoded, product: summariseItems(parsed.lines) };
       }
       if (shipping !== undefined) {
-        const parsed = normaliseEditShipping(shipping, payment.shipping);
+        const parsed = normaliseEditShipping(shipping);
         if (parsed.error) return res.status(400).json({ error: parsed.error });
-        update.shipping = parsed.shipping;
+        update.metadata = { ...(update.metadata || {}), ...shippingOverrideMetadata(parsed.shipping) };
       }
       let updated;
       try {
@@ -719,14 +723,15 @@ export default async function handler(req, res) {
     const lineItems = parseLineItems(meta);
     const club = meta.club || '';
     const number = orderNumber(p.id);
+    const ship = effectiveShipping(p);
     const entry = {
       id: p.id,
       club,
       ref: club ? `${club} #${number}` : `Order #${number}`,
       date: new Date(p.created * 1000).toISOString(),
-      name: meta.customer_name || p.shipping?.name || meta.name || '—',
+      name: meta.customer_name || ship?.name || meta.name || '—',
       email: meta.customer_email || p.receipt_email || meta.email || '',
-      phone: meta.customer_phone || p.shipping?.phone || meta.phone || '',
+      phone: meta.customer_phone || ship?.phone || meta.phone || '',
       ...feedAddress(p),   // addr, address, place, shippingName
       items: lineItems.length ? summariseItems(lineItems, Infinity) : meta?.product || '—',
       clubHandle: meta.club_handle || '',

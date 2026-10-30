@@ -18,6 +18,11 @@
 // Decoding accepts BOTH formats, so the hundreds of historic orders already in
 // Stripe keep working everywhere. api/admin.js (update-order) is the second
 // writer: it re-encodes an edited order wholesale over blankItems().
+//
+// The same module also owns the delivery-address OVERRIDE (ship_* metadata,
+// see effectiveShipping below): Stripe locks a PaymentIntent's `shipping`
+// block once the payment has succeeded, so a corrected address lives in
+// metadata and every reader asks effectiveShipping() rather than p.shipping.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -156,4 +161,56 @@ function joinWithin(parts, max, tail) {
     if (candidate.length <= max) return candidate;
   }
   return (parts[0] || '').slice(0, Math.max(0, max - 1)) + '…';
+}
+
+// ─── Delivery-address override ───────────────────────────────────────────────
+// Stripe rejects `shipping` updates on a succeeded PaymentIntent, so an
+// address corrected after purchase (api/admin.js update-order) is stored as
+// metadata: ship_name, ship_line1, ship_line2, ship_city, ship_state,
+// ship_postal, ship_country, ship_edited_at. The Stripe dashboard keeps showing
+// the address typed at checkout; everything of ours (admin feed, dispatch and
+// confirmation emails via buildOrder, Evri export) reads effectiveShipping().
+
+// Complete override block for a metadata update. Every key is written —
+// empties as '' (which Stripe deletes) — so a stale line2/state from an
+// earlier correction can never survive a later one.
+export function shippingOverrideMetadata(shipping) {
+  const a = shipping?.address || {};
+  return {
+    ship_name: shipping?.name || '',
+    ship_line1: a.line1 || '',
+    ship_line2: a.line2 || '',
+    ship_city: a.city || '',
+    ship_state: a.state || '',
+    ship_postal: a.postal_code || '',
+    ship_country: a.country || '',
+    ship_edited_at: new Date().toISOString(),
+  };
+}
+
+export function hasShippingOverride(metadata) {
+  return typeof metadata?.ship_line1 === 'string' && metadata.ship_line1 !== '';
+}
+
+// The delivery address to use for a PaymentIntent: the ship_* override when
+// one is recorded, otherwise the block Stripe Checkout captured. Same shape as
+// Stripe's `shipping` ({name, phone, address:{…}}) so callers don't care which
+// it was. Phone is never overridden — it stays whatever checkout captured.
+export function effectiveShipping(payment) {
+  const meta = payment?.metadata || {};
+  const base = payment?.shipping || null;
+  if (!hasShippingOverride(meta)) return base;
+  const v = (k) => (typeof meta[k] === 'string' && meta[k] !== '' ? meta[k] : null);
+  return {
+    name: v('ship_name') || base?.name || null,
+    phone: base?.phone || null,
+    address: {
+      line1: v('ship_line1'),
+      line2: v('ship_line2'),
+      city: v('ship_city'),
+      state: v('ship_state'),
+      postal_code: v('ship_postal'),
+      country: v('ship_country'),
+    },
+  };
 }
