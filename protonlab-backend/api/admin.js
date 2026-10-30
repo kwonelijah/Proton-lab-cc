@@ -60,6 +60,13 @@ const REVIEW_DELAY_DAYS = 19;
 // COLLECTION_OPTION_CLUBS). Anything else is ignored and the order keeps
 // whatever checkout recorded (or 'standard').
 const SHIPPING_METHODS = ['standard', 'next-day', 'international', 'club', 'collection'];
+
+// Optional POST actions this deploy understands, advertised on the JSON feed.
+// The dashboard shows a feature's button only when the backend it is talking
+// to lists the action — a dashboard updated ahead of the backend must never
+// send a POST the old code would misread (an unknown action used to fall
+// through to the dispatch path and email the customer).
+const ADMIN_CAPABILITIES = ['update-order'];
 function shippingMethodOf(v) {
   return SHIPPING_METHODS.includes(v) ? v : null;
 }
@@ -585,6 +592,12 @@ export default async function handler(req, res) {
       });
     }
 
+    // Any other action is a dashboard/backend version mismatch — refuse it
+    // rather than fall through to the dispatch path below.
+    if (req.body?.action) {
+      return res.status(400).json({ error: `Unknown action "${String(req.body.action).slice(0, 40)}"` });
+    }
+
     // ── Single-order dispatch ─────────────────────────────────────────────
     const { pi, tracking, service } = req.body || {};
     if (!pi || typeof pi !== 'string') {
@@ -756,7 +769,7 @@ export default async function handler(req, res) {
 
   res.setHeader('Cache-Control', 'no-store');
   if (req.query.format === 'json') {
-    return res.status(200).json({ awaiting, dispatched, since: days });
+    return res.status(200).json({ awaiting, dispatched, since: days, capabilities: ADMIN_CAPABILITIES });
   }
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   return res.status(200).send(renderPage({ awaiting, dispatched, key: req.query.key, since: days }));
