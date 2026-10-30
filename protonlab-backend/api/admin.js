@@ -17,6 +17,8 @@
 //        handle / password / url per club (dashboard order editor)
 //   POST /api/admin?key=<proton_export_key>            — {pi, tracking, service?} action
 //        (POSTed by the page's buttons and the dashboard)
+//   POST {action:'update-order', pi, items?, shipping?} — rewrite a paid
+//        order's sizes / delivery address (dashboard "Edit sizes / address")
 //
 // CORS is open (auth is the key param, not the origin) because the order
 // dashboard runs from a local file:// page whose Origin is "null".
@@ -32,7 +34,14 @@ import {
 } from '../lib/email.js';
 import { readStock, applyAndCommit } from '../lib/stock.js';
 import { readClubs } from '../lib/clubs.js';
-import { decodeItems, summariseItems, loadProductMap } from '../lib/order-items.js';
+import {
+  decodeItems,
+  encodeItems,
+  blankItems,
+  summariseItems,
+  loadProductMap,
+  CHECKOUT_MAX_LINES,
+} from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -112,6 +121,84 @@ function feedLineItems(items, meta, currency) {
       product?.unitAmount ?? null;
     return { handle: li.handle, name: li.name, size: li.size, qty: li.qty, unitAmount };
   });
+}
+
+// Address fields as the dashboard feed presents them (addr / address / place /
+// shippingName), from the PaymentIntent's shipping block. Shared by the GET
+// feed and the update-order response so an edit repaints exactly what a
+// reload would show.
+function feedAddress(p) {
+  const raw = p.shipping?.address || {};
+  const addr = {
+    line1: raw.line1 || '',
+    line2: raw.line2 || '',
+    city: raw.city || '',
+    state: raw.state || '',
+    postal_code: raw.postal_code || '',
+    country: raw.country || '',
+  };
+  return {
+    addr,
+    address: [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
+      .filter(Boolean)
+      .join(', '),
+    place: [addr.city, addr.postal_code].filter(Boolean).join(', ') || '—',
+    shippingName: p.shipping?.name || '',
+  };
+}
+
+// ── update-order input validation ────────────────────────────────────────
+// The dashboard sends back the handles it received from the feed, so a handle
+// is checked for shape only (a product since removed from the catalogue must
+// still be editable); sizes are free text the way checkout records them
+// ("Men's M — White"); quantity is a whole number ≥ 1 — a line the member no
+// longer wants is simply left out of the list.
+const HANDLE_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
+const SIZE_MAX = 80;
+function normaliseEditLines(items) {
+  if (!Array.isArray(items) || !items.length) return { error: 'items must be a non-empty array' };
+  if (items.length > CHECKOUT_MAX_LINES) return { error: `Too many lines (${items.length}); max ${CHECKOUT_MAX_LINES}` };
+  const lines = [];
+  for (const [i, l] of items.entries()) {
+    const handle = typeof l?.handle === 'string' ? l.handle.trim() : '';
+    if (!HANDLE_RE.test(handle)) return { error: `Line ${i + 1}: invalid product handle "${handle}"` };
+    const size = typeof l.size === 'string' ? l.size.trim() : '';
+    if (size.length > SIZE_MAX) return { error: `Line ${i + 1}: size is too long (max ${SIZE_MAX} characters)` };
+    const qty = Number(l.qty ?? l.quantity);
+    if (!Number.isInteger(qty) || qty < 1 || qty > 999) return { error: `Line ${i + 1}: quantity must be a whole number from 1 to 999` };
+    lines.push({ handle, size, quantity: qty });
+  }
+  return { lines };
+}
+
+// Stripe replaces the PaymentIntent's shipping hash wholesale, so this builds
+// the complete block: name + line1 + postcode + 2-letter country are required,
+// empty optional fields are omitted (not posted as ''), and the phone already
+// on the order is kept unless a new one is supplied.
+function normaliseEditShipping(s, current) {
+  if (!s || typeof s !== 'object' || !s.address || typeof s.address !== 'object') {
+    return { error: 'shipping needs a name and an address' };
+  }
+  const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const name = str(s.name, 100);
+  const a = s.address;
+  const country = typeof a.country === 'string' ? a.country.trim().toUpperCase() : '';
+  const address = {
+    line1: str(a.line1, 200),
+    line2: str(a.line2, 200),
+    city: str(a.city, 100),
+    state: str(a.state, 100),
+    postal_code: str(a.postal_code, 20),
+    country,
+  };
+  if (!name) return { error: 'Recipient name is required' };
+  if (!address.line1) return { error: 'Address line 1 is required' };
+  if (!address.postal_code) return { error: 'Postcode is required' };
+  if (!/^[A-Z]{2}$/.test(country)) return { error: 'Country must be a 2-letter ISO code (e.g. GB)' };
+  const shipping = { name, address: Object.fromEntries(Object.entries(address).filter(([, v]) => v !== '')) };
+  const phone = str(s.phone, 40) || current?.phone || '';
+  if (phone) shipping.phone = phone;
+  return { shipping };
 }
 
 // Builds the order object the email templates expect — same shape as
@@ -431,6 +518,73 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // ── Order edit: sizes and/or delivery address ─────────────────────────
+    // {action:'update-order', pi, items?, shipping?}
+    //   items:    [{handle, size, qty}] — the COMPLETE new line list. It is
+    //             re-encoded wholesale via lib/order-items.js over blankItems()
+    //             (every chunk key cleared first, so a shorter list leaves no
+    //             stale items_N tail) and metadata.product is refreshed from it.
+    //   shipping: {name, phone?, address:{line1, line2?, city?, state?,
+    //             postal_code, country}} — replaces the PaymentIntent's
+    //             shipping block (the phone on file is kept if none is sent).
+    // Used by the dashboard's "Edit sizes / address" on club-shop orders (a
+    // member picked the wrong size, or has moved). Succeeded orders only.
+    // Sends NO emails and never touches the amount — the customer keeps what
+    // they paid; only the record that the factory size sheet, dispatch email
+    // and Evri export read from changes. Stock is not re-synced (club kit has
+    // no stock rows, and stock-sync.js has normally tallied the order already).
+    if (req.body?.action === 'update-order') {
+      const { pi: editPi, items, shipping } = req.body;
+      if (!editPi || typeof editPi !== 'string') {
+        return res.status(400).json({ error: 'Missing payment id' });
+      }
+      if (items === undefined && shipping === undefined) {
+        return res.status(400).json({ error: 'Nothing to update — send items and/or shipping' });
+      }
+      let payment;
+      try {
+        payment = await stripe.paymentIntents.retrieve(editPi);
+      } catch {
+        return res.status(404).json({ error: 'Order not found in Stripe' });
+      }
+      if (payment.status !== 'succeeded') {
+        return res.status(400).json({ error: 'Payment is not succeeded — cannot edit' });
+      }
+      const update = {};
+      if (items !== undefined) {
+        const parsed = normaliseEditLines(items);
+        if (parsed.error) return res.status(400).json({ error: parsed.error });
+        let encoded;
+        try {
+          encoded = encodeItems(parsed.lines);
+        } catch (err) {
+          return res.status(400).json({ error: err.message });
+        }
+        update.metadata = { ...blankItems(), ...encoded, product: summariseItems(parsed.lines) };
+      }
+      if (shipping !== undefined) {
+        const parsed = normaliseEditShipping(shipping, payment.shipping);
+        if (parsed.error) return res.status(400).json({ error: parsed.error });
+        update.shipping = parsed.shipping;
+      }
+      let updated;
+      try {
+        updated = await stripe.paymentIntents.update(editPi, update);
+      } catch (err) {
+        console.error('update-order failed for', editPi, err.message);
+        return res.status(502).json({ error: `Stripe update failed: ${err.message}` });
+      }
+      // Echo the fields the feed derives from what was just written, so the
+      // dashboard can patch its cached row without a full reload.
+      const newItems = parseLineItems(updated.metadata);
+      return res.status(200).json({
+        ok: true,
+        items: newItems.length ? summariseItems(newItems, Infinity) : updated.metadata?.product || '—',
+        lineItems: feedLineItems(newItems, updated.metadata, updated.currency),
+        ...feedAddress(updated),
+      });
+    }
+
     // ── Single-order dispatch ─────────────────────────────────────────────
     const { pi, tracking, service } = req.body || {};
     if (!pi || typeof pi !== 'string') {
@@ -552,7 +706,6 @@ export default async function handler(req, res) {
     const lineItems = parseLineItems(meta);
     const club = meta.club || '';
     const number = orderNumber(p.id);
-    const addr = p.shipping?.address || {};
     const entry = {
       id: p.id,
       club,
@@ -561,24 +714,13 @@ export default async function handler(req, res) {
       name: meta.customer_name || p.shipping?.name || meta.name || '—',
       email: meta.customer_email || p.receipt_email || meta.email || '',
       phone: meta.customer_phone || p.shipping?.phone || meta.phone || '',
-      addr: {
-        line1: addr.line1 || '',
-        line2: addr.line2 || '',
-        city: addr.city || '',
-        state: addr.state || '',
-        postal_code: addr.postal_code || '',
-        country: addr.country || '',
-      },
-      address: [addr.line1, addr.line2, addr.city, addr.state, addr.postal_code, addr.country]
-        .filter(Boolean)
-        .join(', '),
+      ...feedAddress(p),   // addr, address, place, shippingName
       items: lineItems.length ? summariseItems(lineItems, Infinity) : meta?.product || '—',
       clubHandle: meta.club_handle || '',
       lineItems: feedLineItems(lineItems, meta, p.currency),
       shippingAmount: moneyFromMinor(meta.shipping_amount),
       discountAmount: moneyFromMinor(meta.discount_amount),
       promoCode: meta.promo_code || '',
-      place: [addr.city, addr.postal_code].filter(Boolean).join(', ') || '—',
       amount: (p.amount / 100).toFixed(2),
       symbol: p.currency === 'eur' ? '€' : '£',
       service: meta.shipping_method || 'standard',

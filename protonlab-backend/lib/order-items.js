@@ -16,7 +16,8 @@
 // hard-capped at 12 — Stripe Checkout's own 100-line-item ceiling needs ~7).
 //
 // Decoding accepts BOTH formats, so the hundreds of historic orders already in
-// Stripe keep working everywhere.
+// Stripe keep working everywhere. api/admin.js (update-order) is the second
+// writer: it re-encodes an edited order wholesale over blankItems().
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -77,6 +78,16 @@ export function encodeItems(lines) {
   }
   const out = {};
   chunks.forEach((c, i) => { out[chunkKey(i)] = c; });
+  return out;
+}
+
+// Every chunk key set to '' — spread this UNDER a fresh encodeItems() result
+// when REWRITING an order's items (api/admin.js update-order) so a shorter
+// encoding leaves no stale items_N tail behind: Stripe deletes a metadata key
+// that is posted as an empty string.
+export function blankItems() {
+  const out = {};
+  for (let i = 0; i < ITEMS_MAX_CHUNKS; i++) out[chunkKey(i)] = '';
   return out;
 }
 
