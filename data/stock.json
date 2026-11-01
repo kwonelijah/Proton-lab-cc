@@ -92,8 +92,10 @@
     "XL": 0
   },
   "aero-socks": {
-    "S/M": 0,
-    "L/XL": 0
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
   },
   "aero-mitts": {
     "XS": 0,
@@ -196,7 +198,7 @@
   "ocean-blue-jersey": {
     "XS": 0,
     "S": 0,
-    "M": 2,
+    "M": 1,
     "L": 1,
     "XL": 1
   },
@@ -210,7 +212,7 @@
   "black-bib-shorts": {
     "XS": 3,
     "S": 6,
-    "M": 3,
+    "M": 2,
     "L": 0,
     "XL": 0
   },
@@ -231,6 +233,19 @@
   "white-cotton-socks": {
     "S": 5,
     "M": 5,
-    "L": 8
+    "L": 7,
+    "XL": 0
+  },
+  "aero-overshoes": {
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
+  },
+  "rain-overshoes": {
+    "S": 0,
+    "M": 0,
+    "L": 0,
+    "XL": 0
   }
 }

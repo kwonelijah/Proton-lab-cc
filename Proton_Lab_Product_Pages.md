@@ -363,6 +363,39 @@ The Aero Socks are built from a textured aero fabric that delivers aerodynamic s
 
 ---
 
+## AERO OVERSHOES
+
+**DESCRIPTION:**
+Low-profile aero overshoes that smooth the airflow over your shoes and keep road spray and wind chill off your feet. Stretch knit upper with reinforced cleat and heel openings. Sized by shoe size: S 36–38, M 38–42, L 42–45, XL 45–47 (EU).
+
+**BULLETS:**
+- Aero stretch-knit upper that smooths airflow over the shoe
+- Reinforced cleat and heel openings
+- Sized S–XL by EU shoe size
+
+**SEO TITLE:** Aero Cycling Overshoes | Race Day Overshoes | Proton Lab
+**META DESCRIPTION:** Low-profile aero knit overshoes with reinforced cleat and heel openings. The Proton Lab Aero Overshoes keep spray and wind chill off your feet at race pace.
+**KEYWORDS:** aero overshoes, aero cycling overshoes, race overshoes, custom overshoes, cycling shoe covers UK
+
+---
+
+## RAIN OVERSHOES
+
+**DESCRIPTION:**
+Waterproof overshoes for wet training days. A taped, water-resistant outer with a fleece-lined interior, full-length rear zip and reflective trim. Sized by shoe size: S 36–38, M 38–42, L 42–45, XL 45–47 (EU).
+
+**BULLETS:**
+- Taped waterproof outer
+- Fleece-lined interior for warmth
+- Full-length rear zip and reflective trim
+- Sized S–XL by EU shoe size
+
+**SEO TITLE:** Rain Cycling Overshoes | Waterproof Overshoes | Proton Lab
+**META DESCRIPTION:** Taped waterproof outer, fleece lining and a full-length rear zip. The Proton Lab Rain Overshoes keep training feet dry and warm.
+**KEYWORDS:** rain overshoes, waterproof cycling overshoes, winter overshoes, custom overshoes, cycling shoe covers UK
+
+---
+
 ## TRAINING MITTS
 
 **DESCRIPTION:**

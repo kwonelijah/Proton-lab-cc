@@ -7,7 +7,7 @@ Stock lives in `stock.csv`. Edit it in Numbers, Excel, or any text editor.
 | Column     | Meaning                                              |
 | ---------- | ---------------------------------------------------- |
 | `handle`   | Product slug (must match a handle in `data/products.ts`) |
-| `size`     | Exact size label (XS, S, M, L, XL, S/M, L/XL, One Size) |
+| `size`     | Exact size label: XS–XL (retail), 2XS–2XL (made-to-order garments), S/M/L/XL (socks & overshoes, by shoe size), One Size. `S/M` and `L/XL` exist only on club orders placed before Nov 2026 |
 | `quantity` | Non-negative integer — units on hand                 |
 
 One row per variant. Duplicates error. Unknown handles error.

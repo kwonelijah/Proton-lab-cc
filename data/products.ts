@@ -17,10 +17,15 @@ const img = (seed: string, w = 800, h = 1000) => ({
 //                    gilets, bibs, tights, skinsuits, running tops), i.e. what
 //                    the club shops sell. Club PDPs show every variant as
 //                    orderable, so no stock.csv rows are needed for 2XS/2XL.
-// scripts/sync-stock.mjs text-parses these calls and mirrors BOTH lists —
+//   footSizes()    — S–XL by shoe size: socks and overshoes (supplier charts:
+//                    S 36–38, M 38–42, L 42–45, XL 45–47 EU). Replaced the
+//                    old S/M + L/XL sock sizes on 2026-11-01; those two labels
+//                    survive only on club orders placed before then.
+// scripts/sync-stock.mjs text-parses these calls and mirrors ALL THREE lists —
 // change it in step with any edit here.
 const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL']
 const GARMENT_SIZES = ['2XS', 'XS', 'S', 'M', 'L', 'XL', '2XL']
+const FOOT_SIZES = ['S', 'M', 'L', 'XL']
 
 const variantNode = (id: string, price: string, label: string) => ({
   id: `${id}_${label.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
@@ -36,6 +41,10 @@ const sizes = (id: string, price: string, extra: string[] = []) => ({
 
 const garmentSizes = (id: string, price: string) => ({
   nodes: GARMENT_SIZES.map(label => variantNode(id, price, label)),
+})
+
+const footSizes = (id: string, price: string) => ({
+  nodes: FOOT_SIZES.map(label => variantNode(id, price, label)),
 })
 
 const col = (handle: string, title: string) => ({
@@ -388,12 +397,7 @@ export const products: Product[] = [
       { id: 'img-aero-socks-3', url: '/images/products/aero-socks/aero-socks3.JPG?v=2', altText: 'Aero Socks', width: 595, height: 764 },
       { id: 'img-aero-socks-4', url: '/images/products/aero-socks/aero-socks4.jpg?v=2', altText: 'Aero Socks', width: 1600, height: 1066 },
     ]},
-    variants: {
-      nodes: [
-        { id: 'v014_sm', title: 'S/M', availableForSale: true, price: { amount: '20.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S/M' }] },
-        { id: 'v014_lx', title: 'L/XL', availableForSale: true, price: { amount: '20.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'L/XL' }] },
-      ],
-    },
+    variants: footSizes('014', '20.00'),
     priceRange: { minVariantPrice: { amount: '20.00', currencyCode: 'GBP' } },
     ...col('race', 'Race'), tags: ['accessories', 'socks', 'aero', 'moq-10'], availableForSale: true,
   },
@@ -933,13 +937,7 @@ export const products: Product[] = [
       { id: 'img-white-cotton-socks-1', url: '/images/products/white-cotton-socks/white-cotton-socks1.jpg', altText: 'White Cotton Socks', width: 638, height: 851 },
       { id: 'img-white-cotton-socks-2', url: '/images/products/white-cotton-socks/white-cotton-socks2.jpg', altText: 'White Cotton Socks', width: 1332, height: 1776 },
     ]},
-    variants: {
-      nodes: [
-        { id: 'v035_s', title: 'S', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'S' }] },
-        { id: 'v035_m', title: 'M', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'M' }] },
-        { id: 'v035_l', title: 'L', availableForSale: true, price: { amount: '12.00', currencyCode: 'GBP' }, selectedOptions: [{ name: 'Size', value: 'L' }] },
-      ],
-    },
+    variants: footSizes('035', '12.00'),
     priceRange: { minVariantPrice: { amount: '12.00', currencyCode: 'GBP' } },
     ...col('summer-2026', 'Summer 2026'), tags: ['accessories', 'socks', 'summer-2026'], availableForSale: true,
   },
@@ -982,5 +980,42 @@ export const products: Product[] = [
     variants: garmentSizes('037', '30.00'),
     priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['running', 'singlet'], availableForSale: true,
+  },
+  {
+    id: 'prod_039', handle: 'aero-overshoes', title: 'Aero Overshoes',
+    description: 'Low-profile aero overshoes that smooth the airflow over your shoes and keep road spray and wind chill off your feet. Stretch knit upper with reinforced cleat and heel openings. Sized by shoe size: S 36–38, M 38–42, L 42–45, XL 45–47 (EU).',
+    bullets: [
+      'Aero stretch-knit upper that smooths airflow over the shoe',
+      'Reinforced cleat and heel openings',
+      'Sized S–XL by EU shoe size',
+    ],
+    seo: {
+      title: 'Aero Cycling Overshoes | Race Day Overshoes | Proton Lab',
+      description: 'Low-profile aero knit overshoes with reinforced cleat and heel openings. The Proton Lab Aero Overshoes keep spray and wind chill off your feet at race pace.',
+      keywords: 'aero overshoes, aero cycling overshoes, race overshoes, custom overshoes, cycling shoe covers UK',
+    },
+    featuredImage: img('aero-overshoes'), images: { nodes: [img('aero-overshoes')] },
+    variants: footSizes('039', '30.00'),
+    priceRange: { minVariantPrice: { amount: '30.00', currencyCode: 'GBP' } },
+    ...col('race', 'Race'), tags: ['accessories', 'overshoes', 'aero', 'moq-10'], availableForSale: true,
+  },
+  {
+    id: 'prod_040', handle: 'rain-overshoes', title: 'Rain Overshoes',
+    description: 'Waterproof overshoes for wet training days. A taped, water-resistant outer with a fleece-lined interior, full-length rear zip and reflective trim. Sized by shoe size: S 36–38, M 38–42, L 42–45, XL 45–47 (EU).',
+    bullets: [
+      'Taped waterproof outer',
+      'Fleece-lined interior for warmth',
+      'Full-length rear zip and reflective trim',
+      'Sized S–XL by EU shoe size',
+    ],
+    seo: {
+      title: 'Rain Cycling Overshoes | Waterproof Overshoes | Proton Lab',
+      description: 'Taped waterproof outer, fleece lining and a full-length rear zip. The Proton Lab Rain Overshoes keep training feet dry and warm.',
+      keywords: 'rain overshoes, waterproof cycling overshoes, winter overshoes, custom overshoes, cycling shoe covers UK',
+    },
+    featuredImage: img('rain-overshoes'), images: { nodes: [img('rain-overshoes')] },
+    variants: footSizes('040', '40.00'),
+    priceRange: { minVariantPrice: { amount: '40.00', currencyCode: 'GBP' } },
+    ...col('training', 'Training'), tags: ['accessories', 'overshoes', 'rain', 'moq-10'], availableForSale: true,
   },
 ]

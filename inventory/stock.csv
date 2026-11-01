@@ -65,8 +65,10 @@ sleeveless-trisuit,S,0
 sleeveless-trisuit,M,0
 sleeveless-trisuit,L,0
 sleeveless-trisuit,XL,0
-aero-socks,S/M,0
-aero-socks,L/XL,0
+aero-socks,S,0
+aero-socks,M,0
+aero-socks,L,0
+aero-socks,XL,0
 aero-mitts,XS,0
 aero-mitts,S,0
 aero-mitts,M,0
@@ -163,3 +165,12 @@ white-bib-shorts,XL,1
 white-cotton-socks,S,5
 white-cotton-socks,M,5
 white-cotton-socks,L,7
+white-cotton-socks,XL,0
+aero-overshoes,S,0
+aero-overshoes,M,0
+aero-overshoes,L,0
+aero-overshoes,XL,0
+rain-overshoes,S,0
+rain-overshoes,M,0
+rain-overshoes,L,0
+rain-overshoes,XL,0
