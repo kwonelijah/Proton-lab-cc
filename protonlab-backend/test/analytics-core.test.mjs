@@ -120,8 +120,8 @@ test('D21 attribution + D22 ROAS/CAC', () => {
 
 test('E26 funnel uses GA4 users and Stripe purchases', () => {
   const f = core.funnel(ctx, OCT);
-  assert.deepEqual(f.steps.map((s) => s.users), [180, 90, 18, 10, 5]);
-  assert.equal(f.steps[4].source, 'stripe'); assert.equal(f.steps[4].pctOfFirst, 2.78); assert.equal(f.steps[1].pctOfPrev, 50);
+  assert.deepEqual(f.steps.map((s) => s.users), [180, 90, 18, 10, 4], 'purchase = site orders only (wholesale excluded)');
+  assert.equal(f.steps[4].source, 'stripe'); assert.equal(f.steps[4].pctOfFirst, 2.22); assert.equal(f.steps[1].pctOfPrev, 50);
   assert.equal(core.funnel({ rows: [] }, OCT).configured, false);
 });
 

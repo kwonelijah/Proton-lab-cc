@@ -6,7 +6,7 @@
    This file is ALSO inlined into ~/Desktop/Proton Dashboard/order-dashboard.html
    by scripts/inline-analytics-core.mjs (between the ANALYTICS-CORE markers),
    so it must stay a classic script: one IIFE, no require/process/Buffer, no
-   named exports, no top-level helpers outside the IIFE, no "</script>".
+   named exports, no top-level helpers outside the IIFE, no closing script tag.
    Node side: `import core from './analytics-core.cjs'` (default import only).
 
    Money: every *Gbp field is pounds (not pence) in GBP as settled by Stripe
@@ -376,7 +376,7 @@ const AnalyticsCore = (() => {
   const FUNNEL_STEPS = [['page_view', 'Page view'], ['view_item', 'View product'], ['add_to_cart', 'Add to cart'], ['begin_checkout', 'Begin checkout'], ['purchase', 'Purchase']];
   function funnel(ctx, opts) {
     const days = ((ctx.ga4 && ctx.ga4.days) || []).filter((d) => inRange(dayKey(d.date), opts.from, opts.to));
-    const purchases = filterRows(ctx.rows, { ...opts, channel: 'all' }).length;
+    const purchases = filterRows(ctx.rows, { ...opts, channel: 'all' }).filter((r) => r.source !== 'wholesale').length;   // site purchases only
     const steps = FUNNEL_STEPS.map(([key, label]) => {
       const users = key === 'purchase' ? purchases : sum(days, (d) => (d[key] && d[key].users) || 0);
       const events = key === 'purchase' ? purchases : sum(days, (d) => (d[key] && d[key].events) || 0);
