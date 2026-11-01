@@ -42,6 +42,10 @@
       "university-of-bristol-cycling-club": {
         "priceId": "price_1ULzpW3x1N43j1ucxOomAdkx",
         "unitAmount": 6300
+      },
+      "cardiff-met-cycling-club": {
+        "priceId": "price_1UWtaC3x1N43j1ucYihRHSKK",
+        "unitAmount": 6300
       }
     }
   },
@@ -122,6 +126,10 @@
       "edinburgh-university-cycling-club": {
         "priceId": "price_1UP2sO3x1N43j1ucqYQuALS9",
         "unitAmount": 8100
+      },
+      "cardiff-met-cycling-club": {
+        "priceId": "price_1UWtaF3x1N43j1ucyANpx8wl",
+        "unitAmount": 8100
       }
     }
   },
@@ -188,6 +196,10 @@
       },
       "edinburgh-university-cycling-club": {
         "priceId": "price_1UP3Cy3x1N43j1ucttFeE22Z",
+        "unitAmount": 8100
+      },
+      "cardiff-met-cycling-club": {
+        "priceId": "price_1UWtaH3x1N43j1ucLGPPA1ig",
         "unitAmount": 8100
       }
     }
@@ -288,6 +300,10 @@
       },
       "edinburgh-university-cycling-club": {
         "priceId": "price_1UP2sj3x1N43j1uc9zkqeRNp",
+        "unitAmount": 5000
+      },
+      "cardiff-met-cycling-club": {
+        "priceId": "price_1UWtaL3x1N43j1ucUwmQKzRE",
         "unitAmount": 5000
       }
     }

@@ -320,6 +320,29 @@ export const clubs: Club[] = [
         customImages: ['/images/clubs/edinburgh-university-cycling-club/eucc-aero-socks-back.jpg'] },
     ],
   },
+  {
+    handle: 'cardiff-met-cycling-club',
+    name: 'Cardiff Met Cycling Club',
+    password: 'cardiffmet',
+    // Order window, delivery mode and delivery estimate still to be arranged
+    // with the club (Elijah, 2026-11-01) — add windowStart/windowEnd, the
+    // tagline lines and a delivery flag (+ backend list) when they are.
+    tagline: 'All prices include the 10% university discount.',
+    products: [
+      { name: 'SS Training Jersey', handle: 'ss-training-jersey', category: 'top', price: '£63.00',
+        image: '/images/clubs/cardiff-met-cycling-club/cardiffmet-ss-training-jersey-front.jpg',
+        customImages: ['/images/clubs/cardiff-met-cycling-club/cardiffmet-ss-training-jersey-back.jpg'] },
+      { name: 'LS Fleece Jersey', handle: 'ls-fleece-jersey', category: 'top', price: '£81.00',
+        image: '/images/clubs/cardiff-met-cycling-club/cardiffmet-ls-fleece-jersey-front.jpg',
+        customImages: ['/images/clubs/cardiff-met-cycling-club/cardiffmet-ls-fleece-jersey-back.jpg'] },
+      { name: 'Summer Gilet', handle: 'summer-gilet', category: 'top', price: '£50.00',
+        image: '/images/clubs/cardiff-met-cycling-club/cardiffmet-summer-gilet-front.jpg',
+        customImages: ['/images/clubs/cardiff-met-cycling-club/cardiffmet-summer-gilet-back.jpg'] },
+      { name: 'Training Bib Shorts', handle: 'training-bib-shorts', category: 'lower', price: '£81.00',
+        image: '/images/clubs/cardiff-met-cycling-club/cardiffmet-training-bib-shorts-front.jpg',
+        customImages: ['/images/clubs/cardiff-met-cycling-club/cardiffmet-training-bib-shorts-back.jpg'] },
+    ],
+  },
 ]
 
 export function getClubByHandle(handle: string): Club | undefined {
