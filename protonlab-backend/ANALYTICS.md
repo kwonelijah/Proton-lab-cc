@@ -55,6 +55,31 @@ Period = the day the charge was captured (`paidAt`), UTC. Grain auto: ≤31 days
 | F35 Rolling turnover | the VAT turnover above at each of the last 11 month-ends and today, with the £75k and £90k lines |
 | G37 Club shops | one card per club: orders in its current ordering window (from the Club Shops tab's windows; all orders when none), units by product and size, value ex shipping, days to deadline, cumulative-orders curve with the deadline marked |
 
+## Bank-transfer invoices (club orders paid outside Stripe)
+
+Many club orders are settled by invoice / bank transfer rather than through a
+club shop, so the dashboard carries a payment method on every pipeline order:
+`paidVia` = `stripe` (members paid through the club shop; the Stripe rows already
+hold the money) or `invoice` (the club paid Proton directly), with
+`invoiceAmount` (the bank-transfer part — both can apply to one order) and
+`invoicePaidDate` (blank = outstanding). Moving an order to Completed asks for it;
+the Completed tab's **Payment check** audits every order against the Stripe
+orders of its club shop and lets Elijah record the answer.
+
+- Each paid invoice becomes one row with `source: 'invoice'`, channel `club`,
+  `grossGbp = net = invoiceAmount`, fee 0, `paidAt = invoicePaidDate`, lines from
+  the order's items scaled to the invoiced amount (`allocated: true` when they
+  don't match). Outstanding invoices are not rows.
+- Counted in: revenue by channel, orders vs revenue, cumulative revenue, SKU
+  drill-down, per-club cards, rolling 12-month turnover (it is taxable turnover),
+  repeat customers (the club contact's email).
+- Not counted in: AOV / rolling AOV and the funnel's purchase step — like
+  wholesale, an invoice is a B2B settlement, not a site order (`isSiteOrder`).
+- Gross margin costs invoice lines at the club's production cost per unit, taken
+  from the delivered pipeline order (keyed by roster handle, or `name:<club>`).
+- Caveat: the paid date is typed by hand (the Payment check assumes the completion
+  date for already-delivered orders — edit it before applying if it differs).
+
 ## Known limits
 
 - Server-side caching is per warm Vercel instance only (no database); the browser cache is the real one. Sync is manual (↻ Sync); a weekly lite re-scan catches late refunds and dispatch stamps.
