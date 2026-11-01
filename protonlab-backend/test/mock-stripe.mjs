@@ -34,6 +34,7 @@ export default class Stripe {
           return paged(list);
         },
         listLineItems: (sid) => paged(S().lineItems[sid] || []),
+        create: async (params) => { (S().created ||= []).push(clone(params)); return { id: 'cs_test', url: 'https://checkout.stripe.com/c/cs_test' }; },
       },
     };
     this.refunds = { list: (params = {}) => paged(S().refunds.filter((f) => inRange(f.created, params.created))) };

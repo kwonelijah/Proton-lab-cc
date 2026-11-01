@@ -1,5 +1,6 @@
 import { getFbCookies } from '@/lib/meta'
 import { getGaCookies } from '@/lib/ga'
+import { getAttribution } from '@/lib/attribution'
 
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'https://protonlab-backend.vercel.app'
 
@@ -48,11 +49,14 @@ export async function redirectToCheckout(
   // purchase — same client_id as this browser, so GA4 dedups the pair.
   const { fbp, fbc } = getFbCookies()
   const { gaClientId, gaSessionId } = getGaCookies()
+  // Marketing attribution (utm_* / referrer, lib/attribution.ts) is stamped
+  // onto the PaymentIntent for the order dashboard's Analytics tab.
+  const attribution = getAttribution()
 
   const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items, shippingRegion, delivery, fbp, fbc, gaClientId, gaSessionId }),
+    body: JSON.stringify({ items, shippingRegion, delivery, fbp, fbc, gaClientId, gaSessionId, attribution }),
   })
 
   const data = await res.json().catch(() => ({}))

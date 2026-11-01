@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { items, customerEmail, customerName, shippingRegion, delivery, fbp, fbc, gaClientId, gaSessionId } = req.body;
+  const { items, customerEmail, customerName, shippingRegion, delivery, fbp, fbc, gaClientId, gaSessionId, attribution } = req.body;
 
   // Meta ads attribution — the browser's _fbp/_fbc cookies arrive in the body;
   // IP and user-agent are read from this request (it comes from the customer's
@@ -142,6 +142,26 @@ export default async function handler(req, res) {
     resolved.map(i => i.clubHandle).filter(h => h && h !== 'protonlab')
   )].join(', ').slice(0, METADATA_VALUE_MAX);
 
+  // Analytics metadata (order dashboard → Analytics tab). `channel` mirrors the
+  // webhook's retail/club rule; `club_id` is the first club handle; `sku` is
+  // the first line as handle/size (the full list is in the items tuples);
+  // utm_* / referrer come from lib/attribution.ts on the site and are capped
+  // like every other value. `attributed:'1'` marks orders placed by a browser
+  // that sent attribution at all — without it a missing utm_source means
+  // "Unattributed" (historical), with it "Direct".
+  const attr = attribution && typeof attribution === 'object' ? attribution : null;
+  const attrStr = (v, max = 100) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const analyticsMeta = {
+    channel: clubHandleMeta ? 'club' : 'retail',
+    club_id: clubHandleMeta.split(',')[0].trim(),
+    sku: resolved.length ? `${resolved[0].handle}/${resolved[0].size}`.slice(0, METADATA_VALUE_MAX) : '',
+    utm_source: attrStr(attr?.utm_source).toLowerCase(),
+    utm_medium: attrStr(attr?.utm_medium).toLowerCase(),
+    utm_campaign: attrStr(attr?.utm_campaign),
+    referrer: attrStr(attr?.referrer, 200),
+    attributed: attr ? '1' : '',
+  };
+
   // Club-delivery shops (config/shipping.js CLUB_DELIVERY_CLUBS) send the whole
   // club's kit to its distributor in one consignment, so the member pays no
   // delivery and enters no address. Decided server-side from the handles, so a
@@ -224,12 +244,25 @@ export default async function handler(req, res) {
         },
       },
 
+      // The Session's own metadata was never set before — a compact copy of
+      // the analytics keys so Session-level reports (and Stripe's dashboard
+      // filters) can split by channel too. The PaymentIntent stays the record.
+      metadata: {
+        channel: analyticsMeta.channel,
+        club_id: analyticsMeta.club_id,
+        club,
+        utm_source: analyticsMeta.utm_source,
+        utm_medium: analyticsMeta.utm_medium,
+        utm_campaign: analyticsMeta.utm_campaign,
+      },
+
       payment_intent_data: {
         metadata: {
           name: customerName || '',
           email: customerEmail || '',
           club,
           club_handle: clubHandleMeta,
+          ...analyticsMeta,
           // 'club' = one consignment to the club's distributor (no address, no
           // charge); 'collection' = the member collects from the club committee
           // (chosen in the cart, same no-address/no-charge path); 'post' = a
