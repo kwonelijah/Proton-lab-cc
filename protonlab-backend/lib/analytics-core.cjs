@@ -1,7 +1,8 @@
 /* lib/analytics-core.cjs — the ONE source of truth for the analytics maths.
    Pure functions over the unified order-row shape that api/analytics.js builds
    from Stripe and that the dashboard builds for manual (bank-transfer) and
-   wholesale orders. Nothing here touches Stripe, the DOM or the network.
+   wholesale orders and club invoices paid by bank transfer (source 'invoice').
+   Nothing here touches Stripe, the DOM or the network.
 
    This file is ALSO inlined into ~/Desktop/Proton Dashboard/order-dashboard.html
    by scripts/inline-analytics-core.mjs (between the ANALYTICS-CORE markers),
@@ -150,6 +151,10 @@ const AnalyticsCore = (() => {
     return (!channel || channel === 'all') ? rows : rows.filter((r) => channelOfRow(r) === channel);
   }
   const rowById = (rows) => new Map((rows || []).map((r) => [r.id, r]));
+  /* B2B invoices — wholesale invoices and club invoices settled by bank transfer
+     (source 'invoice', built by the dashboard from its pipeline orders) — count
+     in every revenue figure but are not "orders" for AOV or the funnel. */
+  const isSiteOrder = (r) => r.source !== 'wholesale' && r.source !== 'invoice';
   const okRefund = (f) => !f.status || f.status === 'succeeded' || f.status === 'pending';
   /* Refunds that belong to the selected channel (via their order) and happened in [from,to]. */
   function refundsIn(ctx, opts) {
@@ -207,8 +212,8 @@ const AnalyticsCore = (() => {
   function aovSeries(ctx, opts) {
     const g = opts.grain || 'day', b = seriesBase(opts), rollingDays = opts.rollingDays || 30;
     const n = b.zeros(), v = b.zeros();
-    const chan = rowsByChannel(ctx.rows || [], opts.channel);
-    for (const r of filterRows(ctx.rows, opts)) {
+    const chan = rowsByChannel(ctx.rows || [], opts.channel).filter(isSiteOrder);
+    for (const r of filterRows(ctx.rows, opts).filter(isSiteOrder)) {
       const i = b.idx.get(bucketKey(rowDate(r), g)); if (i == null) continue;
       n[i] += 1; v[i] += num(r.grossGbp);
     }
@@ -219,7 +224,7 @@ const AnalyticsCore = (() => {
       for (const r of chan) { const d = rowDate(r); if (d >= start && d <= end) { c++; t += num(r.grossGbp); } }
       return c ? round2(t / c) : null;
     });
-    const all = filterRows(ctx.rows, opts);
+    const all = filterRows(ctx.rows, opts).filter(isSiteOrder);
     const current = all.length ? round2(sum(all, (r) => r.grossGbp) / all.length) : null;
     const baseline = opts.baseline != null ? num(opts.baseline) : 135;
     const rows = b.keys.map((k, i) => ({ bucket: k, orders: n[i], aov: aov[i], rolling: rolling[i] }));
@@ -376,7 +381,7 @@ const AnalyticsCore = (() => {
   const FUNNEL_STEPS = [['page_view', 'Page view'], ['view_item', 'View product'], ['add_to_cart', 'Add to cart'], ['begin_checkout', 'Begin checkout'], ['purchase', 'Purchase']];
   function funnel(ctx, opts) {
     const days = ((ctx.ga4 && ctx.ga4.days) || []).filter((d) => inRange(dayKey(d.date), opts.from, opts.to));
-    const purchases = filterRows(ctx.rows, { ...opts, channel: 'all' }).filter((r) => r.source !== 'wholesale').length;   // site purchases only
+    const purchases = filterRows(ctx.rows, { ...opts, channel: 'all' }).filter(isSiteOrder).length;   // site purchases only
     const steps = FUNNEL_STEPS.map(([key, label]) => {
       const users = key === 'purchase' ? purchases : sum(days, (d) => (d[key] && d[key].users) || 0);
       const events = key === 'purchase' ? purchases : sum(days, (d) => (d[key] && d[key].events) || 0);
@@ -504,7 +509,8 @@ const AnalyticsCore = (() => {
     const grossRange = sum(range, (r) => r.grossGbp);
     const refundedRange = sum(refundsIn(ctx, opts), (f) => f.amountGbp);
     const refundedOrders = range.filter((r) => num(r.refundedGbp) > 0).length;
-    const aov = range.length ? round2(grossRange / range.length) : null;
+    const site = range.filter(isSiteOrder);
+    const aov = site.length ? round2(sum(site, (r) => r.grossGbp) / site.length) : null;
     const baseline = opts.baseline != null ? num(opts.baseline) : 135;
     const gm = grossMargin(ctx, opts);
     const rr = repeatRate(ctx, opts);
@@ -581,7 +587,7 @@ const AnalyticsCore = (() => {
     num, round2, sum, fmtGBP, fmtPct, titleCase, normEmail, normPhone, customerKey,
     dayKey, addDays, mondayOf, monthStart, monthEnd, daysBetween, bucketKey, bucketEnd, bucketsBetween, bucketLabel, rowDate, inRange,
     channelOfRow, channelOfMeta, attributionOfMeta, attributionBucket, attrLabel, isMetaSource, postcodeArea, regionCountry, skuMeta,
-    filterRows, refundsIn,
+    filterRows, refundsIn, isSiteOrder,
     revenueByChannel, ordersVsRevenue, aovSeries, cumulativeRevenue, bySku, sellThrough, newVsReturning, repeatRate, geo, attribution, roas, funnel, refundsBySku, payoutsSeries, turnoverAt, rolling12, cogsOfRow, grossMargin, kpis, currentWindow, clubCards, toCSV,
   };
 })();
