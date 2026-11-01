@@ -12,6 +12,9 @@
     },
     "api/health-checkout.js": {
       "maxDuration": 30
+    },
+    "api/analytics.js": {
+      "maxDuration": 60
     }
   },
   "crons": [

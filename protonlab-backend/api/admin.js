@@ -68,7 +68,7 @@ const SHIPPING_METHODS = ['standard', 'next-day', 'international', 'club', 'coll
 // to lists the action — a dashboard updated ahead of the backend must never
 // send a POST the old code would misread (an unknown action used to fall
 // through to the dispatch path and email the customer).
-const ADMIN_CAPABILITIES = ['update-order'];
+const ADMIN_CAPABILITIES = ['update-order', 'analytics'];   // 'analytics' = /api/analytics is deployed
 function shippingMethodOf(v) {
   return SHIPPING_METHODS.includes(v) ? v : null;
 }

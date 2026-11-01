@@ -1,0 +1,60 @@
+{
+  "asOf": "2026-11-01",
+  "rows": [
+    {"id":"pi_r1","source":"stripe","created":"2026-10-05T10:00:00Z","paidAt":"2026-10-05T10:00:00Z","currency":"gbp","channel":"retail","clubHandle":"","club":"Proton Lab","email":"a@x.com","phone":"","country":"GB","postcodeArea":"EH","gross":101.99,"grossGbp":101.99,"fee":1.73,"net":100.26,"fx":1,"shippingGbp":4.99,"discountGbp":0,"subtotalGbp":97,"refundedGbp":0,"dispute":null,
+     "items":[{"handle":"red-sky-jersey","name":"Red Sky Jersey","size":"L","qty":1,"lineGbp":85},{"handle":"white-cotton-socks","name":"White Cotton Socks","size":"M","qty":1,"lineGbp":12}],
+     "utm":{"source":"facebook","medium":"paid-social","campaign":"oct","referrer":"","attributed":true,"fbc":true}},
+    {"id":"pi_r2","source":"stripe","created":"2026-10-12T10:00:00Z","paidAt":"2026-10-12T10:00:00Z","currency":"eur","channel":"retail","clubHandle":"","club":"Proton Lab","email":"b@x.com","phone":"","country":"DE","postcodeArea":"","gross":110,"grossGbp":95.7,"fee":2.9,"net":92.8,"fx":0.87,"shippingGbp":0,"discountGbp":0,"subtotalGbp":95.7,"refundedGbp":0,"dispute":null,
+     "items":[{"handle":"ocean-blue-jersey","name":"Ocean Blue Jersey","size":"M","qty":1,"lineGbp":95.7}],
+     "utm":{"source":"","medium":"","campaign":"","referrer":"","attributed":true,"fbc":false}},
+    {"id":"pi_r3","source":"stripe","created":"2026-10-20T10:00:00Z","paidAt":"2026-10-20T10:00:00Z","currency":"gbp","channel":"club","clubHandle":"ucl-cycling","club":"UCL Cycling","email":"c@x.com","phone":"","country":"GB","postcodeArea":"N","gross":90.99,"grossGbp":90.99,"fee":1.5,"net":89.49,"fx":1,"shippingGbp":4.99,"discountGbp":0,"subtotalGbp":86,"refundedGbp":86,"dispute":null,
+     "items":[{"handle":"ss-race-jersey","name":"SS Race Jersey","size":"Men's M","qty":1,"lineGbp":86}],
+     "utm":{"source":"","medium":"","campaign":"","referrer":"","attributed":false,"fbc":false}},
+    {"id":"pi_r4","source":"stripe","created":"2026-10-22T10:00:00Z","paidAt":"2026-10-22T10:00:00Z","currency":"gbp","channel":"retail","clubHandle":"","club":"Proton Lab","email":"A@X.com","phone":"","country":"GB","postcodeArea":"BS","gross":200,"grossGbp":200,"fee":3.2,"net":196.8,"fx":1,"shippingGbp":0,"discountGbp":0,"subtotalGbp":200,"refundedGbp":0,"dispute":null,
+     "items":[{"handle":"black-bib-shorts","name":"Black Bib Shorts","size":"M","qty":2,"lineGbp":200}],
+     "utm":{"source":"instagram","medium":"social","campaign":"","referrer":"","attributed":true,"fbc":false}},
+    {"id":"wh_1","source":"wholesale","created":"2026-10-15T00:00:00Z","paidAt":"2026-10-15T00:00:00Z","currency":"gbp","channel":"wholesale","clubHandle":"","club":"","email":"","phone":"","country":"GB","postcodeArea":"EH","gross":297.5,"grossGbp":297.5,"fee":0,"net":297.5,"fx":1,"shippingGbp":0,"discountGbp":0,"subtotalGbp":297.5,"refundedGbp":0,"dispute":null,
+     "items":[{"handle":"sunset-jersey","name":"Sunset Jersey","size":"S","qty":3,"lineGbp":178.5},{"handle":"sunset-jersey","name":"Sunset Jersey","size":"M","qty":2,"lineGbp":119}],
+     "utm":{}},
+    {"id":"m_1","source":"manual","created":"2026-11-01T00:00:00Z","paidAt":"2026-11-01T00:00:00Z","currency":"gbp","channel":"retail","clubHandle":"","club":"","email":"d@x.com","phone":"","country":"GB","postcodeArea":"LS","gross":85,"grossGbp":85,"fee":0,"net":85,"fx":1,"shippingGbp":0,"discountGbp":0,"subtotalGbp":85,"refundedGbp":0,"dispute":null,
+     "items":[{"handle":"sunset-jersey","name":"Sunset Jersey","size":"M","qty":1,"lineGbp":85}],
+     "utm":{}},
+    {"id":"pi_r7","source":"stripe","created":"2026-09-30T10:00:00Z","paidAt":"2026-09-30T10:00:00Z","currency":"gbp","channel":"club","clubHandle":"university-of-bath-cycling-club","club":"University of Bath Cycling Club","email":"f@x.com","phone":"","country":"GB","postcodeArea":"BA","gross":81,"grossGbp":81,"fee":1.4,"net":79.6,"fx":1,"shippingGbp":0,"discountGbp":0,"subtotalGbp":81,"refundedGbp":0,"dispute":null,
+     "items":[{"handle":"training-bib-shorts","name":"Training Bib Shorts","size":"Women's S","qty":1,"lineGbp":81}],
+     "utm":{}},
+    {"id":"pi_r8","source":"stripe","created":"2025-10-15T10:00:00Z","paidAt":"2025-10-15T10:00:00Z","currency":"gbp","channel":"retail","clubHandle":"","club":"Proton Lab","email":"e@x.com","phone":"","country":"GB","postcodeArea":"G","gross":100,"grossGbp":100,"fee":1.7,"net":98.3,"fx":1,"shippingGbp":4.99,"discountGbp":0,"subtotalGbp":85,"refundedGbp":0,"dispute":null,
+     "items":[{"handle":"red-sky-jersey","name":"Red Sky Jersey","size":"M","qty":1,"lineGbp":85}],
+     "utm":{}}
+  ],
+  "refunds": [
+    {"id":"re_1","created":"2026-10-28T09:00:00Z","paymentIntent":"pi_r3","amount":86,"currency":"gbp","amountGbp":86,"reason":"requested_by_customer","status":"succeeded"},
+    {"id":"re_2","created":"2026-10-30T09:00:00Z","paymentIntent":"pi_r4","amount":50,"currency":"gbp","amountGbp":50,"reason":"","status":"failed"}
+  ],
+  "disputes": [
+    {"id":"dp_1","created":"2026-10-25T09:00:00Z","paymentIntent":"pi_r7","amount":81,"currency":"gbp","amountGbp":81,"netGbp":-96,"reason":"fraudulent","status":"lost"},
+    {"id":"dp_2","created":"2026-10-26T09:00:00Z","paymentIntent":"pi_r1","amount":101.99,"currency":"gbp","amountGbp":101.99,"netGbp":0,"reason":"general","status":"warning_needs_response"}
+  ],
+  "payouts": [
+    {"id":"po_1","arrivalDate":"2026-10-07T00:00:00Z","created":"2026-10-05T00:00:00Z","amount":300,"currency":"gbp","status":"paid"},
+    {"id":"po_2","arrivalDate":"2026-10-14T00:00:00Z","created":"2026-10-12T00:00:00Z","amount":250,"currency":"gbp","status":"paid"},
+    {"id":"po_3","arrivalDate":"2026-11-03T00:00:00Z","created":"2026-11-01T00:00:00Z","amount":120,"currency":"gbp","status":"in_transit"},
+    {"id":"po_4","arrivalDate":"2026-10-21T00:00:00Z","created":"2026-10-19T00:00:00Z","amount":90,"currency":"gbp","status":"failed"}
+  ],
+  "balance": {"available":[{"currency":"gbp","amount":412.5}],"pending":[{"currency":"gbp","amount":120}]},
+  "received": [
+    {"handle":"sunset-jersey","size":"S","qty":5,"date":"2026-06-01","unitCost":30},
+    {"handle":"sunset-jersey","size":"M","qty":10,"date":"2026-06-01","unitCost":30}
+  ],
+  "stockNow": [
+    {"handle":"sunset-jersey","size":"S","quantity":2},
+    {"handle":"sunset-jersey","size":"M","quantity":7},
+    {"handle":"red-sky-jersey","size":"L","quantity":3},
+    {"handle":"black-bib-shorts","size":"M","quantity":0}
+  ],
+  "windows": {"ucl-cycling":[{"id":"w1","label":"Oct window","start":"2026-10-15","end":"2026-10-28"}]},
+  "costs": {"unitCost":{"red-sky-jersey":30,"white-cotton-socks":4,"ocean-blue-jersey":30,"black-bib-shorts":35,"sunset-jersey":30},"clubUnitCost":{"ucl-cycling":40}},
+  "ga4": {"days":[
+    {"date":"2026-10-03","page_view":{"events":150,"users":100},"view_item":{"events":60,"users":50},"add_to_cart":{"events":12,"users":10},"begin_checkout":{"events":7,"users":6},"purchase":{"events":3,"users":3}},
+    {"date":"2026-10-20","page_view":{"events":120,"users":80},"view_item":{"events":45,"users":40},"add_to_cart":{"events":9,"users":8},"begin_checkout":{"events":5,"users":4},"purchase":{"events":2,"users":2}}
+  ]}
+}
