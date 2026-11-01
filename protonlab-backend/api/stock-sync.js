@@ -57,6 +57,30 @@ async function sendSummary({ to, subject, lines }) {
   }
 }
 
+// Club-shop payments are made-to-order kit (and share handles like socks with
+// the retail range), so they must never move inventory/stock.csv. Same rule as
+// the webhook's channel + the dashboard's streamOf(): new `channel` metadata,
+// else a club handle, else a club name other than Proton Lab.
+function isClubOrder(meta) {
+  if (!meta) return false;
+  if (meta.channel === 'club') return true;
+  if (String(meta.club_handle || '').trim()) return true;
+  const club = String(meta.club || '').trim();
+  return !!club && club.toLowerCase() !== 'proton lab';
+}
+
+// Stamp skipped club PIs so the nightly scan stops re-reading them; the stamp
+// value says why. Never called on a dry run.
+async function stampClubSkipped(ids) {
+  const stamped = [];
+  const stamp = `skipped-club:${new Date().toISOString().slice(0, 10)}`;
+  for (const id of ids) {
+    try { await stripe.paymentIntents.update(id, { metadata: { stock_synced: stamp } }); stamped.push(id); }
+    catch (err) { console.error('Failed to stamp skipped-club on', id, err.message); }
+  }
+  return stamped;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -81,10 +105,12 @@ export default async function handler(req, res) {
 
   const eligible = [];
   const parseFailures = [];
+  const clubSkipped = [];   // club-shop payments: made-to-order kit, never retail stock
   for (const p of payments) {
     if (p.status !== 'succeeded') continue;
     if (p.metadata?.stock_synced) continue;
     if (!hasItems(p.metadata)) continue; // pre-metadata era or non-shop payment
+    if (isClubOrder(p.metadata)) { clubSkipped.push(p.id); continue; }
     const items = parseItems(p.metadata);
     if (!items) {
       parseFailures.push(p.id);
@@ -98,11 +124,12 @@ export default async function handler(req, res) {
   );
 
   if (!movements.length) {
+    const clubStamped = dryRun ? [] : await stampClubSkipped(clubSkipped);
     return res.status(200).json({
       ok: true, dryRun, days,
       scanned: payments.length, orders: 0,
       message: 'nothing to sync',
-      parseFailures,
+      parseFailures, clubSkipped: clubSkipped.length, clubStamped: clubStamped.length,
     });
   }
 
@@ -115,7 +142,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true, dryRun: true, days,
       scanned: payments.length, orders: eligible.length, units,
-      movements, parseFailures,
+      movements, parseFailures, clubSkipped: clubSkipped.length,
     });
   }
 
@@ -146,6 +173,8 @@ export default async function handler(req, res) {
     }
   }
 
+  const clubStamped = await stampClubSkipped(clubSkipped);
+
   const summaryTo = process.env.STOCK_SYNC_EMAIL;
   if (summaryTo) {
     const lines = [
@@ -164,6 +193,7 @@ export default async function handler(req, res) {
       ...(stampFailures.length
         ? ['', `STAMP FAILURES — these PIs may double-count next run (harmless, stock reads low) or can be stamped by hand in Stripe: ${stampFailures.join(', ')}`]
         : []),
+      ...(clubSkipped.length ? ['', `Club-shop orders skipped (made to order, never retail stock): ${clubSkipped.length}`] : []),
       ...(parseFailures.length ? ['', `Unparseable items metadata (never synced): ${parseFailures.join(', ')}`] : []),
     ];
     await sendSummary({ to: summaryTo, subject: `Stock sync: ${units} units, ${eligible.length} orders`, lines });
