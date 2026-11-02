@@ -69,6 +69,7 @@ export const CLUB_DELIVERY_CLUBS = new Set([
   'ucl-cycling',
   'university-of-bristol-cycling-club',
   'university-of-bath-cycling-club',
+  'cardiff-met-cycling-club',
 ]);
 
 // COLLECTION_OPTION_CLUBS (`collectionOption: true`): the member chooses in
