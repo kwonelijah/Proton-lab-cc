@@ -9,6 +9,7 @@ import { render as renderConfirmation } from '../emails/order-confirmation.js';
 import { render as renderProduction } from '../emails/order-production.js';
 import { render as renderDispatched } from '../emails/order-dispatched.js';
 import { render as renderSampleDispatched } from '../emails/sample-dispatched.js';
+import { render as renderKitDispatched } from '../emails/kit-dispatched.js';
 import { render as renderDelivered } from '../emails/order-delivered.js';
 import { render as renderReviewRequest } from '../emails/review-request.js';
 import { render as renderWelcome } from '../emails/welcome.js';
@@ -78,6 +79,13 @@ export async function sendOrderDispatched(order, dispatch = {}) {
 // dispatch: { trackingNumber?, trackingUrl? }
 export async function sendSampleDispatched(order, dispatch = {}) {
   return sendToCustomer(order, renderSampleDispatched(order, dispatch));
+}
+
+// Custom-kit parcel dispatch note (pipeline orders shipped via the web shop
+// tools) — no prices and no follow-up scheduling, like the samples note.
+// dispatch: { trackingNumber?, trackingUrl? }
+export async function sendKitDispatched(order, dispatch = {}) {
+  return sendToCustomer(order, renderKitDispatched(order, dispatch));
 }
 
 // options.scheduledAt (ISO string) lets the dispatch flow schedule this for a

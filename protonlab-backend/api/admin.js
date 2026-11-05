@@ -31,6 +31,7 @@ import {
   sendOrderInProduction,
   sendReviewRequest,
   sendSampleDispatched,
+  sendKitDispatched,
 } from '../lib/email.js';
 import { readStock, applyAndCommit } from '../lib/stock.js';
 import { readClubs } from '../lib/clubs.js';
@@ -68,7 +69,7 @@ const SHIPPING_METHODS = ['standard', 'next-day', 'international', 'club', 'coll
 // to lists the action — a dashboard updated ahead of the backend must never
 // send a POST the old code would misread (an unknown action used to fall
 // through to the dispatch path and email the customer).
-const ADMIN_CAPABILITIES = ['update-order', 'analytics'];   // 'analytics' = /api/analytics is deployed
+const ADMIN_CAPABILITIES = ['update-order', 'analytics', 'kit-dispatch'];   // 'analytics' = /api/analytics is deployed; 'kit-dispatch' = {action:'send', kind:'kit'}
 function shippingMethodOf(v) {
   return SHIPPING_METHODS.includes(v) ? v : null;
 }
@@ -473,7 +474,7 @@ export default async function handler(req, res) {
     // the order record and its state; this endpoint only renders and sends.
     if (req.body?.action === 'send') {
       const { kind, order, tracking: manualTracking } = req.body;
-      if (!['confirmation', 'production', 'dispatch', 'sample'].includes(kind)) {
+      if (!['confirmation', 'production', 'dispatch', 'sample', 'kit'].includes(kind)) {
         return res.status(400).json({ error: 'Unknown email kind' });
       }
       if (!order || !order.email || !order.name) {
@@ -499,14 +500,16 @@ export default async function handler(req, res) {
         result = await sendOrderConfirmation(o);
       } else if (kind === 'production') {
         result = await sendOrderInProduction(o);
-      } else if (kind === 'sample') {
-        // Samples flow: a dispatch note only — the template shows no prices,
-        // and unlike 'dispatch' no thank-you or review follow-up is scheduled.
+      } else if (kind === 'sample' || kind === 'kit') {
+        // Samples flow / custom-kit parcel: a dispatch note only — the template
+        // shows no prices, and unlike 'dispatch' no thank-you or review
+        // follow-up is scheduled. 'kit' is a pipeline order shipped through the
+        // dashboard's web-shop tools (the club is invoiced separately).
         const trackingNumber = (manualTracking || '').trim() || null;
         const dispatch = trackingNumber
           ? { trackingNumber, trackingUrl: `https://www.evri.com/track/parcel/${encodeURIComponent(trackingNumber)}` }
           : {};
-        result = await sendSampleDispatched(o, dispatch);
+        result = kind === 'kit' ? await sendKitDispatched(o, dispatch) : await sendSampleDispatched(o, dispatch);
       } else {
         const trackingNumber = (manualTracking || '').trim() || null;
         const dispatch = trackingNumber
