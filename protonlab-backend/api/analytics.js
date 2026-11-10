@@ -22,6 +22,7 @@
 import Stripe from 'stripe';
 import core from '../lib/analytics-core.cjs';
 import { decodeItems, loadProductMap, effectiveShipping, hasShippingOverride } from '../lib/order-items.js';
+import { isStoreConfigured, listBankOrders, refOf as bankRef } from '../lib/bank-orders.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -222,6 +223,83 @@ function liteRow(p) {
   };
 }
 
+// ─── bank-transfer orders (lib/bank-orders.js) ──────────────────────────────
+// One row per member order once Elijah has ticked it paid, keyed by `paidAt`
+// (the dashboard's incremental sync walks from its last sync, so a tick lands
+// in the current window whenever the order was placed). `source:'invoice'`
+// per ANALYTICS.md: counted in revenue / club cards / turnover, not in AOV or
+// the funnel. The lite scan reports the mutable stamps for every bank order
+// in the window and flags `void` when a cached row is no longer paid (an
+// un-tick or a cancellation) so the dashboard drops it.
+function bankRow(rec) {
+  const addr = rec.shipping?.address || null;
+  const country = String(addr?.country || core.regionCountry(rec.shippingRegion) || 'GB').toUpperCase();
+  const amount = round2((rec.amount || 0) / 100);
+  return {
+    id: rec.id,
+    source: 'invoice',
+    ref: bankRef(rec),
+    sessionId: null,
+    created: rec.created,
+    paidAt: rec.paidAt,
+    availableOn: null,
+    currency: 'gbp',
+    channel: 'club',
+    clubHandle: String(rec.clubHandle || '').split(',')[0].trim(),
+    club: rec.club || '',
+    email: core.normEmail(rec.email),
+    phone: rec.phone || '',
+    name: rec.name || '',
+    country,
+    postcodeArea: core.postcodeArea(addr?.postal_code || '', country),
+    gross: amount,
+    grossGbp: amount,
+    fee: 0,
+    net: amount,
+    fx: 1,
+    shippingGbp: round2((rec.shippingAmount || 0) / 100),
+    discountGbp: 0,
+    subtotalGbp: round2((rec.subtotal || 0) / 100),
+    promoCode: '',
+    refundedGbp: 0,
+    dispute: null,
+    items: (rec.lines || []).map((l) => ({ handle: l.handle, name: l.name, size: l.size || '', qty: Number(l.qty) || 0, lineGbp: round2(((l.unitAmount || 0) * (Number(l.qty) || 0)) / 100) })),
+    utm: core.attributionOfMeta(rec.attribution || {}),
+    shippingMethod: rec.shippingMethod || 'standard',
+    delivery: rec.delivery || 'post',
+    paymentMethod: 'Bank transfer (shop)',
+    tracking: rec.tracking || null,
+    productionAt: rec.productionAt || null,
+    dispatchedAt: rec.dispatchedAt || null,
+    deliveredAt: rec.deliveredAt || null,
+  };
+}
+async function bankRows(gte, lte, lite) {
+  if (!isStoreConfigured()) return [];
+  let recs;
+  try {
+    recs = await listBankOrders();
+  } catch (err) {
+    console.error('analytics: bank orders unavailable:', err.message);
+    return [];
+  }
+  const ts = (v) => (v ? Math.floor(Date.parse(v) / 1000) : null);
+  const out = [];
+  for (const rec of recs) {
+    const paid = ts(rec.paidAt);
+    const live = paid != null && !rec.cancelledAt;
+    const paidIn = paid != null && paid >= gte && paid <= lte;
+    if (lite) {
+      const createdAt = ts(rec.created);
+      if (!paidIn && !(createdAt >= gte && createdAt <= lte)) continue;
+      out.push({ id: rec.id, refundedGbp: 0, tracking: rec.tracking || null, productionAt: rec.productionAt || null, dispatchedAt: rec.dispatchedAt || null, deliveredAt: rec.deliveredAt || null, shipOverride: false, ...(live ? {} : { void: true }) });
+    } else if (live && paidIn) {
+      out.push(bankRow(rec));
+    }
+  }
+  return out;
+}
+
 // ─── scopes ─────────────────────────────────────────────────────────────────
 function windowOf(q) {
   const gte = Number(q.since) || 0;
@@ -235,9 +313,12 @@ async function ordersScope(q) {
   const { gte, lte } = windowOf(q);
   const expand = ['data.latest_charge.balance_transaction'];
   const pis = await listSucceededPIs(gte, lte, expand);
-  if (q.lite === '1') return { lite: true, since: gte, until: lte, count: pis.length, orders: pis.map(liteRow) };
+  if (q.lite === '1') {
+    const orders = pis.map(liteRow).concat(await bankRows(gte, lte, true));
+    return { lite: true, since: gte, until: lte, count: orders.length, orders };
+  }
   const [sessions, idx] = [await sessionsByPaymentIntent(gte, lte), productIndex()];
-  const orders = pis.map((p) => buildRow(p, sessions.get(p.id) || null, idx));
+  const orders = pis.map((p) => buildRow(p, sessions.get(p.id) || null, idx)).concat(await bankRows(gte, lte, false));
   return { since: gte, until: lte, count: orders.length, orders };
 }
 async function changesScope(q) {
@@ -363,4 +444,4 @@ export default async function handler(req, res) {
 }
 
 // Exported for tests.
-export const _internal = { buildRow, buildItems, productIndex, liteRow, orderNumber, clearCache: () => cache.clear() };
+export const _internal = { buildRow, buildItems, productIndex, liteRow, bankRow, orderNumber, clearCache: () => cache.clear() };

@@ -1,14 +1,20 @@
 // Local dev server that wraps the Vercel function handlers so the Next.js
-// frontend can hit the new checkout endpoint without deploying.
+// frontend (and the order dashboard) can hit them without deploying:
+// /api/create-checkout-session, /api/bank-transfer-order, /api/admin and
+// /api/analytics.
 //
 // Run:  node protonlab-backend/local-server.js
 // Then: set NEXT_PUBLIC_BACKEND_URL=http://localhost:3001 in .env.local and
 // restart `next dev`.
+// LOCAL_MOCK_BLOB=1 swaps @vercel/blob for the in-memory test mock, so the
+// bank-transfer flow runs end to end with no Blob store (orders vanish when
+// the process exits). LOCAL_BACKEND_PORT picks the port (default 3001).
 
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { register } from 'node:module';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,8 +38,16 @@ function loadDotEnvLocal() {
 }
 loadDotEnvLocal();
 if (!process.env.SITE_URL) process.env.SITE_URL = 'http://localhost:3000';
+if (process.env.LOCAL_MOCK_BLOB === '1') {
+  register('./test/hooks-blob.mjs', import.meta.url);
+  if (!process.env.BLOB_READ_WRITE_TOKEN) process.env.BLOB_READ_WRITE_TOKEN = 'local-mock';
+  console.log('Blob store: in-memory mock (LOCAL_MOCK_BLOB=1)');
+}
 
 const { default: checkoutHandler } = await import('./api/create-checkout-session.js');
+const { default: bankOrderHandler } = await import('./api/bank-transfer-order.js');
+const { default: adminHandler } = await import('./api/admin.js');
+const { default: analyticsHandler } = await import('./api/analytics.js');
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -61,13 +75,15 @@ function wrapRes(res) {
 // Allow local dev origins through CORS regardless of the handler's hard-coded value.
 function applyCors(req, res) {
   const origin = req.headers.origin;
-  const allowed = ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://protonlab.cc'];
-  if (origin && allowed.includes(origin)) {
+  const allowed = ['https://protonlab.cc'];
+  if (origin && (allowed.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+    // No/other origin (e.g. the order dashboard opened from file://, whose
+    // Origin is "null") — the real admin/analytics handlers answer `*` too.
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Vary', 'Origin');
 }
@@ -82,26 +98,40 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  if (req.url === '/health') {
+  const url = new URL(req.url, 'http://localhost');
+  const routes = {
+    '/api/create-checkout-session': checkoutHandler,
+    '/api/bank-transfer-order': bankOrderHandler,
+    '/api/admin': adminHandler,
+    '/api/analytics': analyticsHandler,
+  };
+
+  if (url.pathname === '/health') {
     res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ ok: true, endpoint: '/api/create-checkout-session' }));
+    return res.end(JSON.stringify({ ok: true, endpoints: Object.keys(routes), mockBlob: process.env.LOCAL_MOCK_BLOB === '1' }));
   }
 
-  if (req.url === '/api/create-checkout-session' && req.method === 'POST') {
-    try {
-      req.body = await readBody(req);
-    } catch (err) {
-      res.statusCode = 400;
-      return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+  const handler = routes[url.pathname];
+  if (handler) {
+    req.query = Object.fromEntries(url.searchParams.entries());
+    if (req.method === 'POST') {
+      try {
+        req.body = await readBody(req);
+      } catch (err) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
     }
-    // The handler sets its own Access-Control-Allow-Origin (protonlab.cc). Intercept
-    // setHeader so our local-origin CORS value isn't overwritten.
+    // The handlers set their own Access-Control-Allow-Origin (protonlab.cc / *).
+    // Intercept setHeader so our local-origin CORS value isn't overwritten.
     const origSet = res.setHeader.bind(res);
     res.setHeader = (name, value) => {
       if (name.toLowerCase() === 'access-control-allow-origin') return res;
       return origSet(name, value);
     };
-    return checkoutHandler(req, wrapRes(res));
+    const wrapped = wrapRes(res);
+    wrapped.send = (body) => { res.end(typeof body === 'string' ? body : JSON.stringify(body)); return wrapped; };
+    return handler(req, wrapped);
   }
 
   res.statusCode = 404;
@@ -109,7 +139,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Local checkout backend listening on http://localhost:${PORT}`);
+  console.log(`Local backend listening on http://localhost:${PORT} (checkout, bank-transfer-order, admin, analytics)`);
   console.log('Health: curl http://localhost:' + PORT + '/health');
   console.log('Set NEXT_PUBLIC_BACKEND_URL=http://localhost:' + PORT + ' in .env.local and restart next dev.');
 });

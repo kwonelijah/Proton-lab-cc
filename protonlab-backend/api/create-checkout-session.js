@@ -11,24 +11,12 @@ import {
   encodeItems,
   summariseItems,
   sizesNote,
+  mergeLines,
   CHECKOUT_MAX_LINES,
   METADATA_VALUE_MAX,
 } from '../lib/order-items.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-// Identical (price, size) lines are one Stripe line item — the cart already
-// merges per club+product+size, this guarantees it for any client.
-function mergeLines(lines) {
-  const byKey = new Map();
-  for (const line of lines) {
-    const key = `${line.priceId}|${line.size}`;
-    const existing = byKey.get(key);
-    if (existing) existing.quantity += line.quantity;
-    else byKey.set(key, { ...line });
-  }
-  return [...byKey.values()];
-}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://protonlab.cc');

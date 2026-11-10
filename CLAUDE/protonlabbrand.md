@@ -87,8 +87,8 @@ Supports `disabled` prop — applies `opacity-40 cursor-not-allowed`.
 
 ### CartDrawer (`components/ui/CartDrawer.tsx`)
 - Slides in from right, full height, max-w-md
-- Collects: name, email, phone number
-- Submits to `/api/club-order` — sends formatted HTML email via Resend
+- Stripe shops: delivery choice (region, or collection vs post for `collectionOption` clubs), then "Checkout" → `lib/checkout.ts` `redirectToCheckout` → backend `create-checkout-session` → Stripe Hosted Checkout (address, phone, card and discount codes are collected there) → `/success`
+- Bank-transfer shops (`bankTransfer` clubs): the drawer itself collects name, email, phone and, for posted delivery, the address, shows Subtotal / Delivery / Total to pay, and "Place order" → `placeBankTransferOrder` → backend `bank-transfer-order` → `/order-received` (account details + payment reference on screen and by email)
 - Backdrop closes drawer on click
 
 ---
@@ -164,10 +164,10 @@ API key stored in `.env.local` (local) and Vercel Environment Variables (product
 
 | Route | Purpose |
 |---|---|
-| `/api/contact` | Contact form submissions |
-| `/api/club-order` | Club kit orders — accepts `{ name, email, phone, items[] }` |
+| `/api/contact` | Contact form submissions — formatted HTML email via Resend, reply-to the customer |
+| `/api/womens-survey` | Proxy to the backend survey endpoint (avoids CORS) |
 
-Both routes send formatted HTML emails with a consistent table layout (Name, Email, Phone rows, then order summary). Reply-to is always set to the customer's email.
+Orders never go through a Next route: the cart talks to `protonlab-backend` (`/api/create-checkout-session` for Stripe shops, `/api/bank-transfer-order` for bank-transfer club shops), which owns pricing, order records and every customer email.
 
 ---
 
@@ -190,8 +190,8 @@ Both routes send formatted HTML emails with a consistent table layout (Name, Ema
 
 - All sizes available for sale in club context (override `availableForSale`)
 - Custom club images shown first in gallery, then general product images
-- "Add to Cart" → Zustand store → CartDrawer → club-order API
-- Order email includes: club name, product, size, qty, price, customer name/email/phone
+- "Add to Cart" → Zustand store → CartDrawer → backend checkout (Stripe) or bank-transfer order, per the club's `bankTransfer` flag
+- Order emails (backend, `emails/*.js`): confirmation / order-received with payment details, production, dispatch, delivered
 
 ---
 

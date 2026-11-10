@@ -14,6 +14,7 @@
 
 import Stripe from 'stripe';
 import { decodeItems, summariseItems, effectiveShipping } from '../lib/order-items.js';
+import { isStoreConfigured, listBankOrders, refOf as bankRef } from '../lib/bank-orders.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -164,6 +165,45 @@ export default async function handler(req, res) {
       '', // Delivery_instructions
       SERVICE_NAMES[meta.shipping_method] || 'Standard',
     ]);
+  }
+
+  // Bank-transfer orders (lib/bank-orders.js): a parcel exists once the
+  // transfer has been ticked as received; club/collection ones have none.
+  if (isStoreConfigured()) {
+    try {
+      for (const rec of await listBankOrders()) {
+        if (rec.cancelledAt || !rec.paidAt) continue;
+        if (!SERVICE_NAMES[rec.shippingMethod]) continue;
+        if (Math.floor(Date.parse(rec.created) / 1000) < sinceTs) continue;
+        if (clubFilter && !(rec.club || '').toLowerCase().includes(clubFilter)) continue;
+        const addr = rec.shipping?.address || {};
+        const name = splitName(rec.shipping?.name || rec.name || '');
+        const line4 = [addr.state, addr.country && addr.country !== 'GB' ? COUNTRY_NAMES[addr.country] || addr.country : '']
+          .filter(Boolean)
+          .join(', ');
+        rows.push([
+          addr.line1 || '',
+          addr.line2 || '',
+          addr.city || '',
+          line4,
+          addr.postal_code || '',
+          name.first,
+          name.last,
+          rec.email || '',
+          '',
+          '',
+          'n',
+          bankRef(rec),
+          rec.lines?.length ? summariseItems(rec.lines, Infinity) : 'Cycling apparel',
+          (((rec.amount || 0) - (rec.shippingAmount || 0)) / 100).toFixed(2),
+          rec.shipping?.phone || rec.phone || '',
+          '',
+          SERVICE_NAMES[rec.shippingMethod] || 'Standard',
+        ]);
+      }
+    } catch (err) {
+      console.error('export-evri: bank orders unavailable:', err.message);
+    }
   }
 
   const csv = [HEADERS, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n');

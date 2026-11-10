@@ -14,7 +14,8 @@
 //   4. the delivery-mode flags on each club in data/clubs.ts (centralDelivery /
 //      collectionOption) match the lists checkout trusts in
 //      protonlab-backend/config/shipping.js (CLUB_DELIVERY_CLUBS /
-//      COLLECTION_OPTION_CLUBS), and no club is in both
+//      COLLECTION_OPTION_CLUBS), no club is in both, and the payment flag
+//      (bankTransfer) matches BANK_TRANSFER_CLUBS the same way
 //   5. every price id in the map is active in Stripe with the same amount/currency;
 //      every product id is active
 //
@@ -108,28 +109,41 @@ for (const [club, prices] of Object.entries(clubPrices)) {
     if (!m) issues.push(`protonlab-backend/config/shipping.js: could not find ${name}`);
     return new Set(m ? [...m[1].matchAll(/'([a-z0-9-]+)'/g)].map((x) => x[1]) : []);
   };
-  const modes = [
+  // Delivery modes are exclusive; the payment mode (bank transfer) is
+  // independent and may combine with either delivery mode.
+  const deliveryModes = [
     ['centralDelivery', 'CLUB_DELIVERY_CLUBS', listOf('CLUB_DELIVERY_CLUBS')],
     ['collectionOption', 'COLLECTION_OPTION_CLUBS', listOf('COLLECTION_OPTION_CLUBS')],
   ];
+  const paymentModes = [
+    ['bankTransfer', 'BANK_TRANSFER_CLUBS', listOf('BANK_TRANSFER_CLUBS')],
+  ];
+  const modes = deliveryModes.concat(paymentModes);
+  const driftMsg = {
+    centralDelivery: ['checkout will still charge postage', "the site shows postage the backend won't charge"],
+    collectionOption: ['checkout will still charge postage', "the site shows postage the backend won't charge"],
+    bankTransfer: ['the cart shows the bank-transfer form but the backend refuses the order', 'the site still sends members to Stripe'],
+  };
   const flagged = {};
   for (const [block, handle] of clubBlocks) {
     const head = block.slice(0, block.indexOf('products:'));
     flagged[handle] = modes.filter(([flag]) => new RegExp(`${flag}:\\s*true`).test(head)).map(([flag]) => flag);
-    if (flagged[handle].length > 1) issues.push(`${handle}: data/clubs.ts sets both ${flagged[handle].join(' and ')} — a club has at most one delivery mode`);
+    const delivery = flagged[handle].filter((f) => deliveryModes.some(([d]) => d === f));
+    if (delivery.length > 1) issues.push(`${handle}: data/clubs.ts sets both ${delivery.join(' and ')} — a club has at most one delivery mode`);
   }
   for (const [flag, list, set] of modes) {
     for (const [, handle] of clubBlocks) {
-      if (flagged[handle].includes(flag) && !set.has(handle)) issues.push(`${handle}: ${flag} in data/clubs.ts but not in ${list} — checkout will still charge postage`);
+      if (flagged[handle].includes(flag) && !set.has(handle)) issues.push(`${handle}: ${flag} in data/clubs.ts but not in ${list} — ${driftMsg[flag][0]}`);
     }
     for (const handle of set) {
-      if (!flagged[handle]?.includes(flag)) issues.push(`${handle}: in ${list} but data/clubs.ts has no ${flag} flag (or no such shop) — the site shows postage the backend won't charge`);
+      if (!flagged[handle]?.includes(flag)) issues.push(`${handle}: in ${list} but data/clubs.ts has no ${flag} flag (or no such shop) — ${driftMsg[flag][1]}`);
     }
   }
-  const [, , clubSet] = modes[0];
-  const [, , collectionSet] = modes[1];
+  const [, , clubSet] = deliveryModes[0];
+  const [, , collectionSet] = deliveryModes[1];
+  const [, , bankSet] = paymentModes[0];
   for (const h of clubSet) if (collectionSet.has(h)) issues.push(`${h}: in both CLUB_DELIVERY_CLUBS and COLLECTION_OPTION_CLUBS`);
-  console.log(`club delivery modes: ${clubSet.size} club-delivery, ${collectionSet.size} collection-option — flags checked against the backend lists`);
+  console.log(`club modes: ${clubSet.size} club-delivery, ${collectionSet.size} collection-option, ${bankSet.size} bank-transfer — flags checked against the backend lists`);
 }
 
 // ─── 4. live Stripe ─────────────────────────────────────────────────────────

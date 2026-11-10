@@ -55,6 +55,22 @@ Period = the day the charge was captured (`paidAt`), UTC. Grain auto: ≤31 days
 | F35 Rolling turnover | the VAT turnover above at each of the last 11 month-ends and today, with the £75k and £90k lines |
 | G37 Club shops | one card per club: orders in its current ordering window (from the Club Shops tab's windows; all orders when none), units by product and size, value ex shipping, days to deadline, cumulative-orders curve with the deadline marked |
 
+## Bank-transfer club shops (members paying Proton by bank transfer)
+
+`api/bank-transfer-order.js` + `lib/bank-orders.js` (2026-11-10): members of a
+shop in `BANK_TRANSFER_CLUBS` pay Proton directly by bank transfer against a
+reference, and Elijah ticks each order "Payment received" on the dashboard.
+`scope=orders` emits one row per TICKED order (`source: 'invoice'`, channel
+`club`, `paymentMethod` "Bank transfer (shop)", `grossGbp = net = amount` incl.
+delivery, fee 0, lines priced at the club price), keyed by `paidAt` — the tick
+date — so the dashboard's incremental sync picks it up whenever the order was
+placed. Unpaid and cancelled orders are not rows. The weekly lite re-scan
+returns every bank order in the window with its dispatch stamps and `void: true`
+when it is no longer paid (an un-tick or a cancellation), and the dashboard
+drops that cached row. Counted like a B2B invoice (revenue by channel, club
+cards, turnover; not AOV or the funnel's purchase step — the dashboard's
+inlined `isSiteOrder` treats `source: 'invoice'` like `wholesale`).
+
 ## Known limits
 
 - Server-side caching is per warm Vercel instance only (no database); the browser cache is the real one. Sync is manual (↻ Sync); a weekly lite re-scan catches late refunds and dispatch stamps.

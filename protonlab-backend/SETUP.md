@@ -60,6 +60,12 @@ Go to your Vercel project → **Settings → Environment Variables** and add all
 - `ANTHROPIC_API_KEY`
 - `SITE_URL` (e.g. `https://protonlab.cc`)
 
+For **bank-transfer club shops** (orders paid by bank transfer instead of Stripe):
+
+- Storage → Create → **Blob**, access **private**, connected to this project → adds `BLOB_READ_WRITE_TOKEN`
+- the business account customers pay into goes in `config/bank.js` (committed; `BANK_ACCOUNT_NAME` / `BANK_SORT_CODE` / `BANK_ACCOUNT_NUMBER` / `BANK_IBAN` / `BANK_BIC` env vars override it if ever needed)
+- Redeploy afterwards: env changes apply on the next deployment. Until then the endpoint answers 503 and the dashboard shows a setup notice; Stripe shops are unaffected.
+
 After this, every `git push` to `main` deploys automatically. Claude Code just pushes and it's live.
 
 ---

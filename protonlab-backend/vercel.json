@@ -15,6 +15,9 @@
     },
     "api/analytics.js": {
       "maxDuration": 60
+    },
+    "api/bank-transfer-order.js": {
+      "maxDuration": 30
     }
   },
   "crons": [

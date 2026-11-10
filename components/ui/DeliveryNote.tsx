@@ -13,28 +13,64 @@ import { useCurrencyStore } from '@/stores/region'
 // copy is replaced with where the kit will turn up. `collectionChoice` names a
 // club whose members pick free collection or posted delivery in the basket
 // (`collectionOption`); club prices are GBP, so the UK rates are quoted.
+// `bankTransfer` (data/clubs.ts flag of the same name) adds the line telling
+// the member the shop is paid by bank transfer, not card.
 export default function DeliveryNote({
   collectionVia,
   collectionChoice,
-}: { collectionVia?: string; collectionChoice?: string } = {}) {
+  bankTransfer,
+}: { collectionVia?: string; collectionChoice?: string; bankTransfer?: boolean } = {}) {
   const currency = useCurrencyStore(s => s.currency)
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
+  const paymentLine = bankTransfer ? (
+    <p className="text-xs text-proton-grey leading-relaxed">
+      Pay by bank transfer — you&apos;ll get our account details and a payment reference by
+      email when you place your order.
+    </p>
+  ) : null
+
   if (collectionVia) {
     return (
-      <p className="text-xs text-proton-grey leading-relaxed">
-        Delivered to {collectionVia} for collection with the club&apos;s order — no delivery
-        charge, and no address needed at checkout.
-      </p>
+      <div className="space-y-2">
+        <p className="text-xs text-proton-grey leading-relaxed">
+          Delivered to {collectionVia} for collection with the club&apos;s order — no delivery
+          charge, and no address needed at checkout.
+        </p>
+        {paymentLine}
+      </div>
     )
   }
 
   if (collectionChoice) {
     return (
+      <div className="space-y-2">
+        <p className="text-xs text-proton-grey leading-relaxed">
+          Free collection from the {collectionChoice} committee, or standard delivery to your door
+          (UK from £2.99, free over £110) — choose in your basket.{' '}
+          <Link
+            href="/delivery"
+            className="underline underline-offset-2 hover:text-proton-black transition-colors duration-200"
+          >
+            Delivery details
+          </Link>
+        </p>
+        {paymentLine}
+      </div>
+    )
+  }
+
+  const copy = bankTransfer
+    ? 'UK & Ireland delivery £2.99 — free over £110. Europe £5.99 — duties & customs covered.'
+    : mounted && currency === 'EUR'
+      ? 'UK & Ireland delivery from €3.49 — free over €150. Europe €6.99 — duties & customs covered.'
+      : 'UK & Ireland delivery from £2.99 — free over £110. Europe £5.99 — duties & customs covered.'
+
+  return (
+    <div className="space-y-2">
       <p className="text-xs text-proton-grey leading-relaxed">
-        Free collection from the {collectionChoice} committee, or standard delivery to your door
-        (UK from £2.99, free over £110) — choose in your basket.{' '}
+        {copy}{' '}
         <Link
           href="/delivery"
           className="underline underline-offset-2 hover:text-proton-black transition-colors duration-200"
@@ -42,22 +78,7 @@ export default function DeliveryNote({
           Delivery details
         </Link>
       </p>
-    )
-  }
-
-  const copy = mounted && currency === 'EUR'
-    ? 'UK & Ireland delivery from €3.49 — free over €150. Europe €6.99 — duties & customs covered.'
-    : 'UK & Ireland delivery from £2.99 — free over £110. Europe £5.99 — duties & customs covered.'
-
-  return (
-    <p className="text-xs text-proton-grey leading-relaxed">
-      {copy}{' '}
-      <Link
-        href="/delivery"
-        className="underline underline-offset-2 hover:text-proton-black transition-colors duration-200"
-      >
-        Delivery details
-      </Link>
-    </p>
+      {paymentLine}
+    </div>
   )
 }

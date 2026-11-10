@@ -19,6 +19,13 @@
 //        (POSTed by the page's buttons and the dashboard)
 //   POST {action:'update-order', pi, items?, shipping?} — rewrite a paid
 //        order's sizes / delivery address (dashboard "Edit sizes / address")
+//   POST {action:'mark-paid', id, paid}     — bank-transfer order: record the
+//        transfer as received (emails the customer) / undo a mistaken tick
+//   POST {action:'cancel-order', id}        — void an UNPAID bank-transfer order
+//
+// Bank-transfer orders (lib/bank-orders.js, ids `bt_NNNNN`) ride the same
+// feed and the same actions as Stripe orders — every `pi` is routed by its
+// prefix — so the dashboard treats both alike, bar the payment tick.
 //
 // CORS is open (auth is the key param, not the origin) because the order
 // dashboard runs from a local file:// page whose Origin is "null".
@@ -31,6 +38,8 @@ import {
   sendOrderInProduction,
   sendReviewRequest,
   sendSampleDispatched,
+  sendBankTransferReceived,
+  sendBankTransferPaid,
 } from '../lib/email.js';
 import { readStock, applyAndCommit } from '../lib/stock.js';
 import { readClubs } from '../lib/clubs.js';
@@ -44,6 +53,16 @@ import {
   effectiveShipping,
   shippingOverrideMetadata,
 } from '../lib/order-items.js';
+import {
+  isBankOrderId,
+  isStoreConfigured,
+  bankDetails,
+  getBankOrder,
+  listBankOrders,
+  updateBankOrder,
+  feedEntry as bankFeedEntry,
+  emailOrder as bankEmailOrder,
+} from '../lib/bank-orders.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -68,7 +87,7 @@ const SHIPPING_METHODS = ['standard', 'next-day', 'international', 'club', 'coll
 // to lists the action — a dashboard updated ahead of the backend must never
 // send a POST the old code would misread (an unknown action used to fall
 // through to the dispatch path and email the customer).
-const ADMIN_CAPABILITIES = ['update-order', 'analytics'];   // 'analytics' = /api/analytics is deployed
+const ADMIN_CAPABILITIES = ['update-order', 'analytics', 'bank-transfer'];   // 'analytics' = /api/analytics is deployed; 'bank-transfer' = feed carries bank-transfer orders + mark-paid / cancel-order / send kind:'bank-received'
 function shippingMethodOf(v) {
   return SHIPPING_METHODS.includes(v) ? v : null;
 }
@@ -209,6 +228,43 @@ function normaliseEditShipping(s) {
   if (!address.postal_code) return { error: 'Postcode is required' };
   if (!/^[A-Z]{2}$/.test(country)) return { error: 'Country must be a 2-letter ISO code (e.g. GB)' };
   return { shipping: { name, address } };
+}
+
+// The dispatch trio — dispatch email now, thank-you at +5 days, review
+// request at +19 — shared by the Stripe and bank-transfer dispatch paths.
+// Returns the scheduling stamps the caller records on the order.
+async function dispatchEmails(order, dispatch) {
+  const sent = await sendOrderDispatched(order, dispatch);
+  if (!sent.ok) return { sent };
+  const scheduledAt = new Date(Date.now() + THANK_YOU_DELAY_DAYS * 86400000).toISOString();
+  const thankYou = await sendOrderDelivered(order, { scheduledAt });
+  if (!thankYou.ok) console.error('Thank-you scheduling failed for', order.id, thankYou);
+  const reviewAt = new Date(Date.now() + REVIEW_DELAY_DAYS * 86400000).toISOString();
+  const review = await sendReviewRequest(order, { scheduledAt: reviewAt });
+  if (!review.ok) console.error('Review request scheduling failed for', order.id, review);
+  return { sent, thankYou, review, scheduledAt, reviewAt };
+}
+
+// The fields update-order echoes so the dashboard can patch its cached row —
+// for a bank-transfer record, straight from its feed entry.
+function bankFeedPatch(rec) {
+  const e = bankFeedEntry(rec);
+  return { items: e.items, lineItems: e.lineItems, addr: e.addr, address: e.address, place: e.place, shippingName: e.shippingName };
+}
+
+// Re-prices an edited bank-transfer line list the way the order was priced:
+// the club override from the product map, else the catalogue price, else the
+// unit price already on file for that handle (a product since removed).
+function repriceBankLines(lines, rec) {
+  let map = {};
+  try { map = loadProductMap(); } catch { /* keep prior prices */ }
+  const clubKey = String(rec.clubHandle || '').split(',')[0].trim();
+  const prior = new Map((rec.lines || []).map((l) => [l.handle, l]));
+  return lines.map((l) => {
+    const product = map[l.handle];
+    const unitAmount = product?.clubPrices?.[clubKey]?.unitAmount ?? product?.unitAmount ?? prior.get(l.handle)?.unitAmount ?? null;
+    return { handle: l.handle, name: product?.name || prior.get(l.handle)?.name || l.handle, size: l.size, qty: l.quantity, unitAmount };
+  });
 }
 
 // Builds the order object the email templates expect — same shape as
@@ -431,7 +487,33 @@ export default async function handler(req, res) {
         }
         sent++;
       }
-      return res.status(200).json({ ok: true, sent, failed, matched: targets.length });
+      // Bank-transfer orders of the club: PAID ones only — an unpaid order is
+      // not in the run yet (it is cancelled or ticked first).
+      let bankTargets = [];
+      if (isStoreConfigured()) {
+        try {
+          bankTargets = (await listBankOrders()).filter(
+            (r) => (r.club || '') === clubName && r.paidAt && !r.cancelledAt && !r.productionAt && !r.dispatchedAt
+          );
+        } catch (err) {
+          console.error('production: bank orders unavailable:', err.message);
+        }
+      }
+      for (const rec of bankTargets) {
+        const r = await sendOrderInProduction(bankEmailOrder(rec));
+        if (!r.ok) {
+          console.error('Production email failed for', rec.id, r);
+          failed++;
+          continue;
+        }
+        try {
+          await updateBankOrder(rec.id, { productionAt: new Date().toISOString() });
+        } catch (err) {
+          console.error('Failed to stamp production on', rec.id, err.message);
+        }
+        sent++;
+      }
+      return res.status(200).json({ ok: true, sent, failed, matched: targets.length + bankTargets.length });
     }
 
     // ── Manual status move ────────────────────────────────────────────────
@@ -444,13 +526,30 @@ export default async function handler(req, res) {
       if (!movePi || !['processing', 'dispatched', 'delivered'].includes(status)) {
         return res.status(400).json({ error: 'Need pi and a valid status' });
       }
+      const now = new Date().toISOString();
+      if (isBankOrderId(movePi)) {
+        let moved;
+        try {
+          moved = await updateBankOrder(movePi, (rec) =>
+            status === 'processing'
+              ? { dispatchedAt: null, tracking: null, deliveredAt: null }
+              : status === 'dispatched'
+                ? { dispatchedAt: rec.dispatchedAt || now, deliveredAt: null }
+                : { dispatchedAt: rec.dispatchedAt || now, deliveredAt: now }
+          );
+        } catch (err) {
+          console.error('Status move failed for', movePi, err.message);
+          return res.status(502).json({ error: 'Order store update failed' });
+        }
+        if (!moved) return res.status(404).json({ error: 'Order not found' });
+        return res.status(200).json({ ok: true, status });
+      }
       let payment;
       try {
         payment = await stripe.paymentIntents.retrieve(movePi);
       } catch {
         return res.status(404).json({ error: 'Order not found in Stripe' });
       }
-      const now = new Date().toISOString();
       const meta =
         status === 'processing'
           ? { dispatched_at: '', tracking: '', delivered_at: '' }
@@ -473,8 +572,23 @@ export default async function handler(req, res) {
     // the order record and its state; this endpoint only renders and sends.
     if (req.body?.action === 'send') {
       const { kind, order, tracking: manualTracking } = req.body;
-      if (!['confirmation', 'production', 'dispatch', 'sample'].includes(kind)) {
+      if (!['confirmation', 'production', 'dispatch', 'sample', 'bank-received'].includes(kind)) {
         return res.status(400).json({ error: 'Unknown email kind' });
+      }
+      // {action:'send', kind:'bank-received', id} — re-send a bank-transfer
+      // order's payment-details email (the record is the source, not the body).
+      if (kind === 'bank-received') {
+        const rec = await getBankOrder(req.body.id).catch(() => null);
+        if (!rec) return res.status(404).json({ error: 'Order not found' });
+        if (!bankDetails()) return res.status(503).json({ error: 'Bank details are not configured on the backend' });
+        const r = await sendBankTransferReceived(bankEmailOrder(rec));
+        if (!r.ok) return res.status(502).json({ error: `Email failed: ${r.error || r.skipped}` });
+        try {
+          await updateBankOrder(rec.id, { emails: { ...(rec.emails || {}), received: 'ok', resentAt: new Date().toISOString() } });
+        } catch (err) {
+          console.error('bank-received resend stamp failed for', rec.id, err.message);
+        }
+        return res.status(200).json({ ok: true });
       }
       if (!order || !order.email || !order.name) {
         return res.status(400).json({ error: 'Order needs at least a name and an email' });
@@ -528,6 +642,59 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // ── Bank-transfer: payment received tick ──────────────────────────────
+    // {action:'mark-paid', id, paid:true|false} — Elijah ticks the order on
+    // the dashboard when the transfer shows on the statement; the first tick
+    // emails the customer "Payment received". Un-ticking (a mistake) clears
+    // the stamp and sends nothing; a later re-tick does not email again.
+    if (req.body?.action === 'mark-paid') {
+      const { id, paid } = req.body;
+      if (!isBankOrderId(id) || typeof paid !== 'boolean') {
+        return res.status(400).json({ error: 'Need a bank-transfer order id and paid:true|false' });
+      }
+      const rec = await getBankOrder(id).catch(() => null);
+      if (!rec) return res.status(404).json({ error: 'Order not found' });
+      if (rec.cancelledAt) return res.status(400).json({ error: 'This order was cancelled' });
+      const now = new Date().toISOString();
+      let emailed = false;
+      let next;
+      try {
+        if (paid) {
+          let paidEmailAt = rec.paidEmailAt || null;
+          if (!paidEmailAt) {
+            const r = await sendBankTransferPaid(bankEmailOrder({ ...rec, paidAt: rec.paidAt || now }));
+            if (r.ok) { paidEmailAt = now; emailed = true; }
+            else console.error('Payment-received email failed for', rec.id, r);
+          }
+          next = await updateBankOrder(id, { paidAt: rec.paidAt || now, paidEmailAt });
+        } else {
+          next = await updateBankOrder(id, { paidAt: null });
+        }
+      } catch (err) {
+        console.error('mark-paid failed for', id, err.message);
+        return res.status(502).json({ error: `Order store update failed: ${err.message}` });
+      }
+      return res.status(200).json({ ok: true, paid: !!next.paidAt, paidAt: next.paidAt || null, emailed });
+    }
+
+    // ── Bank-transfer: cancel an unpaid order ─────────────────────────────
+    // {action:'cancel-order', id} — a no-show after the pay-by date. The
+    // record keeps its history (cancelledAt) but leaves the feed; no email.
+    if (req.body?.action === 'cancel-order') {
+      const { id } = req.body;
+      if (!isBankOrderId(id)) return res.status(400).json({ error: 'Need a bank-transfer order id' });
+      const rec = await getBankOrder(id).catch(() => null);
+      if (!rec) return res.status(404).json({ error: 'Order not found' });
+      if (rec.paidAt) return res.status(400).json({ error: 'This order is marked paid — un-tick it first if that was a mistake' });
+      if (rec.dispatchedAt) return res.status(400).json({ error: 'This order has been dispatched' });
+      try {
+        await updateBankOrder(id, { cancelledAt: new Date().toISOString() });
+      } catch (err) {
+        return res.status(502).json({ error: `Order store update failed: ${err.message}` });
+      }
+      return res.status(200).json({ ok: true });
+    }
+
     // ── Order edit: sizes and/or delivery address ─────────────────────────
     // {action:'update-order', pi, items?, shipping?}
     //   items:    [{handle, size, qty}] — the COMPLETE new line list. It is
@@ -551,6 +718,31 @@ export default async function handler(req, res) {
       }
       if (items === undefined && shipping === undefined) {
         return res.status(400).json({ error: 'Nothing to update — send items and/or shipping' });
+      }
+      if (isBankOrderId(editPi)) {
+        // Bank-transfer record: same validation, patch the record in place.
+        // The amount stays what the customer was asked to pay (as for Stripe).
+        const rec = await getBankOrder(editPi).catch(() => null);
+        if (!rec) return res.status(404).json({ error: 'Order not found' });
+        const patch = {};
+        if (items !== undefined) {
+          const parsed = normaliseEditLines(items);
+          if (parsed.error) return res.status(400).json({ error: parsed.error });
+          patch.lines = repriceBankLines(parsed.lines, rec);
+        }
+        if (shipping !== undefined) {
+          const parsed = normaliseEditShipping(shipping);
+          if (parsed.error) return res.status(400).json({ error: parsed.error });
+          patch.shipping = { ...parsed.shipping, phone: rec.shipping?.phone || rec.phone || null };
+        }
+        let next;
+        try {
+          next = await updateBankOrder(editPi, patch);
+        } catch (err) {
+          console.error('update-order failed for', editPi, err.message);
+          return res.status(502).json({ error: `Order store update failed: ${err.message}` });
+        }
+        return res.status(200).json({ ok: true, ...bankFeedPatch(next) });
       }
       let payment;
       try {
@@ -608,6 +800,38 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing payment id' });
     }
 
+    if (isBankOrderId(pi)) {
+      // Bank-transfer order: dispatch only once the transfer has been ticked
+      // as received; otherwise identical — same emails, same stamps.
+      const rec = await getBankOrder(pi).catch(() => null);
+      if (!rec) return res.status(404).json({ error: 'Order not found' });
+      if (rec.cancelledAt) return res.status(400).json({ error: 'This order was cancelled' });
+      if (!rec.paidAt) return res.status(400).json({ error: 'Payment not received — tick "Payment received" first' });
+      if (rec.dispatchedAt) return res.status(409).json({ error: `Already dispatched on ${rec.dispatchedAt.slice(0, 10)}` });
+      const order = bankEmailOrder(rec);
+      const serviceOverride = shippingMethodOf(service);
+      if (serviceOverride) order.shippingMethod = serviceOverride;
+      const trackingNumber = (tracking || '').trim() || null;
+      const dispatch = trackingNumber
+        ? { trackingNumber, trackingUrl: `https://www.evri.com/track/parcel/${encodeURIComponent(trackingNumber)}` }
+        : {};
+      const r = await dispatchEmails(order, dispatch);
+      if (!r.sent.ok) return res.status(502).json({ error: `Dispatch email failed: ${r.sent.error || r.sent.skipped}` });
+      try {
+        await updateBankOrder(pi, {
+          dispatchedAt: new Date().toISOString(),
+          tracking: trackingNumber,
+          ...(serviceOverride ? { shippingMethod: serviceOverride } : {}),
+          thankYouScheduled: r.thankYou?.ok ? r.scheduledAt : 'FAILED',
+          reviewScheduled: r.review?.ok ? r.reviewAt : 'FAILED',
+        });
+      } catch (err) {
+        console.error('Failed to stamp dispatch on', pi, err.message);
+        return res.status(502).json({ error: 'Emails sent but the order store update failed — do not re-send' });
+      }
+      return res.status(200).json({ ok: true, thankYouScheduled: !!r.thankYou?.ok });
+    }
+
     let payment;
     try {
       payment = await stripe.paymentIntents.retrieve(pi);
@@ -632,22 +856,9 @@ export default async function handler(req, res) {
       ? { trackingNumber, trackingUrl: `https://www.evri.com/track/parcel/${encodeURIComponent(trackingNumber)}` }
       : {};
 
-    const sent = await sendOrderDispatched(order, dispatch);
+    const { sent, thankYou, review, scheduledAt, reviewAt } = await dispatchEmails(order, dispatch);
     if (!sent.ok) {
       return res.status(502).json({ error: `Dispatch email failed: ${sent.error || sent.skipped}` });
-    }
-
-    const scheduledAt = new Date(Date.now() + THANK_YOU_DELAY_DAYS * 86400000).toISOString();
-    const thankYou = await sendOrderDelivered(order, { scheduledAt });
-    if (!thankYou.ok) {
-      // Dispatch email already went out — record that and surface the partial failure.
-      console.error('Thank-you scheduling failed for', payment.id, thankYou);
-    }
-
-    const reviewAt = new Date(Date.now() + REVIEW_DELAY_DAYS * 86400000).toISOString();
-    const review = await sendReviewRequest(order, { scheduledAt: reviewAt });
-    if (!review.ok) {
-      console.error('Review request scheduling failed for', payment.id, review);
     }
 
     try {
@@ -751,6 +962,28 @@ export default async function handler(req, res) {
     (meta.dispatched_at ? dispatched : awaiting).push(entry);
   }
 
+  // Bank-transfer orders (lib/bank-orders.js) join the same two lists, in
+  // date order with the Stripe ones, so the dashboard shows one set of
+  // orders. Cancelled ones stay out. `bank` tells the dashboard whether the
+  // store and the account details are configured (its setup notice).
+  const bank = { store: isStoreConfigured() ? 'ok' : 'unconfigured', details: !!bankDetails() };
+  if (bank.store === 'ok') {
+    try {
+      for (const rec of await listBankOrders()) {
+        if (rec.cancelledAt) continue;
+        const entry = bankFeedEntry(rec);
+        (entry.dispatchedAt ? dispatched : awaiting).push(entry);
+      }
+      const newestFirst = (a, b) => String(b.date).localeCompare(String(a.date));
+      awaiting.sort(newestFirst);
+      dispatched.sort(newestFirst);
+    } catch (err) {
+      console.error('bank orders unavailable:', err.message);
+      bank.store = 'error';
+      bank.error = String(err.message || err).slice(0, 200);
+    }
+  }
+
   // The email/phone the customer types on the Stripe hosted page live on the
   // Checkout Session (customer_details), not the PaymentIntent — look them up
   // for entries still missing contact details. Batched to bound latency; the
@@ -774,7 +1007,7 @@ export default async function handler(req, res) {
 
   res.setHeader('Cache-Control', 'no-store');
   if (req.query.format === 'json') {
-    return res.status(200).json({ awaiting, dispatched, since: days, capabilities: ADMIN_CAPABILITIES });
+    return res.status(200).json({ awaiting, dispatched, since: days, capabilities: ADMIN_CAPABILITIES, bank });
   }
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   return res.status(200).send(renderPage({ awaiting, dispatched, key: req.query.key, since: days }));

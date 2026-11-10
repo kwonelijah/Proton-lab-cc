@@ -96,6 +96,20 @@ export function blankItems() {
   return out;
 }
 
+// Identical (priceId, size) lines become one line — the cart already merges
+// per club+product+size; this guarantees it for any client. Shared by
+// create-checkout-session.js (Stripe line items) and bank-transfer-order.js.
+export function mergeLines(lines) {
+  const byKey = new Map();
+  for (const line of lines) {
+    const key = `${line.priceId}|${line.size}`;
+    const existing = byKey.get(key);
+    if (existing) existing.quantity += line.quantity;
+    else byKey.set(key, { ...line });
+  }
+  return [...byKey.values()];
+}
+
 // metadata → [{ name, handle, size, qty }]. Never throws: malformed/absent → [].
 export function decodeItems(metadata) {
   if (!metadata || typeof metadata !== 'object') return [];

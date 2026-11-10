@@ -83,6 +83,19 @@ export const COLLECTION_OPTION_CLUBS = new Set([
 ]);
 export const COLLECTION_LABEL = 'Collection from committee';
 
+// BANK_TRANSFER_CLUBS (`bankTransfer: true` in data/clubs.ts): the shop takes
+// payment by bank transfer instead of Stripe — the cart collects the member's
+// details on the site and api/bank-transfer-order.js records the order
+// (lib/bank-orders.js) and emails Proton Lab's account details with a unique
+// payment reference; Elijah ticks the order paid on the dashboard when the
+// transfer lands. Payment mode is independent of delivery mode: a club here
+// may ALSO sit in one of the two delivery lists above (or in neither, and
+// post at the UK/Ireland/Europe standard rate, charged in GBP). Honoured only
+// when every line in the basket is from such a club. Audited with the
+// delivery flags by scripts/stripe-audit.mjs.
+export const BANK_TRANSFER_CLUBS = new Set([
+]);
+
 function everyLineFrom(set, clubHandles) {
   const handles = Array.isArray(clubHandles) ? clubHandles : [];
   return handles.length > 0 && handles.every((h) => set.has(h));
@@ -99,6 +112,12 @@ export function isClubDelivery(clubHandles) {
 // only then may the client's `delivery: 'collection'` request be honoured.
 export function isCollectionOption(clubHandles) {
   return everyLineFrom(COLLECTION_OPTION_CLUBS, clubHandles);
+}
+
+// True when every line in the cart belongs to a bank-transfer shop — the only
+// case api/bank-transfer-order.js accepts (a mixed basket checks out via Stripe).
+export function isBankTransfer(clubHandles) {
+  return everyLineFrom(BANK_TRANSFER_CLUBS, clubHandles);
 }
 
 // Each zone carries the currency its customers are CHARGED in — the charged

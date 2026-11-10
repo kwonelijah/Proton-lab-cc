@@ -43,6 +43,14 @@ export interface Club {
   //   neither          — every order is posted at the normal rates.
   centralDelivery?: boolean
   collectionOption?: boolean
+  // Payment mode — independent of the delivery mode above. `bankTransfer`
+  // shops take no card payment: the basket collects the member's details on
+  // the site and posts to the backend's api/bank-transfer-order.js, which
+  // records the order and emails Proton Lab's account details with a unique
+  // payment reference; Elijah ticks the order paid on the dashboard. Display
+  // only here too — the handle must ALSO be in BANK_TRANSFER_CLUBS in
+  // protonlab-backend/config/shipping.js (`npm run audit:stripe` checks).
+  bankTransfer?: boolean
   products: ClubProduct[]
 }
 

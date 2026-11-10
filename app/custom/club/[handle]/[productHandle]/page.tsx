@@ -116,6 +116,7 @@ export default function ClubProductPage() {
               <DeliveryNote
                 collectionVia={club.centralDelivery ? club.name : undefined}
                 collectionChoice={club.collectionOption ? club.name : undefined}
+                bankTransfer={club.bankTransfer}
               />
 
               {product?.description && (

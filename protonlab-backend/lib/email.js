@@ -13,6 +13,8 @@ import { render as renderDelivered } from '../emails/order-delivered.js';
 import { render as renderReviewRequest } from '../emails/review-request.js';
 import { render as renderWelcome } from '../emails/welcome.js';
 import { render as renderWomensSurveyCode } from '../emails/womens-survey-code.js';
+import { render as renderBankReceived } from '../emails/bank-transfer-received.js';
+import { render as renderBankPaid } from '../emails/bank-transfer-paid.js';
 
 const FROM = 'Proton Lab CC <noreply@protonlab.cc>';
 const TEAM = 'info@protonlab.cc';
@@ -67,6 +69,17 @@ export async function sendOrderConfirmation(order) {
 
 export async function sendOrderInProduction(order) {
   return sendToCustomer(order, renderProduction(order));
+}
+
+// Bank-transfer club shops (lib/bank-orders.js): the order-received email
+// carrying the account details + payment reference, and the confirmation sent
+// when the dashboard tick records the transfer as received.
+export async function sendBankTransferReceived(order) {
+  return sendToCustomer(order, renderBankReceived(order));
+}
+
+export async function sendBankTransferPaid(order) {
+  return sendToCustomer(order, renderBankPaid(order));
 }
 
 // dispatch: { trackingNumber?, trackingUrl? }
@@ -212,13 +225,21 @@ export async function sendInternalNotification(order) {
   const discountLine = discountValue > 0
     ? `−${sym}${discountValue.toFixed(2)}${order.promoCode ? ` (code: ${order.promoCode})` : ''}`
     : null;
+  // Bank-transfer orders (lib/bank-orders.js) arrive UNPAID — say so loudly,
+  // with the reference to look for on the statement and the date it is due.
+  const bank = order.payment === 'bank-transfer';
+  const paymentLine = bank
+    ? `BANK TRANSFER — awaiting payment · reference ${order.payRef || '—'}${order.payBy ? ` · due ${new Date(order.payBy).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}` : ''} · tick "Payment received" on the dashboard when it lands`
+    : null;
+  const idLabel = bank ? 'Order id' : 'Stripe ref';
+  const subjectPrefix = bank ? 'New bank-transfer order (awaiting payment)' : 'New order';
 
   const label = `padding:10px 0;border-bottom:1px solid ${COLORS.light};font-family:${FONTS.body};font-size:13px;color:${COLORS.grey};`;
   const value = `padding:10px 0;border-bottom:1px solid ${COLORS.light};font-family:${FONTS.body};font-size:13px;color:${COLORS.black};`;
 
   const html = `
     <div style="font-family:${FONTS.body};max-width:600px;margin:0 auto;color:${COLORS.black};">
-      <h2 style="font-size:16px;margin-bottom:24px;">New Order</h2>
+      <h2 style="font-size:16px;margin-bottom:24px;">${bank ? 'New bank-transfer order — awaiting payment' : 'New Order'}</h2>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
         <tr>
           <td style="${label}width:100px;">Order</td>
@@ -257,8 +278,13 @@ export async function sendInternalNotification(order) {
           <td style="${label}">Discount</td>
           <td style="${value}">${discountLine}</td>
         </tr>` : ''}
+        ${paymentLine ? `
         <tr>
-          <td style="${label}">Stripe ref</td>
+          <td style="${label}">Payment</td>
+          <td style="${value}font-weight:bold;">${paymentLine}</td>
+        </tr>` : ''}
+        <tr>
+          <td style="${label}">${idLabel}</td>
           <td style="${value}font-size:12px;color:${COLORS.grey};">${order.id}</td>
         </tr>
         <tr>
@@ -274,9 +300,9 @@ export async function sendInternalNotification(order) {
     ({ error } = await getResend().emails.send({
       from: FROM,
       to: TEAM,
-      subject: `New order: ${orderRef} — ${order.name}`,
+      subject: `${subjectPrefix}: ${orderRef} — ${order.name}`,
       html,
-      text: `New order\n\nOrder: ${orderRef}\nClub: ${club}\nCustomer: ${order.name} (${order.email})\nPhone: ${order.phone}\nItems:\n${itemsFmt.text}\nDeliver to:\n${shipping ? shipping.text : 'No address collected'}\nDelivery service: ${deliveryLine}\n${discountLine ? `Discount: ${discountLine}\n` : ''}Total: ${total}\nStripe ref: ${order.id}`,
+      text: `New order\n\nOrder: ${orderRef}\nClub: ${club}\nCustomer: ${order.name} (${order.email})\nPhone: ${order.phone}\nItems:\n${itemsFmt.text}\nDeliver to:\n${shipping ? shipping.text : 'No address collected'}\nDelivery service: ${deliveryLine}\n${discountLine ? `Discount: ${discountLine}\n` : ''}${paymentLine ? `Payment: ${paymentLine}\n` : ''}Total: ${total}\n${idLabel}: ${order.id}`,
     }));
   } catch (e) {
     error = e;
