@@ -80,5 +80,20 @@
     "ls-fleece-jersey": 81,
     "training-bib-shorts": 81,
     "summer-gilet": 50
+  },
+  "aero-collective-race-team": {
+    "ss-race-jersey": 60,
+    "ls-fleece-jersey": 65,
+    "summer-gilet": 35,
+    "training-bib-shorts": 65,
+    "ss-roadsuit": 90,
+    "ss-roadsuit-champs": 112.5,
+    "ss-aerosuit": 110,
+    "ls-speedsuit": 120,
+    "aero-arm-warmers": 20,
+    "aero-leg-warmers": 25,
+    "aero-mitts": 20,
+    "aero-socks": 15,
+    "aero-overshoes": 25
   }
 }

@@ -351,6 +351,56 @@ export const clubs: Club[] = [
         customImages: ['/images/clubs/cardiff-met-cycling-club/cardiffmet-training-bib-shorts-back.jpg'] },
     ],
   },
+  {
+    handle: 'aero-collective-race-team',
+    name: 'Aero Collective Race Team',
+    password: 'aeroclctv',
+    // Sponsored team pricing. Paid by BANK TRANSFER (also in the backend's
+    // BANK_TRANSFER_CLUBS) and posted to each rider at the standard rate (no
+    // delivery flag). Order window and delivery estimate still to be arranged
+    // (Elijah, 2026-11-10) — add windowStart/windowEnd and the tagline lines then.
+    // The two champs skinsuits are the SS Roadsuit at +25% (catalogue product
+    // ss-roadsuit-champs) with the design name carried on the size.
+    bankTransfer: true,
+    tagline: 'All prices are sponsored team pricing.\nPay by bank transfer — our account details and your payment reference arrive by email when you place your order.',
+    products: [
+      { name: 'SS Race Jersey', handle: 'ss-race-jersey', category: 'top', price: '£60.00',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-ss-race-jersey-front.jpg',
+        customImages: ['/images/clubs/aero-collective-race-team/aeroclctv-ss-race-jersey-back.jpg'] },
+      { name: 'LS Fleece Jersey', handle: 'ls-fleece-jersey', category: 'top', price: '£65.00',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-ls-fleece-jersey-front.jpg',
+        customImages: ['/images/clubs/aero-collective-race-team/aeroclctv-ls-fleece-jersey-back.jpg'] },
+      { name: 'Summer Gilet', handle: 'summer-gilet', category: 'top', price: '£35.00', image: '/images/products/summer-gilet/summer-gilet1.jpg?v=2' },
+      { name: 'Training Bib Shorts', handle: 'training-bib-shorts', category: 'lower', price: '£65.00',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-training-bib-shorts-front.jpg',
+        customImages: ['/images/clubs/aero-collective-race-team/aeroclctv-training-bib-shorts-back.jpg'] },
+      { name: 'SS Roadsuit', handle: 'ss-roadsuit', category: 'lower', price: '£90.00',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-ss-roadsuit-front.jpg',
+        customImages: ['/images/clubs/aero-collective-race-team/aeroclctv-ss-roadsuit-back.jpg'] },
+      { name: 'Jersey Champs Skinsuit', handle: 'ss-roadsuit-jersey-champs', catalogHandle: 'ss-roadsuit-champs', variant: 'Jersey Champs', category: 'lower',
+        hideCatalogImages: true, price: '£112.50',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-ss-roadsuit-jersey-champs-front.jpg',
+        customImages: ['/images/clubs/aero-collective-race-team/aeroclctv-ss-roadsuit-jersey-champs-back.jpg'] },
+      { name: 'British Champs Skinsuit', handle: 'ss-roadsuit-british-champs', catalogHandle: 'ss-roadsuit-champs', variant: 'British Champs', category: 'lower',
+        hideCatalogImages: true, price: '£112.50',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-ss-roadsuit-british-champs-front.jpg',
+        customImages: ['/images/clubs/aero-collective-race-team/aeroclctv-ss-roadsuit-british-champs-back.jpg'] },
+      // SS Aerosuit and LS Speedsuit designs not finished yet (Elijah, 2026-11-10):
+      // catalogue photos until the final artwork is rendered.
+      { name: 'SS Aerosuit', handle: 'ss-aerosuit', category: 'lower', price: '£110.00', image: '/images/products/ss-aerosuit/ss-aerosuit1.jpg?v=3' },
+      { name: 'LS Speedsuit', handle: 'ls-speedsuit', category: 'lower', price: '£120.00', image: '/images/products/ls-speedsuit/ls-speedsuit1.jpg?v=3' },
+      { name: 'Aero Arm Warmers', handle: 'aero-arm-warmers', category: 'accessories', price: '£20.00',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-aero-arm-warmers-front.jpg' },
+      { name: 'Aero Leg Warmers', handle: 'aero-leg-warmers', category: 'accessories', price: '£25.00',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-aero-leg-warmers-front.jpg' },
+      { name: 'Aero Mitts', handle: 'aero-mitts', category: 'accessories', price: '£20.00',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-aero-mitts-front.jpg' },
+      { name: 'Aero Socks', handle: 'aero-socks', category: 'accessories', price: '£15.00',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-aero-socks-front.jpg' },
+      { name: 'Aero Overshoes', handle: 'aero-overshoes', category: 'accessories', price: '£25.00',
+        image: '/images/clubs/aero-collective-race-team/aeroclctv-aero-overshoes-front.jpg' },
+    ],
+  },
 ]
 
 export function getClubByHandle(handle: string): Club | undefined {

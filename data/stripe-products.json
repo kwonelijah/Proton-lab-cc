@@ -23,6 +23,10 @@
       "edinburgh-university-cycling-club": {
         "priceId": "price_1UP2sH3x1N43j1uc2IySG1Vk",
         "unitAmount": 8600
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJb53x1N43j1ucPR1oFtHx",
+        "unitAmount": 6000
       }
     }
   },
@@ -130,6 +134,10 @@
       "cardiff-met-cycling-club": {
         "priceId": "price_1UWtaF3x1N43j1ucyANpx8wl",
         "unitAmount": 8100
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJb93x1N43j1uc9A3gfLdH",
+        "unitAmount": 6500
       }
     }
   },
@@ -201,6 +209,10 @@
       "cardiff-met-cycling-club": {
         "priceId": "price_1UWtaH3x1N43j1ucLGPPA1ig",
         "unitAmount": 8100
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbC3x1N43j1ucRT3ktxgM",
+        "unitAmount": 6500
       }
     }
   },
@@ -305,6 +317,10 @@
       "cardiff-met-cycling-club": {
         "priceId": "price_1UWtaL3x1N43j1ucUwmQKzRE",
         "unitAmount": 5000
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbF3x1N43j1ucUNgjdk7Q",
+        "unitAmount": 3500
       }
     }
   },
@@ -345,6 +361,10 @@
       "edinburgh-university-cycling-club": {
         "priceId": "price_1UP2sx3x1N43j1ucxpcA2ihQ",
         "unitAmount": 12600
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbH3x1N43j1uc8daZ3Mby",
+        "unitAmount": 9000
       }
     }
   },
@@ -355,7 +375,13 @@
     "unitAmount": 16000,
     "currency": "gbp",
     "category": "Skinsuits",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbI3x1N43j1ucOHun0OOA",
+        "unitAmount": 11000
+      }
+    }
   },
   "ls-speedsuit": {
     "productId": "prod_UNYWjdW4FC44YB",
@@ -369,6 +395,25 @@
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNJEe3x1N43j1ucB2hd3bGv",
         "unitAmount": 15300
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbI3x1N43j1uckf9jiMvH",
+        "unitAmount": 12000
+      }
+    }
+  },
+  "ss-roadsuit-champs": {
+    "productId": "prod_VbWeCo3V30qGA6",
+    "priceId": "price_1UaJbJ3x1N43j1ucyIXT5ynk",
+    "name": "SS Roadsuit — Champs Edition",
+    "unitAmount": 17500,
+    "currency": "gbp",
+    "category": "Skinsuits",
+    "collection": "Race",
+    "clubPrices": {
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbK3x1N43j1ucyyE6tAs8",
+        "unitAmount": 11250
       }
     }
   },
@@ -420,6 +465,10 @@
       "edinburgh-university-cycling-club": {
         "priceId": "price_1UP2t53x1N43j1ucwLB5UX9k",
         "unitAmount": 1800
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbM3x1N43j1ucZjPusDf5",
+        "unitAmount": 1500
       }
     }
   },
@@ -445,7 +494,13 @@
     "unitAmount": 2500,
     "currency": "gbp",
     "category": "Accessories",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbN3x1N43j1uctPf5S3lv",
+        "unitAmount": 2000
+      }
+    }
   },
   "arm-warmers": {
     "productId": "prod_UNYXxoT27PXHeO",
@@ -486,6 +541,10 @@
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNJS13x1N43j1ucyZ0ghl6O",
         "unitAmount": 2250
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbP3x1N43j1uc4VP0Tsmp",
+        "unitAmount": 2000
       }
     }
   },
@@ -525,6 +584,10 @@
       "university-of-bath-cycling-club": {
         "priceId": "price_1UNJS33x1N43j1uceL5p24N9",
         "unitAmount": 3150
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbQ3x1N43j1ucoqm1vDtU",
+        "unitAmount": 2500
       }
     }
   },
@@ -559,7 +622,13 @@
     "unitAmount": 3000,
     "currency": "gbp",
     "category": "Accessories",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "aero-collective-race-team": {
+        "priceId": "price_1UaJbS3x1N43j1ucHT2duasC",
+        "unitAmount": 2500
+      }
+    }
   },
   "rain-overshoes": {
     "productId": "prod_V1A7XodxNOBqH1",

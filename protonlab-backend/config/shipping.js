@@ -94,6 +94,7 @@ export const COLLECTION_LABEL = 'Collection from committee';
 // when every line in the basket is from such a club. Audited with the
 // delivery flags by scripts/stripe-audit.mjs.
 export const BANK_TRANSFER_CLUBS = new Set([
+  'aero-collective-race-team',
 ]);
 
 function everyLineFrom(set, clubHandles) {

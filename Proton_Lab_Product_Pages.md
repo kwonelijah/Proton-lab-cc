@@ -274,6 +274,20 @@ The purest form of road racing kit. The Roadsuit is built for riders who want th
 
 ---
 
+
+## SS ROADSUIT — CHAMPS EDITION
+
+The Roadsuit in a champion's colours. The same highly breathable construction, butterfly zip and Elastic Interface® chamois as the SS Roadsuit, with national or regional champion bands worked into the club design — for the rider who has earned them.
+
+- Champion bands and colours worked into the club design
+- Highly breathable fabric construction for sustained comfort over long race efforts
+- Butterfly zip — opens fully for ease of use on and off the bike
+- Race-fit
+- Elastic Interface® chamois
+- 2 rear pockets
+
+Club shops only (retail-gated); priced at the club's SS Roadsuit price +25%. First used by Aero Collective Race Team (Jersey Champs / British Champs designs, 2026-11).
+
 ## SS AEROSUIT
 
 **DESCRIPTION:**

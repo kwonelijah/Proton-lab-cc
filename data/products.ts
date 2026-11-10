@@ -1018,4 +1018,30 @@ export const products: Product[] = [
     priceRange: { minVariantPrice: { amount: '40.00', currencyCode: 'GBP' } },
     ...col('training', 'Training'), tags: ['accessories', 'overshoes', 'rain', 'moq-10'], availableForSale: true,
   },
+  {
+    id: 'prod_041', handle: 'ss-roadsuit-champs', title: 'SS Roadsuit — Champs Edition',
+    description: "The Roadsuit in a champion's colours. The same highly breathable construction, butterfly zip and Elastic Interface® chamois as the SS Roadsuit, with national or regional champion bands worked into the club design — for the rider who has earned them.",
+    bullets: [
+      'Champion bands and colours worked into the club design',
+      'Highly breathable fabric construction for sustained comfort over long race efforts',
+      'Butterfly zip — opens fully for ease of use on and off the bike',
+      'Race-fit',
+      'Elastic Interface® chamois',
+      '2 rear pockets',
+    ],
+    seo: {
+      title: 'Champion Edition Road Skinsuit | Proton Lab',
+      description: "The Proton Lab Roadsuit with champion bands worked into a club design — breathable construction, butterfly zip and Elastic Interface® chamois.",
+      keywords: 'champion skinsuit, national champion skinsuit, custom champion kit, road race skinsuit, premium skinsuit UK',
+    },
+    featuredImage: { id: 'img-ss-roadsuit-champs-1', url: '/images/products/ss-roadsuit/ss-roadsuit1.jpg?v=4', altText: 'SS Roadsuit — Champs Edition', width: 1333, height: 2000 },
+    images: { nodes: [
+      { id: 'img-ss-roadsuit-champs-1', url: '/images/products/ss-roadsuit/ss-roadsuit1.jpg?v=4', altText: 'SS Roadsuit — Champs Edition', width: 1333, height: 2000 },
+      { id: 'img-ss-roadsuit-champs-2', url: '/images/products/ss-roadsuit/ss-roadsuit2.jpg?v=4', altText: 'SS Roadsuit — Champs Edition', width: 1333, height: 2000 },
+      { id: 'img-ss-roadsuit-champs-3', url: '/images/products/ss-roadsuit/ss-roadsuit3.jpg?v=3', altText: 'SS Roadsuit — Champs Edition', width: 1333, height: 2000 },
+    ]},
+    variants: garmentSizes('041', '175.00'),
+    priceRange: { minVariantPrice: { amount: '175.00', currencyCode: 'GBP' } },
+    ...col('race', 'Race'), tags: ['skinsuit', 'race', 'aero', 'champion', 'moq-10'], availableForSale: true,
+  },
 ]
