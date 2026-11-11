@@ -282,6 +282,10 @@
       "edinburgh-university-cycling-club": {
         "priceId": "price_1UP2sW3x1N43j1ucg50rOWaq",
         "unitAmount": 9900
+      },
+      "aero-collective-race-team": {
+        "priceId": "price_1UaZH33x1N43j1ucJSusPVor",
+        "unitAmount": 8000
       }
     }
   },
@@ -331,7 +335,13 @@
     "unitAmount": 7000,
     "currency": "gbp",
     "category": "Jackets & Gilets",
-    "collection": "Race"
+    "collection": "Race",
+    "clubPrices": {
+      "aero-collective-race-team": {
+        "priceId": "price_1UaZH53x1N43j1ucYBw0KGpM",
+        "unitAmount": 5000
+      }
+    }
   },
   "ss-roadsuit": {
     "productId": "prod_UNYWmEBzC3VEr4",
