@@ -362,7 +362,7 @@ export const clubs: Club[] = [
     // The two champs skinsuits are the SS Roadsuit at +25% (catalogue product
     // ss-roadsuit-champs) with the design name carried on the size.
     bankTransfer: true,
-    tagline: 'All prices are sponsored team pricing.\nPay by bank transfer — our account details and your payment reference arrive by email when you place your order.',
+    tagline: 'All prices are sponsored team pricing (please keep pricing confidential).\nPay by bank transfer — our account details and your payment reference arrive by email when you place your order.',
     products: [
       { name: 'SS Race Jersey', handle: 'ss-race-jersey', category: 'top', price: '£60.00',
         image: '/images/clubs/aero-collective-race-team/aeroclctv-ss-race-jersey-front.jpg',
