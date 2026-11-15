@@ -333,9 +333,9 @@ export const clubs: Club[] = [
     name: 'Cardiff Met Cycling Club',
     password: 'cardiffmet',
     centralDelivery: true,
-    tagline: 'All prices include the 10% university discount.\nOrder window open **Wednesday 4th November – Sunday 15th November**.\nDelivery expected late December.',
+    tagline: 'All prices include the 10% university discount.\nOrder window open **Wednesday 4th November – Wednesday 18th November**.\nDelivery expected late December.',
     windowStart: '2026-11-04',
-    windowEnd: '2026-11-15',
+    windowEnd: '2026-11-18',
     products: [
       { name: 'SS Training Jersey', handle: 'ss-training-jersey', category: 'top', price: '£63.00',
         image: '/images/clubs/cardiff-met-cycling-club/cardiffmet-ss-training-jersey-front.jpg',
