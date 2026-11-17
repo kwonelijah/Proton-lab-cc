@@ -38,8 +38,10 @@ export default async function HomePage() {
       {/* 1. Hero — full-screen bleed, just the two buttons centred */}
       <VideoHero
         minimal
-        imageSrc="/images/hero/Home2.jpeg"
+        imageSrc="/images/hero/home-slide-1.jpg"
+        rotateSrcs={['/images/hero/home-slide-2.jpg', '/images/hero/Home2.jpeg']}
         mobileImageSrc="/images/hero/home-mobile.jpg"
+        mobileRotateSrcs={['/images/hero/home-mobile-2.jpg']}
         headline="No Compromise."
         ctaText="Shop"
         ctaHref="/shop"
