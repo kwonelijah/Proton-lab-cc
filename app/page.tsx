@@ -45,7 +45,7 @@ export default async function HomePage() {
         headline="No Compromise."
         ctaText="Shop"
         ctaHref="/shop"
-        secondaryCtaText="Custom Kit"
+        secondaryCtaText="Custom"
         secondaryCtaHref="/custom"
       />
 
@@ -73,14 +73,14 @@ export default async function HomePage() {
         <Link href="/custom" className="group relative overflow-hidden aspect-[4/3] bg-proton-black flex items-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2">
           <Image
             src="/images/homepage/homepagecustom.jpg"
-            alt="Custom Kit"
+            alt="Custom"
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
           <div className="relative z-10 p-8 md:p-10">
-            <h2 className="font-playfair text-4xl text-proton-white leading-none">Custom Kit</h2>
+            <h2 className="font-playfair text-4xl text-proton-white leading-none">Custom</h2>
             <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
               Learn More
             </span>
