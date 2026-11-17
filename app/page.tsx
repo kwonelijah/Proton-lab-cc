@@ -39,6 +39,7 @@ export default async function HomePage() {
       <VideoHero
         minimal
         imageSrc="/images/hero/Home2.jpeg"
+        mobileImageSrc="/images/hero/home-mobile.jpg"
         headline="No Compromise."
         ctaText="Shop"
         ctaHref="/shop"
