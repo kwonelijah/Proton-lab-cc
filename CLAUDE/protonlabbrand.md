@@ -19,11 +19,11 @@ All colours are defined in `tailwind.config.ts`. Never use arbitrary hex values 
 
 | Token | Value | Usage |
 |---|---|---|
-| `proton-black` | `#0a0a0a` | Primary text, CTAs, borders, backgrounds |
-| `proton-white` | `#fafafa` | Page background, inverted text |
-| `proton-grey` | `#6b6b6b` | Secondary/subdued text, labels |
-| `proton-mid` | `#c8c8c8` | Mid-tone borders, dividers |
-| `proton-light` | `#e8e8e8` | Subtle borders, row separators |
+| `proton-black` | `#0A0A0A` | Primary text, CTAs, borders, backgrounds |
+| `proton-white` | `#F5F4F0` | Page background, inverted text |
+| `proton-grey` | `#595959` | Secondary/subdued text, labels |
+| `proton-mid` | `#D4D2CD` | Mid-tone borders, dividers |
+| `proton-light` | `#E8E7E3` | Subtle borders, row separators, product-image panels |
 
 **Rule:** Never introduce a colour outside this palette. No accent colours. No blues, greens, or reds (except `text-red-600` for form validation errors only).
 
@@ -45,6 +45,7 @@ All colours are defined in `tailwind.config.ts`. Never use arbitrary hex values 
 - Body copy: `text-sm text-proton-black leading-relaxed`
 - Button labels: `text-xs uppercase tracking-widest font-inter`
 - Subdued body: `text-sm text-proton-grey leading-relaxed`
+- Shop card + shop filter labels: `font-inter text-xs uppercase tracking-wide` (0.025em) — the one deliberate exception to `tracking-widest`, UVU-style tight caps (`CARD_LABEL` in `components/ui/ProductCard.tsx`). Price and sizes line in `text-proton-grey`.
 
 ---
 
@@ -52,7 +53,8 @@ All colours are defined in `tailwind.config.ts`. Never use arbitrary hex values 
 
 - Max content width: `max-w-7xl mx-auto px-6 md:px-12`
 - Section vertical padding: `py-16 md:py-24`
-- Product grid: `grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12`
+- Shop grid (`/shop`): full-bleed, rendered OUTSIDE the max-w container as a sibling of the heading row — `grid grid-cols-2 md:grid-cols-4 gap-x-0 gap-y-2.5 md:gap-y-6`. Cards touch; only the row gap separates them (UVU collection layout, 2026-11-17)
+- Cross-sell rows (product page "Different Colour?"): inside the container — `grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-10 md:gap-x-6`
 - Two-column product layout: `grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 lg:gap-20`
 - Section dividers: `border-t border-proton-light`
 - Sticky product info column: `md:sticky md:top-24 md:self-start space-y-8`
@@ -71,9 +73,16 @@ Sizes: `sm` `md` `lg`. Always pass `type="submit"` on form buttons.
 Supports `disabled` prop — applies `opacity-40 cursor-not-allowed`.
 
 ### ProductCard (`components/ui/ProductCard.tsx`)
-- Image: `aspect-[4/5]` with `object-cover`, `group-hover:scale-105` on the image
-- Links to `/products/[handle]`
-- Shows title + price below image
+- Image: fixed `aspect-[4/5]` frame on `bg-proton-light`; portrait photos `object-cover`, landscape photos `object-contain`. The only hover effect is a crossfade to the second gallery image (no scale, no dark overlay)
+- `variant`: `'shop'` (zero-gutter grid — text inset `px-4`, image `sizes` 25vw/50vw) or `'row'` (gapped grid inside the container — text flush with the image edge, `sizes` 33vw/50vw)
+- Text block `pt-4 pb-2.5`, all in `CARD_LABEL` (12px caps, `tracking-wide`): NAME left + price right (`text-proton-grey`) on one row (name wraps, price stays pinned), then a grey line of the sizes in stock (`inStockSizes` in `lib/utils.ts`, from `withStock`)
+- Sold-out products are SHOWN: a black "Sold Out" line above the name replaces the sizes line, no badge; `orderForShop` puts them last
+- Links to `/products/[handle]`; `aria-label` adds " — Sold Out"
+
+### ShopFilter (`app/shop/ShopFilter.tsx`) + ShopCollection (`app/shop/ShopCollection.tsx`)
+- "Filter" trigger (12px caps, 44px tall, `aria-expanded`/`aria-controls`) on the Playfair heading's baseline; opens a bordered list (All + categories) beneath it
+- Categories come from `lib/shop-categories.ts` (`SHOP_CATEGORIES`: tags → label); only categories with a live product are offered; selection is client state, not a URL param
+- Items `h-11`, `aria-pressed`; Escape or an outside click closes, focus returns to the trigger
 
 ### Accordion (`components/ui/Accordion.tsx`)
 - Trigger: `text-[10px] uppercase tracking-widest`, `border-t border-proton-light`, chevron rotates 180° on open
@@ -139,7 +148,8 @@ All products. Each product has:
 - `description` — editorial paragraph copy (see `Proton_Lab_Product_Pages.md` for source)
 - `bullets` — feature list array
 - `seo.title`, `seo.description`, `seo.keywords`
-- `availableForSale: true` on all products and all variants
+- `availableForSale` is hard-coded `true` in the file but REPLACED at read time by `withStock` in `lib/api.ts` from `data/stock.json` (built from `inventory/stock.csv` by `scripts/sync-stock.mjs`), per variant and per product
+- `tags` drive the shop filter: `lib/shop-categories.ts` maps tags (`jersey`, `shorts`/`bib`, `socks`) to the FILTER categories
 
 ### `data/collections.ts`
 Two collections: `race` and `training`. Filtered from `products`.
@@ -226,6 +236,7 @@ Applied via the Spacious design system skill. All future interactive elements mu
 - Size selector buttons: `h-11` (44px) — never `h-10`
 - CartButton: `p-3` — never `p-2` (icon is 20px; 12px padding each side = 44px total)
 - Icon-only buttons (close, remove): minimum `p-3` to meet 44px
+- ShopFilter trigger and list items: `h-11`
 
 ### Focus States
 Use `focus-visible:` (not `focus:`) so rings only appear on keyboard navigation, not mouse clicks.
@@ -240,7 +251,7 @@ focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black 
 outline-none focus:border-proton-black focus-visible:ring-1 focus-visible:ring-proton-black focus-visible:ring-offset-1
 ```
 
-Apply to: size selectors, CartButton, CartDrawer close button, Place Order button, all inputs in ContactForm / CartDrawer / club gate, Accordion trigger.
+Apply to: size selectors, CartButton, CartDrawer close button, Place Order button, all inputs in ContactForm / CartDrawer / club gate, Accordion trigger, ShopFilter trigger and items.
 
 ### Contrast
 - All text follows the existing proton palette — `proton-black` on `proton-white` passes AAA

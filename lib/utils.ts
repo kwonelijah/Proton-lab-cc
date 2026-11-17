@@ -1,3 +1,5 @@
+import type { Product } from '@/types/product'
+
 export function formatPrice(amount: string, currencyCode: string): string {
   // en-IE keeps the symbol-first style (€110) for EUR; en-GB would too, but
   // being explicit keeps the rendering deliberate per currency.
@@ -26,4 +28,13 @@ export function slugify(text: string): string {
 
 export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ')
+}
+
+// Size labels with units on hand, in variant order (e.g. ["XS", "S", "M"]).
+// The label is derived the way lib/api.ts withStock keys stock: the Size
+// option value, falling back to the variant title.
+export function inStockSizes(product: Product): string[] {
+  return product.variants.nodes
+    .filter(v => v.availableForSale)
+    .map(v => v.selectedOptions.find(o => o.name === 'Size')?.value ?? v.title)
 }

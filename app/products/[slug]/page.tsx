@@ -254,7 +254,7 @@ export default async function ProductPage({ params }: PageProps) {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-10 md:gap-x-6">
               {colours.map(p => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p.id} product={p} variant="row" />
               ))}
             </div>
           </section>

@@ -60,9 +60,10 @@ export default function CompleteKitBanner({ products, imageSide = 'left' }: Comp
               i === index ? '' : 'pointer-events-none'
             }`}
           >
-            {/* Product image — one grid column in a 2:3 frame, exactly like a
-                ProductCard below. Images crossfade slowly; text fades faster
-                so outgoing and incoming titles never read doubled. */}
+            {/* Product image — one grid column at the photo's own aspect ratio
+                (the ProductCards below use a fixed 4:5 frame). Images crossfade
+                slowly; text fades faster so outgoing and incoming titles never
+                read doubled. */}
             <div
               className={`relative w-full transition-opacity duration-700 ${
                 imageSide === 'right' ? 'order-last' : ''
