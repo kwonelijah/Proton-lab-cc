@@ -74,7 +74,7 @@ export default function CustomPage() {
       </div>
 
       {/* Process */}
-      <div className="border-t border-proton-light py-16 md:py-24">
+      <div className="border-t border-proton-black py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             {process.map(step => (
@@ -89,7 +89,7 @@ export default function CustomPage() {
       </div>
 
       {/* Pricing — available on request */}
-      <div className="border-t border-proton-light py-16 md:py-24">
+      <div className="border-t border-proton-black py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <h2 className="font-playfair text-4xl md:text-5xl leading-none">
@@ -103,7 +103,7 @@ export default function CustomPage() {
       </div>
 
       {/* Team store teaser */}
-      <div className="border-t border-proton-light py-16 md:py-20 bg-proton-light">
+      <div className="border-t border-proton-black py-16 md:py-20 bg-proton-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div>
             <h2 className="font-playfair text-3xl md:text-4xl leading-tight max-w-lg">
