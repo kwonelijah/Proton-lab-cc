@@ -34,7 +34,9 @@ export default function ProductCard({ product, priority = false, variant = 'row'
   const fit = isLandscape ? 'object-contain' : 'object-cover'
 
   // Second gallery image replaces the first on hover; products with a single
-  // photo keep the plain card. The swap is the card's only hover effect.
+  // photo keep the plain card. The swap is the card's only hover effect. The
+  // group is named so a hovered ancestor group (the home carousel pauses on
+  // hover via `group`) doesn't flip every card at once.
   const hoverImage = product.images.nodes.find(
     (img) => img.url !== product.featuredImage.url
   )
@@ -46,7 +48,7 @@ export default function ProductCard({ product, priority = false, variant = 'row'
   return (
     <Link
       href={`/products/${product.handle}`}
-      className="group block"
+      className="group/card block"
       aria-label={`${product.title}${soldOut ? ' — Sold Out' : ''}`}
       aria-hidden={decorative || undefined}
       tabIndex={decorative ? -1 : undefined}
@@ -58,7 +60,7 @@ export default function ProductCard({ product, priority = false, variant = 'row'
           fill
           sizes={imgSizes}
           quality={90}
-          className={`${fit} transition-opacity duration-300 ${hoverImage ? 'group-hover:opacity-0' : ''}`}
+          className={`${fit} transition-opacity duration-300 ${hoverImage ? 'group-hover/card:opacity-0' : ''}`}
           priority={priority}
         />
         {hoverImage && (
@@ -68,7 +70,7 @@ export default function ProductCard({ product, priority = false, variant = 'row'
             fill
             sizes={imgSizes}
             quality={90}
-            className={`${hoverFit} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+            className={`${hoverFit} opacity-0 transition-opacity duration-300 group-hover/card:opacity-100`}
           />
         )}
       </div>
@@ -79,7 +81,7 @@ export default function ProductCard({ product, priority = false, variant = 'row'
       <div className={`pt-4 pb-2.5 ${variant === 'shop' ? 'px-4' : ''}`}>
         {soldOut && <p className={`${CARD_LABEL} text-proton-black`}>Sold Out</p>}
         <div className="flex items-start justify-between gap-x-3">
-          <h3 className={`${CARD_LABEL} min-w-0 flex-1 text-proton-black group-hover:opacity-60 transition-opacity duration-200`}>
+          <h3 className={`${CARD_LABEL} min-w-0 flex-1 text-proton-black group-hover/card:opacity-60 transition-opacity duration-200`}>
             {product.title}
           </h3>
           <p className={`${CARD_LABEL} shrink-0 text-right text-proton-grey`}>
