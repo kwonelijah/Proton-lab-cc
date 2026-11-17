@@ -88,6 +88,7 @@ export default async function HomePage() {
 
       {/* 3. Final CTA */}
       <CTABanner
+        inverted
         headline="Ride without limits."
         ctaText="Shop Now"
         ctaHref="/shop"
