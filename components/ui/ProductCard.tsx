@@ -11,6 +11,9 @@ interface ProductCardProps {
   // 'row'  — a gapped grid inside the page container (product page
   //          "Different Colour?" row): text sits flush with the image edge.
   variant?: 'shop' | 'row'
+  // Marquee clones: hidden from assistive tech and skipped by Tab so the
+  // duplicated cards don't double up for keyboard and screen-reader users.
+  decorative?: boolean
 }
 
 // 12px uppercase Montserrat with near-normal tracking: the shop card's
@@ -18,7 +21,7 @@ interface ProductCardProps {
 // required because globals.css gives every h3 Playfair.
 export const CARD_LABEL = 'font-inter text-xs uppercase tracking-wide leading-4'
 
-export default function ProductCard({ product, priority = false, variant = 'row' }: ProductCardProps) {
+export default function ProductCard({ product, priority = false, variant = 'row', decorative = false }: ProductCardProps) {
   const { amount, currencyCode } = product.priceRange.minVariantPrice
   const soldOut = !product.availableForSale
   const sizes = sizeAvailability(product)
@@ -45,6 +48,8 @@ export default function ProductCard({ product, priority = false, variant = 'row'
       href={`/products/${product.handle}`}
       className="group block"
       aria-label={`${product.title}${soldOut ? ' — Sold Out' : ''}`}
+      aria-hidden={decorative || undefined}
+      tabIndex={decorative ? -1 : undefined}
     >
       <div className="relative overflow-hidden aspect-[4/5] bg-proton-light">
         <Image
