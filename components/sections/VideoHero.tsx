@@ -12,8 +12,8 @@ interface VideoHeroProps {
   secondaryCtaHref?: string
   eyebrow?: string
   // Full-screen bleed with only the two buttons showing, equal-sized and
-  // centred on phones; on md and up they sit a fifth of the way up from the
-  // bottom (homepage, 2026-11-17). The headline stays in the DOM as the
+  // sitting a fifth of the way up from the bottom on every screen size
+  // (homepage, 2026-11-17). The headline stays in the DOM as the
   // page's h1 for screen readers and search; subheadline/eyebrow are dropped.
   minimal?: boolean
   // Optional art-directed photo for phones (below the md breakpoint).
@@ -43,7 +43,7 @@ export default function VideoHero({
 }: VideoHeroProps) {
   if (minimal) {
     return (
-      <section className="relative min-h-[100svh] flex items-center md:items-end justify-center md:pb-[20svh] overflow-hidden bg-proton-black">
+      <section className="relative min-h-[100svh] flex items-end justify-center pb-[20svh] overflow-hidden bg-proton-black">
         <HeroImage src={imageSrc} mobileSrc={mobileImageSrc} rotateSrcs={rotateSrcs} mobileRotateSrcs={mobileRotateSrcs} />
         <div className="absolute inset-0 bg-proton-black/25" />
         <h1 className="sr-only">{headline}</h1>
