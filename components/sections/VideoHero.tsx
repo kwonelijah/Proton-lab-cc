@@ -10,7 +10,13 @@ interface VideoHeroProps {
   secondaryCtaText?: string
   secondaryCtaHref?: string
   eyebrow?: string
+  // Full-screen bleed with only the two buttons showing, equal-sized and
+  // centred (homepage, 2026-11-17). The headline stays in the DOM as the
+  // page's h1 for screen readers and search; subheadline/eyebrow are dropped.
+  minimal?: boolean
 }
+
+const BUTTON = 'border-proton-white text-proton-white hover:bg-proton-white hover:text-proton-black'
 
 export default function VideoHero({
   imageSrc,
@@ -21,7 +27,28 @@ export default function VideoHero({
   secondaryCtaText,
   secondaryCtaHref,
   eyebrow,
+  minimal = false,
 }: VideoHeroProps) {
+  if (minimal) {
+    return (
+      <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-proton-black">
+        <Image src={imageSrc} alt="" fill priority sizes="100vw" className="object-cover opacity-70" />
+        <div className="absolute inset-0 bg-proton-black/25" />
+        <h1 className="sr-only">{headline}</h1>
+        <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4 px-6">
+          <Button href={ctaHref} variant="secondary" size="lg" className={`${BUTTON} w-64`}>
+            {ctaText}
+          </Button>
+          {secondaryCtaText && secondaryCtaHref && (
+            <Button href={secondaryCtaHref} variant="secondary" size="lg" className={`${BUTTON} w-64`}>
+              {secondaryCtaText}
+            </Button>
+          )}
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="relative min-h-[45svh] md:min-h-[48vh] flex items-end overflow-hidden bg-proton-black">
       {/* Background image */}
@@ -53,21 +80,11 @@ export default function VideoHero({
           </p>
         )}
         <div className="mt-6 md:mt-8 flex flex-wrap gap-3">
-          <Button
-            href={ctaHref}
-            variant="secondary"
-            size="lg"
-            className="border-proton-white text-proton-white hover:bg-proton-white hover:text-proton-black"
-          >
+          <Button href={ctaHref} variant="secondary" size="lg" className={BUTTON}>
             {ctaText}
           </Button>
           {secondaryCtaText && secondaryCtaHref && (
-            <Button
-              href={secondaryCtaHref}
-              variant="secondary"
-              size="lg"
-              className="border-proton-white text-proton-white hover:bg-proton-white hover:text-proton-black"
-            >
+            <Button href={secondaryCtaHref} variant="secondary" size="lg" className={BUTTON}>
               {secondaryCtaText}
             </Button>
           )}

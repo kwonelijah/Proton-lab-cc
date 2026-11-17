@@ -35,11 +35,11 @@ export default async function HomePage() {
     <>
       <Navbar />
 
-      {/* 1. Hero */}
+      {/* 1. Hero — full-screen bleed, just the two buttons centred */}
       <VideoHero
+        minimal
         imageSrc="/images/hero/Home2.jpeg"
         headline="No Compromise."
-        subheadline="Premium cycling apparel precision-engineered for those who train and race."
         ctaText="Shop"
         ctaHref="/shop"
         secondaryCtaText="Custom Kit"
