@@ -5,8 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
-
 import Footer from '@/components/layout/Footer'
+import ShopFilter from '@/app/shop/ShopFilter'
+import { CARD_LABEL } from '@/components/ui/ProductCard'
+import { ALL_CATEGORY, type ShopCategory } from '@/lib/shop-categories'
 import { getClubByHandle, type Club } from '@/data/clubs'
 import { getClubProductByHandle } from '@/lib/api'
 import type { ProductImage } from '@/types/product'
@@ -26,7 +28,7 @@ export default function ClubShopPage() {
   // First catalogue photo per club product (the plain garment, not the club
   // design), faded in on hover. Products flagged hideCatalogImages get none.
   const [hoverImages, setHoverImages] = useState<Record<string, ProductImage>>({})
-  const [filter, setFilter] = useState<'all' | (typeof CATEGORIES)[number]['key']>('all')
+  const [filter, setFilter] = useState<string>(ALL_CATEGORY)
 
   useEffect(() => {
     const found = getClubByHandle(handle)
@@ -59,7 +61,10 @@ export default function ClubShopPage() {
   const groups = CATEGORIES
     .map(c => ({ ...c, products: club.products.filter(p => p.category === c.key) }))
     .filter(c => c.products.length > 0)
-  const visible = filter === 'all' ? groups.flatMap(g => g.products) : club.products.filter(p => p.category === filter)
+  const visible = filter === ALL_CATEGORY
+    ? groups.flatMap(g => g.products)
+    : club.products.filter(p => p.category === filter)
+  const filterOptions: ShopCategory[] = groups.map(g => ({ key: g.key, label: g.label, tags: [] }))
 
   return (
     <>
@@ -76,56 +81,62 @@ export default function ClubShopPage() {
           </div>
         </div>
 
-        {/* Products — one grid, filtered by category chips */}
-        <div className="max-w-7xl mx-auto px-6 md:px-12 pt-8 md:pt-10 pb-16 md:pb-24">
-          <div className="flex flex-wrap gap-2 pb-6 md:pb-8 mb-10 md:mb-12 border-b border-proton-light" role="group" aria-label="Filter by category">
-            {[{ key: 'all', label: 'All' } as const, ...groups].map(chip => {
-              const isActive = filter === chip.key
-              return (
-                <button
-                  key={chip.key}
-                  type="button"
-                  aria-pressed={isActive}
-                  onClick={() => setFilter(chip.key)}
-                  className={`h-11 px-5 border text-xs uppercase tracking-widest transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2 ${
-                    isActive
-                      ? 'bg-proton-black text-proton-white border-proton-black'
-                      : 'bg-transparent text-proton-black border-proton-mid hover:border-proton-black'
-                  }`}
-                >
-                  {chip.label}
-                </button>
-              )
-            })}
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-            {visible.map((product, i) => (
-              <Link key={product.handle} href={`/custom/club/${handle}/${product.handle}`} className="group">
-                <div className="relative aspect-[2/3] bg-proton-light overflow-hidden mb-3">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                    className={`object-contain transition-opacity duration-300 ${hoverImages[product.handle] ? 'group-hover:opacity-0 group-focus-visible:opacity-0' : 'group-hover:opacity-90'}`}
-                    priority={i < 4}
-                  />
-                  {hoverImages[product.handle] && (
-                    <Image
-                      src={hoverImages[product.handle].url}
-                      alt={`${product.name} — catalogue photo`}
-                      fill
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                      className={`${hoverImages[product.handle].width > hoverImages[product.handle].height ? 'object-contain' : 'object-cover'} opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100`}
-                    />
-                  )}
-                </div>
-                <h3 className="font-inter text-sm text-proton-black">{product.name}</h3>
-                <p className="text-sm text-proton-black mt-1">{product.price}</p>
-              </Link>
-            ))}
+        {/* Filter bar — the same FILTER control as /shop, right-aligned; only
+            shown when the club stocks more than one category. */}
+        <div className="max-w-7xl mx-auto px-6 md:px-12 py-1 md:py-2">
+          <div className="flex items-center justify-end min-h-[2.75rem]">
+            {groups.length > 1 && (
+              <ShopFilter categories={filterOptions} value={filter} onChange={setFilter} />
+            )}
           </div>
         </div>
+        <p className="sr-only" aria-live="polite">
+          {visible.length} {visible.length === 1 ? 'product' : 'products'}
+        </p>
+
+        {/* Products — full-bleed grid like /shop: a sibling of the container,
+            zero column gap, 4 columns on desktop / 2 on phones. Club renders
+            are composed with wide margins, so the 4:5 crop (cover) is safe. */}
+        <ul className="grid grid-cols-2 md:grid-cols-4 gap-x-0 gap-y-2.5 md:gap-y-6 pb-10 md:pb-14">
+          {visible.map((product, i) => {
+            const hover = hoverImages[product.handle]
+            return (
+              <li key={product.handle}>
+                <Link href={`/custom/club/${handle}/${product.handle}`} className="group block">
+                  <div className="relative aspect-[4/5] bg-proton-light overflow-hidden">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 767px) 50vw, 25vw"
+                      className={`object-cover transition-opacity duration-300 ${hover ? 'group-hover:opacity-0 group-focus-visible:opacity-0' : ''}`}
+                      priority={i < 4}
+                    />
+                    {hover && (
+                      <Image
+                        src={hover.url}
+                        alt={`${product.name} — catalogue photo`}
+                        fill
+                        sizes="(max-width: 767px) 50vw, 25vw"
+                        className={`${hover.width > hover.height ? 'object-contain' : 'object-cover'} opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100`}
+                      />
+                    )}
+                  </div>
+                  {/* Name left, price right — no sizes line: club garments are
+                      made to order in every size. */}
+                  <div className="px-4 pt-4 pb-2.5">
+                    <div className="flex items-start justify-between gap-x-3">
+                      <h3 className={`${CARD_LABEL} min-w-0 flex-1 text-proton-black group-hover:opacity-60 transition-opacity duration-200`}>
+                        {product.name}
+                      </h3>
+                      <p className={`${CARD_LABEL} shrink-0 text-right text-proton-grey`}>{product.price}</p>
+                    </div>
+                  </div>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
 
       </main>
       <Footer />
