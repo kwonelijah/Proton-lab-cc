@@ -237,7 +237,7 @@ export default async function ProductPage({ params }: PageProps) {
       {others.length > 0 && (
         <section aria-label="Other products">
           <h2 className={`${CARD_LABEL} text-center text-proton-black py-4`}>Other Products</h2>
-          <ul className="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-proton-black pb-10 md:pb-14">
+          <ul className="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-proton-black">
             {others.map(p => (
               <li key={p.id} className={CELL}>
                 <ProductCard product={p} variant="shop" />
