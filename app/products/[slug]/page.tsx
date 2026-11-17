@@ -6,16 +6,28 @@ import ProductGallery from './ProductGallery'
 import VariantSelector from './VariantSelector'
 import Accordion from '@/components/ui/Accordion'
 import DeliveryNote from '@/components/ui/DeliveryNote'
-import ProductCard from '@/components/ui/ProductCard'
-import CompleteKitBanner from '@/components/ui/CompleteKitBanner'
+import ProductCard, { CARD_LABEL } from '@/components/ui/ProductCard'
 import { getProducts, getProductByHandle } from '@/lib/api'
 import { getDisplayCurrency } from '@/lib/currency-server'
 import { formatPrice } from '@/lib/utils'
-import { KIT_RECOMMENDATIONS } from '@/data/recommendations'
-import type { Product } from '@/types/product'
 
 interface PageProps {
   params: { slug: string }
+}
+
+// Hairline black dividers, as on /shop: bottom border on every cell, right
+// border on every cell except the last column (2 on phones, 4 from md).
+const CELL =
+  'border-b border-proton-black [&:not(:nth-child(2n))]:border-r md:[&:not(:nth-child(4n))]:border-r'
+
+// Fisher–Yates, returns a new array.
+function shuffle<T>(list: T[]): T[] {
+  const out = [...list]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
 }
 
 export async function generateStaticParams() {
@@ -60,47 +72,31 @@ export default async function ProductPage({ params }: PageProps) {
 
   const { amount, currencyCode } = product.priceRange.minVariantPrice
 
-  // Cross-sell rows — resolved through the same gate as the page itself, so a
-  // retired handle silently drops out of its row.
-  const rec = KIT_RECOMMENDATIONS[product.handle]
-  const resolve = async (handles: string[] = []) =>
-    (await Promise.all(handles.map(h => getProductByHandle(h, currency))))
-      .filter((p): p is Product => Boolean(p))
-  const completeKit = await resolve(rec?.completeKit)
-  const colours = await resolve(rec?.colours)
+  // "Other Products": four of the other live products, picked at random on
+  // every request (this route renders per request because of the currency
+  // cookie), in the shop's full-bleed grid.
+  const others = shuffle((await getProducts(currency)).filter(p => p.handle !== product.handle)).slice(0, 4)
 
-  return (
-    <PageWrapper>
-      <div className="max-w-7xl md:max-w-none mx-auto px-6 md:px-8 py-10 md:py-16">
-        {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-proton-grey mb-8">
-          <Link href="/shop" className="hover:text-proton-black transition-colors duration-200">
-            Shop
-          </Link>
-          <span>/</span>
-          <span className="text-proton-black">{product.title}</span>
-        </nav>
+  // Product details — the top-right cell of the full-bleed mosaic (UVU's
+  // product layout, matching the shop and home grids). Title and price share
+  // one 12px caps row like the product cards.
+  const info = (
+    <div className="space-y-8">
+            {/* Breadcrumb */}
+            <nav aria-label="Breadcrumb" className={`flex items-center gap-2 ${CARD_LABEL} text-proton-grey`}>
+              <Link href="/shop" className="hover:text-proton-black transition-colors duration-200">
+                Shop
+              </Link>
+              <span>/</span>
+              <span className="text-proton-black">{product.title}</span>
+            </nav>
 
-        {/* Main content — Rapha-style split: 2-up scrolling gallery left, sticky details right */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-10 lg:gap-12">
-          {/* Gallery */}
-          <div className="md:col-span-3">
-            {/* Gallery shows the images array only — featuredImage is the card/hero
-                shot and may not belong in the product gallery (e.g. Red Sky) */}
-            <ProductGallery
-              images={product.images.nodes}
-              productTitle={product.title}
-            />
-          </div>
-
-          {/* Product details */}
-          <div className="md:col-span-2 md:sticky md:top-24 md:self-start space-y-8">
             {/* Title + price */}
-            <div>
-              <h1 className="font-playfair text-3xl md:text-4xl leading-tight mb-4">
+            <div className="flex items-start justify-between gap-x-4">
+              <h1 className={`${CARD_LABEL} min-w-0 flex-1 text-proton-black`}>
                 {product.title}
               </h1>
-              <p className="text-xl text-proton-black">
+              <p className={`${CARD_LABEL} shrink-0 text-right text-proton-grey md:font-bold md:text-sm md:text-proton-black`}>
                 {formatPrice(amount, currencyCode)}
               </p>
             </div>
@@ -228,38 +224,28 @@ export default async function ProductPage({ params }: PageProps) {
                 ))}
               </ul>
             </Accordion>
-          </div>
-        </div>
+    </div>
+  )
 
-        {/* Complete the Kit — rotating banner of the complementary garment,
-            matching item first (pairings documented in data/recommendations.ts) */}
-        {completeKit.length > 0 && (
-          <section aria-label="Complete the kit" className="mt-16 md:mt-24 pt-10 md:pt-12 border-t border-proton-light">
-            <h2 className="font-playfair text-2xl md:text-3xl mb-8">
-              Complete the Kit
-            </h2>
-            {/* Jersey pages show bibs image-right; bib pages show jerseys image-left */}
-            <CompleteKitBanner
-              products={completeKit}
-              imageSide={product.handle.includes('jersey') ? 'right' : 'left'}
-            />
-          </section>
-        )}
+  return (
+    <PageWrapper>
+      {/* Gallery shows the images array only — featuredImage is the card/hero
+          shot and may not belong in the product gallery (e.g. Red Sky) */}
+      <ProductGallery images={product.images.nodes} productTitle={product.title} info={info} />
 
-        {/* Different Colour? — other colourways of the garment being viewed */}
-        {colours.length > 0 && (
-          <section aria-label="Other colours" className="mt-14 md:mt-20">
-            <h2 className="font-playfair text-2xl md:text-3xl mb-8">
-              Different Colour?
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-10 md:gap-x-6">
-              {colours.map(p => (
-                <ProductCard key={p.id} product={p} variant="row" />
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+      {/* Other Products — four random others in the shop's full-bleed grid */}
+      {others.length > 0 && (
+        <section aria-label="Other products">
+          <h2 className={`${CARD_LABEL} text-center text-proton-black py-4`}>Other Products</h2>
+          <ul className="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-proton-black pb-10 md:pb-14">
+            {others.map(p => (
+              <li key={p.id} className={CELL}>
+                <ProductCard product={p} variant="shop" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </PageWrapper>
   )
 }

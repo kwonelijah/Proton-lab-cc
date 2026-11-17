@@ -1,81 +1,54 @@
-'use client'
-
-import { useState } from 'react'
 import Image from 'next/image'
+import type { ReactNode } from 'react'
 import type { ProductImage } from '@/types/product'
+import MobileGallery from './MobileGallery'
 
 interface ProductGalleryProps {
   images: ProductImage[]
   productTitle: string
+  // The product details panel.
+  info: ReactNode
 }
 
-export default function ProductGallery({ images, productTitle }: ProductGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState(0)
-  const active = images[activeIndex] ?? images[0]
+const CELL = 'relative overflow-hidden aspect-[4/5] bg-proton-light border-b border-proton-black'
+
+// Full-bleed product layout with hairline black dividers and no page gutters.
+// Desktop: the photos fill the left two thirds as a two-up 4:5 grid that
+// scrolls with the page; the details sit in the right third and stay put
+// (sticky under the navbar for the height of the photo grid). Phones: the
+// previous gallery (main photo + thumbnails) filling the screen width, then
+// the details. Portrait photos cover their cell; landscape ones sit whole.
+export default function ProductGallery({ images, productTitle, info }: ProductGalleryProps) {
+  const fit = (img: ProductImage) => (img.width > img.height ? 'object-contain' : 'object-cover')
+  // Desktop: the container draws one bottom line across the full width (photos
+  // and details), so the last row of photos drops its own to avoid doubling.
+  const lastRowStart = images.length - (images.length % 2 === 0 ? 2 : 1)
 
   return (
-    <div>
-      {/* Desktop: Rapha-style 2-up grid — all images shown, page scrolls through them */}
-      <div className="hidden md:grid grid-cols-2 gap-2 content-start">
-        {images.map((img, i) => (
-          <div
-            key={img.id}
-            className="relative overflow-hidden aspect-[2/3] bg-proton-light"
-          >
+    <div className="border-t md:border-b border-proton-black md:grid md:grid-cols-3">
+      <MobileGallery images={images} productTitle={productTitle} />
+
+      {/* Desktop two-up grid — display:none on phones, where `sizes` collapses
+          to 1px so the eager first photos cost nothing. */}
+      <div className="hidden md:grid grid-cols-2 md:col-start-1 md:col-end-3 md:row-start-1 md:border-r border-proton-black">
+        {images.map((img, k) => (
+          <div key={img.id} className={`${CELL} ${k % 2 === 0 ? 'border-r' : ''} ${k >= lastRowStart ? 'md:border-b-0' : ''}`}>
             <Image
               src={img.url}
-              alt={img.altText ?? `${productTitle} image ${i + 1}`}
+              alt={img.altText ?? `${productTitle} image ${k + 1}`}
               fill
-              sizes="40vw"
+              sizes="(max-width: 767px) 1px, 33vw"
               quality={90}
-              className={img.width > img.height ? 'object-contain' : 'object-cover'}
-              priority={i < 2}
+              className={fit(img)}
+              priority={k < 2}
             />
           </div>
         ))}
       </div>
 
-      {/* Mobile: main image + thumbnails (unchanged) */}
-      <div className="flex flex-col gap-3 md:hidden">
-      {/* Main image — frame takes the photo's own aspect ratio (no letterbox) */}
-      <div
-        className="relative overflow-hidden bg-proton-light"
-        style={{ aspectRatio: `${active.width} / ${active.height}` }}
-      >
-        <Image
-          src={active.url}
-          alt={active.altText ?? productTitle}
-          fill
-          sizes="(max-width: 768px) 100vw, 50vw"
-          quality={90}
-          className="object-contain transition-opacity duration-300"
-          priority
-        />
-      </div>
-
-      {/* Thumbnails */}
-      {images.length > 1 && (
-        <div className="flex gap-2">
-          {images.map((img, i) => (
-            <button
-              key={img.id}
-              onClick={() => setActiveIndex(i)}
-              className={`relative aspect-square w-16 overflow-hidden bg-proton-light border-b-2 transition-colors duration-200 ${
-                i === activeIndex ? 'border-proton-black' : 'border-transparent hover:border-proton-grey'
-              }`}
-              aria-label={`View image ${i + 1}`}
-            >
-              <Image
-                src={img.url}
-                alt={img.altText ?? `${productTitle} image ${i + 1}`}
-                fill
-                sizes="64px"
-                className="object-cover"
-              />
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Details */}
+      <div className="md:col-start-3 md:row-start-1 md:sticky md:top-20 md:self-start border-t md:border-t-0 border-b md:border-b-0 border-proton-black px-6 md:px-10 py-8 md:py-10">
+        {info}
       </div>
     </div>
   )

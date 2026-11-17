@@ -12,6 +12,7 @@ import ProductGallery from '@/app/products/[slug]/ProductGallery'
 import ClubVariantSelector from './ClubVariantSelector'
 import Accordion from '@/components/ui/Accordion'
 import DeliveryNote from '@/components/ui/DeliveryNote'
+import { CARD_LABEL } from '@/components/ui/ProductCard'
 
 export default function ClubProductPage() {
   const { handle, productHandle } = useParams<{ handle: string; productHandle: string }>()
@@ -70,36 +71,25 @@ export default function ClubProductPage() {
     availableForSale: true,
   }))
 
-  return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-proton-white pt-20">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-16">
+  // Details panel — the top-right cell of the full-bleed mosaic, matching the
+  // retail product page and the club landing grid.
+  const info = (
+            <div className="space-y-8">
+              {/* Breadcrumb */}
+              <nav aria-label="Breadcrumb" className={`flex items-center gap-2 ${CARD_LABEL} text-proton-grey`}>
+                <Link href={`/custom/club/${handle}`} className="hover:text-proton-black transition-colors duration-200">
+                  {club.name}
+                </Link>
+                <span>/</span>
+                <span className="text-proton-black">{clubProduct.name}</span>
+              </nav>
 
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-proton-grey mb-8">
-            <Link href={`/custom/club/${handle}`} className="hover:text-proton-black transition-colors duration-200">
-              {club.name}
-            </Link>
-            <span>/</span>
-            <span className="text-proton-black">{clubProduct.name}</span>
-          </nav>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 lg:gap-20">
-            {/* Gallery */}
-            {allImages.length > 0 ? (
-              <ProductGallery images={allImages} productTitle={clubProduct.name} />
-            ) : (
-              <div className="aspect-[4/5] bg-proton-light" />
-            )}
-
-            {/* Details */}
-            <div className="md:sticky md:top-24 md:self-start space-y-8">
-              <div>
-                <h1 className="font-playfair text-3xl md:text-4xl leading-tight mb-4">
+              {/* Title + price */}
+              <div className="flex items-start justify-between gap-x-4">
+                <h1 className={`${CARD_LABEL} min-w-0 flex-1 text-proton-black`}>
                   {clubProduct.name}
                 </h1>
-                <p className="text-xl text-proton-black">{clubProduct.price}</p>
+                <p className={`${CARD_LABEL} shrink-0 text-right text-proton-grey md:font-bold md:text-sm md:text-proton-black`}>{clubProduct.price}</p>
               </div>
 
               <ClubVariantSelector
@@ -195,9 +185,13 @@ export default function ClubProductPage() {
                 </ul>
               </Accordion>
             </div>
-          </div>
+  )
 
-        </div>
+  return (
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-proton-white pt-20">
+        <ProductGallery images={allImages} productTitle={clubProduct.name} info={info} />
       </main>
       <Footer />
     </>
