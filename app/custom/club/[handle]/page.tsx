@@ -13,7 +13,7 @@ import { getClubByHandle, type Club } from '@/data/clubs'
 import { getClubProductByHandle } from '@/lib/api'
 import type { ProductImage } from '@/types/product'
 
-// Hairline black dividers between products: a bottom border on every cell and
+// Hairline black dividers: a top border on the grid, a bottom border on every cell and
 // a right border on every cell except the last column (2 columns on phones,
 // 4 from md up). Cells touch, so the borders are the only separation.
 const CELL =
@@ -103,7 +103,7 @@ export default function ClubShopPage() {
         {/* Products — full-bleed grid like /shop: a sibling of the container,
             zero column gap, 4 columns on desktop / 2 on phones. Club renders
             are composed with wide margins, so the 4:5 crop (cover) is safe. */}
-        <ul className="grid grid-cols-2 md:grid-cols-4 gap-0 pb-10 md:pb-14">
+        <ul className="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-proton-black pb-10 md:pb-14">
           {visible.map((product, i) => {
             const hover = hoverImages[product.handle]
             return (

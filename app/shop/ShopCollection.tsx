@@ -7,7 +7,7 @@ import ProductCard, { CARD_LABEL } from '@/components/ui/ProductCard'
 import ShopFilter from './ShopFilter'
 import { ALL_CATEGORY, availableCategories, matchesCategory } from '@/lib/shop-categories'
 
-// Hairline black dividers between products: a bottom border on every cell and
+// Hairline black dividers: a top border on the grid, a bottom border on every cell and
 // a right border on every cell except the last column (2 columns on phones,
 // 4 from md up). Cells touch, so the borders are the only separation.
 const CELL =
@@ -45,7 +45,7 @@ export default function ShopCollection({ products, heading }: ShopCollectionProp
       </p>
 
       {products.length === 0 ? null : visible.length > 0 ? (
-        <ul className="grid grid-cols-2 md:grid-cols-4 gap-0 pb-10 md:pb-14">
+        <ul className="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-proton-black pb-10 md:pb-14">
           {visible.map((product, i) => (
             <li key={product.id} className={CELL}>
               <ProductCard product={product} variant="shop" priority={i < 4} />
