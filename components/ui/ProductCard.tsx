@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Product } from '@/types/product'
-import { formatPrice, inStockSizes } from '@/lib/utils'
+import { formatPrice, sizeAvailability } from '@/lib/utils'
 
 interface ProductCardProps {
   product: Product
@@ -21,7 +21,7 @@ export const CARD_LABEL = 'font-inter text-xs uppercase tracking-wide leading-4'
 export default function ProductCard({ product, priority = false, variant = 'row' }: ProductCardProps) {
   const { amount, currencyCode } = product.priceRange.minVariantPrice
   const soldOut = !product.availableForSale
-  const sizes = soldOut ? [] : inStockSizes(product)
+  const sizes = sizeAvailability(product)
   const imgSizes = variant === 'shop' ? '(max-width: 767px) 50vw, 25vw' : '(max-width: 767px) 50vw, 33vw'
 
   // Fixed 4:5 frame keeps every card the same height. Portrait photos fill it
@@ -68,9 +68,9 @@ export default function ProductCard({ product, priority = false, variant = 'row'
         )}
       </div>
 
-      {/* Text block: name left, price right on one line, sizes in stock
-          below in grey; sold-out cards carry a black "Sold Out" line above
-          the name instead of sizes. */}
+      {/* Text block: name left, price right on one line, then every size in
+          grey with the out-of-stock ones struck through; sold-out cards also
+          carry a black "Sold Out" line above the name. */}
       <div className={`pt-4 pb-2.5 ${variant === 'shop' ? 'px-4' : ''}`}>
         {soldOut && <p className={`${CARD_LABEL} text-proton-black`}>Sold Out</p>}
         <div className="flex items-start justify-between gap-x-3">
@@ -83,10 +83,17 @@ export default function ProductCard({ product, priority = false, variant = 'row'
         </div>
         {sizes.length > 0 && (
           <p className={`${CARD_LABEL} mt-1 flex flex-wrap gap-x-2 text-proton-grey`}>
-            <span className="sr-only">Sizes in stock: </span>
-            {sizes.map(s => (
-              <span key={s}>{s}</span>
-            ))}
+            <span className="sr-only">Sizes: </span>
+            {sizes.map(s =>
+              s.inStock ? (
+                <span key={s.label}>{s.label}</span>
+              ) : (
+                <span key={s.label} className="line-through decoration-1 text-proton-grey/60">
+                  <span className="sr-only">sold out </span>
+                  {s.label}
+                </span>
+              )
+            )}
           </p>
         )}
       </div>

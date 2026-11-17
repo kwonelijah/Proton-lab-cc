@@ -75,8 +75,8 @@ Supports `disabled` prop — applies `opacity-40 cursor-not-allowed`.
 ### ProductCard (`components/ui/ProductCard.tsx`)
 - Image: fixed `aspect-[4/5]` frame on `bg-proton-light`; portrait photos `object-cover`, landscape photos `object-contain`. The only hover effect is a crossfade to the second gallery image (no scale, no dark overlay)
 - `variant`: `'shop'` (zero-gutter grid — text inset `px-4`, image `sizes` 25vw/50vw) or `'row'` (gapped grid inside the container — text flush with the image edge, `sizes` 33vw/50vw)
-- Text block `pt-4 pb-2.5`, all in `CARD_LABEL` (12px caps, `tracking-wide`): NAME left + price right (`text-proton-grey`) on one row (name wraps, price stays pinned), then a grey line of the sizes in stock (`inStockSizes` in `lib/utils.ts`, from `withStock`)
-- Sold-out products are SHOWN: a black "Sold Out" line above the name replaces the sizes line, no badge; `orderForShop` puts them last
+- Text block `pt-4 pb-2.5`, all in `CARD_LABEL` (12px caps, `tracking-wide`): NAME left + price right (`text-proton-grey`) on one row (name wraps, price stays pinned), then a grey line of every size with the out-of-stock ones struck through (`sizeAvailability` in `lib/utils.ts`, from `withStock`)
+- Sold-out products are SHOWN: a black "Sold Out" line above the name (all sizes struck through), no badge; `orderForShop` puts them last
 - Links to `/products/[handle]`; `aria-label` adds " — Sold Out"
 
 ### ShopFilter (`app/shop/ShopFilter.tsx`) + ShopCollection (`app/shop/ShopCollection.tsx`)

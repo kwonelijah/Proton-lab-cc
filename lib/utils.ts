@@ -30,11 +30,13 @@ export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ')
 }
 
-// Size labels with units on hand, in variant order (e.g. ["XS", "S", "M"]).
-// The label is derived the way lib/api.ts withStock keys stock: the Size
-// option value, falling back to the variant title.
-export function inStockSizes(product: Product): string[] {
-  return product.variants.nodes
-    .filter(v => v.availableForSale)
-    .map(v => v.selectedOptions.find(o => o.name === 'Size')?.value ?? v.title)
+// Every size of a product with whether it has units on hand, in variant order
+// (e.g. [{ label: 'XS', inStock: true }, ...]). The label is derived the way
+// lib/api.ts withStock keys stock: the Size option value, falling back to the
+// variant title.
+export function sizeAvailability(product: Product): { label: string; inStock: boolean }[] {
+  return product.variants.nodes.map(v => ({
+    label: v.selectedOptions.find(o => o.name === 'Size')?.value ?? v.title,
+    inStock: v.availableForSale,
+  }))
 }
