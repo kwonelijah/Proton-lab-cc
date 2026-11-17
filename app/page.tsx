@@ -50,42 +50,40 @@ export default async function HomePage() {
       {/* 1b. Rotating collection showcase */}
       <HomeCollectionCarousel products={carouselProducts} />
 
-      {/* 2. Two-path CTA */}
-      <section className="pt-6 md:pt-8 pb-24 md:pb-32 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Link href="/shop" className="group relative overflow-hidden aspect-[4/3] bg-proton-light flex items-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2">
-            <Image
-              src="/images/homepage/homepagecollection.jpeg"
-              alt="Shop"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
-            <div className="relative z-10 p-8 md:p-10">
-              <h2 className="font-playfair text-4xl text-proton-white leading-none">Shop</h2>
-              <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
-                Shop Now
-              </span>
-            </div>
-          </Link>
-          <Link href="/custom" className="group relative overflow-hidden aspect-[4/3] bg-proton-black flex items-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2">
-            <Image
-              src="/images/homepage/homepagecustom.jpg"
-              alt="Custom Kit"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
-            <div className="relative z-10 p-8 md:p-10">
-              <h2 className="font-playfair text-4xl text-proton-white leading-none">Custom Kit</h2>
-              <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
-                Learn More
-              </span>
-            </div>
-          </Link>
-        </div>
+      {/* 2. Two-path CTA — full-bleed pair, no gutters, hairline divider */}
+      <section className="grid grid-cols-1 md:grid-cols-2 border-b border-proton-black">
+        <Link href="/shop" className="group relative overflow-hidden aspect-[4/3] bg-proton-light flex items-end border-b md:border-b-0 md:border-r border-proton-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2">
+          <Image
+            src="/images/homepage/homepagecollection.jpeg"
+            alt="Shop"
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
+          <div className="relative z-10 p-8 md:p-10">
+            <h2 className="font-playfair text-4xl text-proton-white leading-none">Shop</h2>
+            <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
+              Shop Now
+            </span>
+          </div>
+        </Link>
+        <Link href="/custom" className="group relative overflow-hidden aspect-[4/3] bg-proton-black flex items-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-proton-black focus-visible:ring-offset-2">
+          <Image
+            src="/images/homepage/homepagecustom.jpg"
+            alt="Custom Kit"
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-proton-black/40 group-hover:bg-proton-black/55 transition-colors duration-300" />
+          <div className="relative z-10 p-8 md:p-10">
+            <h2 className="font-playfair text-4xl text-proton-white leading-none">Custom Kit</h2>
+            <span className="inline-block mt-4 text-xs uppercase tracking-widest text-proton-white border-b border-proton-white pb-0.5">
+              Learn More
+            </span>
+          </div>
+        </Link>
       </section>
 
       {/* 3. Final CTA */}
