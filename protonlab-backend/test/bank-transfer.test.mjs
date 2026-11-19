@@ -204,13 +204,15 @@ test('tick paid → dispatch → status moves → update-order on a bank order; 
   process.env.BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_test';
 });
 
-test('analytics: a bank order becomes an invoice row only once paid, keyed by paidAt; lite voids an un-ticked one', async () => {
+test('analytics: a bank order is an invoice row from placement (unpaid until ticked); only a cancellation voids it', async () => {
   reset();
   const id = (await order({ items: [eucc("Men's M", 1)], customer, delivery: 'post', address })).body.id;
   const now = Math.floor(Date.now() / 1000);
   const q = { scope: 'orders', since: String(now - 86400), until: String(now + 86400) };
   let r = await analytics(q);
-  assert.equal(r.code, 200); assert.equal(r.body.orders.length, 0, 'unpaid → no row');
+  assert.equal(r.code, 200); assert.equal(r.body.orders.length, 1, 'placed, unpaid → already a revenue row');
+  assert.equal(r.body.orders[0].id, id); assert.equal(r.body.orders[0].unpaid, true); assert.equal(r.body.orders[0].paidAt, null);
+  assert.equal(r.body.orders[0].grossGbp, 88.99); assert.ok(r.body.orders[0].created);
   _internal.clearCache();
   await admin('POST', { body: { action: 'mark-paid', id, paid: true } });
   r = await analytics(q);
@@ -219,17 +221,24 @@ test('analytics: a bank order becomes an invoice row only once paid, keyed by pa
   assert.equal(row.id, id); assert.equal(row.source, 'invoice'); assert.equal(row.channel, 'club'); assert.equal(row.clubHandle, 'edinburgh-university-cycling-club');
   assert.equal(row.grossGbp, 88.99); assert.equal(row.fee, 0); assert.equal(row.shippingGbp, 2.99); assert.equal(row.subtotalGbp, 86);
   assert.deepEqual(row.items, [{ handle: 'ss-race-jersey', name: 'SS Race Jersey', size: "Men's M", qty: 1, lineGbp: 86 }]);
-  assert.equal(row.paymentMethod, 'Bank transfer (shop)'); assert.ok(row.paidAt); assert.equal(row.country, 'GB'); assert.equal(row.postcodeArea, 'EH');
+  assert.equal(row.paymentMethod, 'Bank transfer (shop)'); assert.ok(row.paidAt); assert.equal(row.unpaid, false); assert.equal(row.country, 'GB'); assert.equal(row.postcodeArea, 'EH');
   _internal.clearCache();
   r = await analytics({ ...q, lite: '1' });
   assert.deepEqual(r.body.orders.map((o) => [o.id, !!o.void]), [[id, false]]);
   _internal.clearCache();
   await admin('POST', { body: { action: 'mark-paid', id, paid: false } });
   r = await analytics({ ...q, lite: '1' });
-  assert.deepEqual(r.body.orders.map((o) => [o.id, !!o.void]), [[id, true]], 'un-ticked → void on the lite scan');
+  assert.deepEqual(r.body.orders.map((o) => [o.id, !!o.void, o.paidAt]), [[id, false, null]], 'un-ticked → still a row, unpaid again');
   _internal.clearCache();
   r = await analytics(q);
-  assert.equal(r.body.orders.length, 0);
+  assert.equal(r.body.orders.length, 1); assert.equal(r.body.orders[0].unpaid, true);
+  _internal.clearCache();
+  await admin('POST', { body: { action: 'cancel-order', id } });
+  r = await analytics(q);
+  assert.deepEqual(r.body.orders, [{ id, void: true }], 'cancelled in the window → void marker, no revenue');
+  _internal.clearCache();
+  r = await analytics({ ...q, lite: '1' });
+  assert.deepEqual(r.body.orders.map((o) => [o.id, !!o.void]), [[id, true]], 'cancelled → void on the lite scan');
 });
 
 test('bank-transfer emails render with the account details and reference; internal note says awaiting payment', async () => {

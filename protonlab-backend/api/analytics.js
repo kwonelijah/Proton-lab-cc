@@ -224,13 +224,16 @@ function liteRow(p) {
 }
 
 // ─── bank-transfer orders (lib/bank-orders.js) ──────────────────────────────
-// One row per member order once Elijah has ticked it paid, keyed by `paidAt`
-// (the dashboard's incremental sync walks from its last sync, so a tick lands
-// in the current window whenever the order was placed). `source:'invoice'`
-// per ANALYTICS.md: counted in revenue / club cards / turnover, not in AOV or
-// the funnel. The lite scan reports the mutable stamps for every bank order
-// in the window and flags `void` when a cached row is no longer paid (an
-// un-tick or a cancellation) so the dashboard drops it.
+// One row per member order from the moment it is PLACED (2026-11-19: revenue
+// counts filed orders before the transfer arrives). `unpaid` is true and
+// `paidAt` null until Elijah ticks Payment received; the dashboard dates the
+// row by `created` either way. A row is emitted when the order was created in
+// the window or ticked in it (so the dashboard's incremental sync refreshes
+// the paid stamp whenever the order was placed). `source:'invoice'` per
+// ANALYTICS.md: counted in revenue / club cards / turnover, not in AOV or the
+// funnel. Only a cancellation removes a row: `{ id, void: true }` when it was
+// cancelled in the window, and on every lite scan (which also reports the
+// mutable stamps, `paidAt` included, so an un-tick shows as unpaid again).
 function bankRow(rec) {
   const addr = rec.shipping?.address || null;
   const country = String(addr?.country || core.regionCountry(rec.shippingRegion) || 'GB').toUpperCase();
@@ -241,7 +244,8 @@ function bankRow(rec) {
     ref: bankRef(rec),
     sessionId: null,
     created: rec.created,
-    paidAt: rec.paidAt,
+    paidAt: rec.paidAt || null,
+    unpaid: !rec.paidAt,
     availableOn: null,
     currency: 'gbp',
     channel: 'club',
@@ -285,15 +289,16 @@ async function bankRows(gte, lte, lite) {
   }
   const ts = (v) => (v ? Math.floor(Date.parse(v) / 1000) : null);
   const out = [];
+  const inWin = (t) => t != null && t >= gte && t <= lte;
   for (const rec of recs) {
-    const paid = ts(rec.paidAt);
-    const live = paid != null && !rec.cancelledAt;
-    const paidIn = paid != null && paid >= gte && paid <= lte;
+    const live = !rec.cancelledAt;
+    const placedOrPaid = inWin(ts(rec.created)) || inWin(ts(rec.paidAt));
     if (lite) {
-      const createdAt = ts(rec.created);
-      if (!paidIn && !(createdAt >= gte && createdAt <= lte)) continue;
-      out.push({ id: rec.id, refundedGbp: 0, tracking: rec.tracking || null, productionAt: rec.productionAt || null, dispatchedAt: rec.dispatchedAt || null, deliveredAt: rec.deliveredAt || null, shipOverride: false, ...(live ? {} : { void: true }) });
-    } else if (live && paidIn) {
+      if (!placedOrPaid) continue;
+      out.push({ id: rec.id, refundedGbp: 0, paidAt: rec.paidAt || null, tracking: rec.tracking || null, productionAt: rec.productionAt || null, dispatchedAt: rec.dispatchedAt || null, deliveredAt: rec.deliveredAt || null, shipOverride: false, ...(live ? {} : { void: true }) });
+    } else if (!live) {
+      if (inWin(ts(rec.cancelledAt))) out.push({ id: rec.id, void: true });
+    } else if (placedOrPaid) {
       out.push(bankRow(rec));
     }
   }
