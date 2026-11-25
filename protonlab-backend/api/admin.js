@@ -63,6 +63,18 @@ import {
   feedEntry as bankFeedEntry,
   emailOrder as bankEmailOrder,
 } from '../lib/bank-orders.js';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import {
+  authorize,
+  checkLogin,
+  makeSessionToken,
+  sessionCookie,
+  clearCookie,
+  getSession,
+  privatePageHeaders,
+} from '../lib/auth.js';
+import { readAll, saveSection, isSection, countOf } from '../lib/dashboard-store.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -87,7 +99,7 @@ const SHIPPING_METHODS = ['standard', 'next-day', 'international', 'club', 'coll
 // to lists the action — a dashboard updated ahead of the backend must never
 // send a POST the old code would misread (an unknown action used to fall
 // through to the dispatch path and email the customer).
-const ADMIN_CAPABILITIES = ['update-order', 'analytics', 'bank-transfer'];   // 'analytics' = /api/analytics is deployed; 'bank-transfer' = feed carries bank-transfer orders + mark-paid / cancel-order / send kind:'bank-received'
+const ADMIN_CAPABILITIES = ['update-order', 'analytics', 'bank-transfer', 'state'];   // 'analytics' = /api/analytics is deployed; 'bank-transfer' = feed carries bank-transfer orders + mark-paid / cancel-order / send kind:'bank-received'
 function shippingMethodOf(v) {
   return SHIPPING_METHODS.includes(v) ? v : null;
 }
@@ -402,25 +414,116 @@ export function renderPage({ awaiting, dispatched, key, since }) {
 </html>`;
 }
 
+// ─── Hosted dashboard pages ──────────────────────────────────────────────────
+// Files live in ../dashboard (vercel.json includeFiles). Read per cold start.
+
+const VIEW_FILES = {
+  app: { file: 'index.html', type: 'text/html; charset=utf-8', auth: true },
+  login: { file: 'login.html', type: 'text/html; charset=utf-8' },
+  sw: { file: 'sw.js', type: 'text/javascript; charset=utf-8' },
+  sync: { file: 'sync-layer.js', type: 'text/javascript; charset=utf-8' },
+  manifest: { file: 'manifest.json', type: 'application/manifest+json' },
+  icon: { file: 'icon.png', type: 'image/png', binary: true },
+};
+const viewCache = new Map();
+function readView(file, binary) {
+  if (!viewCache.has(file)) {
+    const p = fileURLToPath(new URL(`../dashboard/${file}`, import.meta.url));
+    viewCache.set(file, fs.readFileSync(p, binary ? undefined : 'utf8'));
+  }
+  return viewCache.get(file);
+}
+
+function serveView(req, res, view) {
+  const v = VIEW_FILES[view];
+  if (!v) return res.status(404).json({ error: 'Not found' });
+  privatePageHeaders(res);
+  let session = null;
+  try { session = getSession(req); } catch (err) { console.error('session check failed', err?.message); }
+  if (v.auth && !session) {
+    res.setHeader('Location', '/login');
+    return res.status(302).send('');
+  }
+  if (view === 'login' && session) {
+    res.setHeader('Location', '/dashboard');
+    return res.status(302).send('');
+  }
+  if (view === 'sw') res.setHeader('Service-Worker-Allowed', '/');
+  if (view === 'sw' || view === 'sync') res.setHeader('Cache-Control', 'no-cache');
+  if (view === 'icon' || view === 'manifest') res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.setHeader('Content-Type', v.type);
+  return res.status(200).send(readView(v.file, v.binary));
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function handleLogin(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+  if (req.headers['x-pl'] !== '1') return res.status(403).json({ error: 'Missing X-PL header' });
+  if (req.body.action === 'logout') {
+    res.setHeader('Set-Cookie', clearCookie(req));
+    return res.status(200).json({ ok: true });
+  }
+  if (!process.env.SESSION_SECRET || !process.env.DASHBOARD_USERS) {
+    return res.status(503).json({ error: 'Login not configured (SESSION_SECRET / DASHBOARD_USERS)' });
+  }
+  const started = Date.now();
+  const user = await checkLogin(req.body.u, req.body.password).catch(() => null);
+  if (!user) {
+    await sleep(Math.max(0, 800 - (Date.now() - started)));
+    return res.status(401).json({ error: 'Wrong username or password' });
+  }
+  res.setHeader('Set-Cookie', sessionCookie(req, makeSessionToken(user)));
+  return res.status(200).json({ ok: true, user: { u: user.u, role: user.role } });
+}
+
 // ─── Handler ─────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-PL');
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  const expected = process.env.proton_export_key;
-  if (!expected) {
-    return res.status(500).json({ error: 'EXPORT_KEY_MISSING: set proton_export_key in the environment' });
+  // Hosted dashboard: pages (view=app|login|sw|manifest) and sign-in/out come
+  // before the gate — each view checks the session itself.
+  if (req.method === 'GET' && req.query.view) return serveView(req, res, String(req.query.view));
+  if (req.method === 'POST' && (req.body?.action === 'login' || req.body?.action === 'logout')) {
+    return handleLogin(req, res);
   }
-  if (req.query.key !== expected) {
-    return res.status(403).json({ error: 'Forbidden' });
+
+  // One gate: session cookie (hosted dashboard) or the legacy ?key= (old
+  // file:// dashboard, scripts) — lib/auth.js authorize().
+  const auth = authorize(req);
+  if (!auth.ok) {
+    if (auth.status === 403 && !process.env.proton_export_key) {
+      return res.status(500).json({ error: 'EXPORT_KEY_MISSING: set proton_export_key in the environment' });
+    }
+    return res.status(auth.status).json({ error: auth.error });
   }
 
   if (req.method === 'POST') {
+    // ── Dashboard state ───────────────────────────────────────────────────
+    // {action:'state-save', section, baseVersion, data, force?} — one section
+    // of the dashboard's own records (lib/dashboard-store.js). 409 + the
+    // current section when baseVersion is stale; the client merges and retries.
+    if (req.body?.action === 'state-save') {
+      const { section, baseVersion, data, force } = req.body;
+      if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
+      if (!isSection(section)) return res.status(400).json({ error: `Unknown section "${String(section).slice(0, 40)}"` });
+      try {
+        const r = await saveSection(section, { baseVersion, data, user: auth.user.u, force: force === true });
+        if (r.conflict) return res.status(409).json({ ok: false, conflict: true, current: r.current });
+        if (r.error) return res.status(r.status || 400).json({ error: r.error });
+        return res.status(200).json({ ok: true, section, version: r.version, updatedAt: r.updatedAt, count: countOf(data) });
+      } catch (err) {
+        console.error('state-save failed', section, err?.message);
+        return res.status(500).json({ error: 'Could not save — try again' });
+      }
+    }
+
     // ── Stock movement ────────────────────────────────────────────────────
     // {action:'stock-move', movements:[{handle,size,qty}], reason, source} —
     // signed deltas (negative = stock out) against inventory/stock.csv in the
@@ -901,6 +1004,23 @@ export default async function handler(req, res) {
   // ?action=clubs — handle / name / password / url per club shop, read from
   // data/clubs.ts in the website repo (lib/clubs.js). The dashboard's order
   // editor shows the password next to the "Web shop club" field.
+  // ── Dashboard state (all sections in one read) ─────────────────────────
+  if (req.query.action === 'state') {
+    res.setHeader('Cache-Control', 'no-store');
+    if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
+    try {
+      const sections = await readAll();
+      return res.status(200).json({ ok: true, user: auth.user, sections, at: new Date().toISOString() });
+    } catch (err) {
+      console.error('state read failed', err?.message);
+      return res.status(500).json({ error: 'Could not load dashboard data' });
+    }
+  }
+  if (req.query.action === 'whoami') {
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ ok: true, user: auth.user, via: auth.via });
+  }
+
   if (req.query.action === 'clubs') {
     try {
       const { clubs, sha, gateUrl } = await readClubs();

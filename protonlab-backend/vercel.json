@@ -5,7 +5,8 @@
       "maxDuration": 30
     },
     "api/admin.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "dashboard/**"
     },
     "api/stock-sync.js": {
       "maxDuration": 60
@@ -24,6 +25,39 @@
     {
       "path": "/api/stock-sync",
       "schedule": "0 20 * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/dashboard",
+      "destination": "/api/admin?view=app"
+    },
+    {
+      "source": "/login",
+      "destination": "/api/admin?view=login"
+    },
+    {
+      "source": "/sw.js",
+      "destination": "/api/admin?view=sw"
+    },
+    {
+      "source": "/sync-layer.js",
+      "destination": "/api/admin?view=sync"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/api/admin?view=manifest"
+    },
+    {
+      "source": "/icon.png",
+      "destination": "/api/admin?view=icon"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/dashboard",
+      "permanent": false
     }
   ]
 }

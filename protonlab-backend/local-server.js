@@ -84,7 +84,7 @@ function applyCors(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-PL');
   res.setHeader('Vary', 'Origin');
 }
 
@@ -111,7 +111,13 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify({ ok: true, endpoints: Object.keys(routes), mockBlob: process.env.LOCAL_MOCK_BLOB === '1' }));
   }
 
-  const handler = routes[url.pathname];
+  // Hosted-dashboard rewrites (mirror vercel.json).
+  const VIEWS = { '/dashboard': 'app', '/login': 'login', '/sw.js': 'sw', '/sync-layer.js': 'sync', '/manifest.json': 'manifest', '/icon.png': 'icon' };
+  if (url.pathname === '/') { res.statusCode = 302; res.setHeader('Location', '/dashboard'); return res.end(); }
+  const view = VIEWS[url.pathname];
+  if (view) url.searchParams.set('view', view);
+
+  const handler = view ? adminHandler : routes[url.pathname];
   if (handler) {
     req.query = Object.fromEntries(url.searchParams.entries());
     if (req.method === 'POST') {
@@ -130,7 +136,7 @@ const server = http.createServer(async (req, res) => {
       return origSet(name, value);
     };
     const wrapped = wrapRes(res);
-    wrapped.send = (body) => { res.end(typeof body === 'string' ? body : JSON.stringify(body)); return wrapped; };
+    wrapped.send = (body) => { res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body)); return wrapped; };
     return handler(req, wrapped);
   }
 

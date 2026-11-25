@@ -1,0 +1,12 @@
+{
+  "name": "Proton Lab — Orders",
+  "short_name": "Proton",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F5F4F0",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    { "src": "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

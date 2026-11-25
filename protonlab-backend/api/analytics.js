@@ -20,6 +20,7 @@
 // carry emails and postcodes. Metric definitions live in ANALYTICS.md.
 
 import Stripe from 'stripe';
+import { authorize } from '../lib/auth.js';
 import core from '../lib/analytics-core.cjs';
 import { decodeItems, loadProductMap, effectiveShipping, hasShippingOverride } from '../lib/order-items.js';
 import { isStoreConfigured, listBankOrders, refOf as bankRef } from '../lib/bank-orders.js';
@@ -419,9 +420,12 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const expected = process.env.proton_export_key;
-  if (!expected) return res.status(500).json({ error: 'EXPORT_KEY_MISSING: set proton_export_key in the environment' });
-  if (req.query.key !== expected) return res.status(403).json({ error: 'Forbidden' });
+  // Session cookie (hosted dashboard) or the legacy ?key= — lib/auth.js.
+  const auth = authorize(req);
+  if (!auth.ok) {
+    if (auth.status === 403 && !process.env.proton_export_key) return res.status(500).json({ error: 'EXPORT_KEY_MISSING: set proton_export_key in the environment' });
+    return res.status(auth.status).json({ error: auth.error });
+  }
 
   const q = req.query || {};
   const scope = q.scope || 'orders';

@@ -3,19 +3,26 @@
 // the SDK's overwrite rule: put() on an existing pathname throws unless
 // allowOverwrite is true.
 const S = () => (globalThis.__blob ||= new Map());
+// ETag per pathname (bumped on every write) so ifMatch behaves like the SDK.
+const E = () => (globalThis.__blobEtag ||= new Map());
+let etagSeq = 0;
+class BlobPreconditionFailedError extends Error { constructor() { super('Precondition failed: ETag mismatch'); this.name = 'BlobPreconditionFailedError'; } }
 const url = (p) => `https://test.private.blob.vercel-storage.com/${p}`;
 
 export async function put(pathname, body, opts = {}) {
   if (S().has(pathname) && !opts.allowOverwrite) {
     throw new Error('This blob already exists, use `allowOverwrite: true` if you want to overwrite it');
   }
+  if (opts.ifMatch && E().get(pathname) !== opts.ifMatch) throw new BlobPreconditionFailedError();
   S().set(pathname, typeof body === 'string' ? body : String(body));
-  return { pathname, url: url(pathname), contentType: opts.contentType || 'application/octet-stream' };
+  const etag = `"e${++etagSeq}"`;
+  E().set(pathname, etag);
+  return { pathname, url: url(pathname), contentType: opts.contentType || 'application/octet-stream', etag };
 }
 export async function get(pathname) {
   if (!S().has(pathname)) return null;
   const text = S().get(pathname);
-  return { statusCode: 200, headers: {}, stream: new Blob([text]).stream(), blob: { pathname, url: url(pathname), contentType: 'application/json' } };
+  return { statusCode: 200, headers: {}, stream: new Blob([text]).stream(), blob: { pathname, url: url(pathname), contentType: 'application/json', etag: E().get(pathname) || '"e0"' } };
 }
 export async function list(opts = {}) {
   const prefix = opts.prefix || '';

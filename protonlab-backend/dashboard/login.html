@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.png">
+<title>Proton — Sign in</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap");
+  :root{--black:#0A0A0A;--white:#F5F4F0;--grey-500:#6E6E6E;--grey-300:#C9C9C9;--accent:#2E5BFF;
+    --body:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"DM Mono",ui-monospace,Menlo,monospace}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:var(--body);background:var(--white);color:var(--black);
+    display:flex;align-items:center;justify-content:center;padding:24px env(safe-area-inset-right) 24px env(safe-area-inset-left);
+    -webkit-font-smoothing:antialiased}
+  form{width:100%;max-width:360px}
+  .brand{font-weight:800;letter-spacing:.18em;text-transform:uppercase;font-size:15px;margin:0 0 4px}
+  .sub{font-family:var(--mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--grey-500);margin:0 0 32px}
+  label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey-500);margin:0 0 6px}
+  input{width:100%;font:500 16px var(--body);padding:13px 14px;border:1px solid var(--grey-300);border-radius:4px;background:#fff;margin:0 0 18px;color:var(--black)}
+  input:focus{outline:none;border-color:var(--black)}
+  button{width:100%;min-height:48px;font:700 13px var(--body);letter-spacing:.12em;text-transform:uppercase;
+    background:var(--black);color:var(--white);border:0;border-radius:4px;cursor:pointer}
+  button:disabled{opacity:.55;cursor:default}
+  .err{min-height:20px;font-size:13px;color:#B3261E;margin:12px 0 0}
+</style>
+</head>
+<body>
+<form id="f" autocomplete="on">
+  <p class="brand">Proton Lab</p>
+  <p class="sub">Order dashboard · private</p>
+  <label for="u">Username</label>
+  <input id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+  <label for="p">Password</label>
+  <input id="p" name="password" type="password" autocomplete="current-password" required>
+  <button id="b" type="submit">Sign in</button>
+  <p class="err" id="e" role="alert"></p>
+</form>
+<script>
+  const f = document.getElementById('f'), b = document.getElementById('b'), e = document.getElementById('e');
+  f.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    b.disabled = true; e.textContent = '';
+    try {
+      const r = await fetch('/api/admin', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-PL': '1' },
+        body: JSON.stringify({ action: 'login', u: document.getElementById('u').value, password: document.getElementById('p').value }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { location.replace('/dashboard'); return; }
+      e.textContent = d.error || 'Sign-in failed';
+    } catch {
+      e.textContent = 'No connection — try again';
+    }
+    b.disabled = false;
+  });
+</script>
+</body>
+</html>

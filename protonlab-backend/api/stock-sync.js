@@ -21,6 +21,8 @@ import Stripe from 'stripe';
 import { Resend } from 'resend';
 import { applyAndCommit } from '../lib/stock.js';
 import { decodeItems, hasItems } from '../lib/order-items.js';
+import { backupAll } from '../lib/dashboard-store.js';
+import { isStoreConfigured } from '../lib/bank-orders.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -90,6 +92,15 @@ export default async function handler(req, res) {
   }
 
   const dryRun = req.query.dryRun === '1';
+
+  // Nightly copy of the order dashboard's state (lib/dashboard-store.js) —
+  // dashboard/backups/YYYY-MM-DD/, 30 days kept. Never blocks the stock sync.
+  let backup = null;
+  if (!dryRun && isStoreConfigured()) {
+    try { backup = await backupAll(); }
+    catch (err) { console.error('dashboard backup failed', err?.message); backup = { error: String(err?.message || err).slice(0, 200) }; }
+  }
+
   const days = Math.min(/^\d+$/.test(req.query.days || '') ? Number(req.query.days) : DEFAULT_DAYS, MAX_DAYS);
   const sinceTs = Math.floor(Date.now() / 1000) - days * 86400;
 
@@ -126,7 +137,7 @@ export default async function handler(req, res) {
   if (!movements.length) {
     const clubStamped = dryRun ? [] : await stampClubSkipped(clubSkipped);
     return res.status(200).json({
-      ok: true, dryRun, days,
+      ok: true, dryRun, days, backup,
       scanned: payments.length, orders: 0,
       message: 'nothing to sync',
       parseFailures, clubSkipped: clubSkipped.length, clubStamped: clubStamped.length,
@@ -200,7 +211,7 @@ export default async function handler(req, res) {
   }
 
   return res.status(200).json({
-    ok: true, dryRun: false, days,
+    ok: true, dryRun: false, days, backup,
     scanned: payments.length, orders: eligible.length, units,
     applied: result.applied, skipped: result.skipped, clamped: result.clamped,
     commitSha: result.commitSha, stampFailures, parseFailures,
