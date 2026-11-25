@@ -391,6 +391,132 @@
 .cs-item-table td{padding:4px 18px 4px 0;border-bottom:1px solid var(--line-hairline);color:var(--text-data)}
 .cs-item-table td.num,.cs-item-table th.num{text-align:right}
 .cs-item-table tr.cs-total td{font-weight:700;color:var(--text-strong);border-bottom:none}
+
+  /* ===== Phone view (body.pl-phone — ≤760px or ?m=1) ===== */
+  .pl-tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:repeat(4,1fr);
+    background:rgba(245,244,240,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line-hairline);
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  .pl-tabs button{all:unset;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:48px;cursor:pointer;
+    font:600 10px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);-webkit-tap-highlight-color:transparent}
+  .pl-tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+  .pl-tabs button[data-tab="more"] svg{fill:currentColor;stroke:none}
+  .pl-tabs button.active{color:var(--text-strong)}
+  .pl-tabs button.active svg{stroke-width:2.2}
+
+  body.pl-phone{font-size:15px;padding-bottom:calc(76px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+  body.pl-phone header{padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));gap:8px}
+  body.pl-phone header .eyebrow,body.pl-phone #importBtn,body.pl-phone #exportBtn,body.pl-phone #csvBtn{display:none}
+  body.pl-phone header .brand .word{font-size:14px}
+  body.pl-phone header #addBtn{padding:9px 12px;font-size:11px}
+  body.pl-phone .pl-user span{display:none}
+  body.pl-phone .pl-user{display:none}
+  body.pl-phone .toolbar{padding:10px 16px 4px;gap:8px}
+  body.pl-phone .toolbar input[type=search]{width:100%;font-size:16px;padding:11px 12px}
+  body.pl-phone #nav,body.pl-phone .toolbar .hint,body.pl-phone .toolbar .spacer,body.pl-phone #streamBadge{display:none!important}
+
+  /* KPI strips → compact two-up grid everywhere */
+  body.pl-phone .kpis{grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px 4px}
+  body.pl-phone .kpi{padding:11px 12px;border-radius:var(--r-sm)}
+  body.pl-phone .kpi .label{font-size:9.5px;letter-spacing:.12em}
+  body.pl-phone .kpi .val{font-size:22px;margin-top:4px;min-height:24px}
+  body.pl-phone .kpi .sub{font-size:9.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* views: full width, no sideways overflow */
+  body.pl-phone .tablewrap{padding-left:12px;padding-right:12px;max-width:100vw;overflow-x:hidden}
+  body.pl-phone .tablewrap table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+  body.pl-phone .btn{min-height:40px}
+  body.pl-phone .btn.small{min-height:36px;padding:7px 11px}
+  body.pl-phone input,body.pl-phone select,body.pl-phone textarea{font-size:16px}   /* no iOS zoom on focus */
+
+  /* Pipeline list */
+  body.pl-phone .board{display:block;padding:8px 12px 24px;overflow:visible}
+  .pl-pipe{display:flex;flex-direction:column;gap:10px}
+  .pl-stage{border:1px solid var(--line-hairline);border-radius:var(--r-md);background:var(--surface-page)}
+  .pl-stage>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;
+    font:700 11px var(--font-body);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--text-strong)}
+  .pl-stage>summary::-webkit-details-marker{display:none}
+  .pl-stage>summary::after{content:"";width:8px;height:8px;border-right:1.5px solid var(--text-muted);border-bottom:1.5px solid var(--text-muted);
+    transform:rotate(45deg);margin:-4px 4px 0 6px;transition:transform var(--dur) var(--ease)}
+  .pl-stage[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+  .pl-stage>summary .pill{margin-left:auto;font-family:var(--font-mono);background:var(--surface-muted);color:var(--text-data);font-size:11px;padding:2px 8px;border-radius:var(--r-xs)}
+  .pl-stage .stagebar,.pl-eyebrow .stagebar{width:9px;height:9px;border-radius:var(--r-xs);display:inline-block;flex:0 0 auto}
+  .pl-stage-body{display:flex;flex-direction:column;gap:10px;padding:0 10px 12px}
+  .pl-stage-body .card{margin:0}
+  .pl-empty{font:500 11px var(--font-mono);letter-spacing:var(--tracking-mono);text-transform:uppercase;color:var(--text-muted);padding:4px 4px 2px}
+  .pl-link{all:unset;cursor:pointer;align-self:flex-start;font:700 11px var(--font-body);letter-spacing:var(--tracking-wide);text-transform:uppercase;
+    color:var(--text-strong);padding:12px 4px;border-bottom:1.5px solid var(--line-strong)}
+
+  /* Bottom sheet (pipeline quick actions + More) */
+  .pl-sheet{position:fixed;inset:0;z-index:70;pointer-events:none}
+  .pl-sheet-scrim{position:absolute;inset:0;background:rgba(10,10,10,.42);opacity:0;transition:opacity var(--dur) var(--ease)}
+  .pl-sheet-panel{position:absolute;left:0;right:0;bottom:0;max-height:92vh;display:flex;flex-direction:column;background:var(--surface-raised);
+    border-radius:14px 14px 0 0;box-shadow:0 -8px 28px rgba(10,10,10,.16);transform:translateY(104%);transition:transform 240ms var(--ease)}
+  .pl-sheet.open{pointer-events:auto}
+  .pl-sheet.open .pl-sheet-scrim{opacity:1}
+  .pl-sheet.open .pl-sheet-panel{transform:none}
+  .pl-sheet:not(.open) .pl-sheet-panel{visibility:hidden;transition:transform 240ms var(--ease),visibility 0s 240ms}
+  body.pl-sheet-open{overflow:hidden}
+  .pl-grab{width:38px;height:4px;border-radius:2px;background:var(--grey-300);margin:8px auto 0;flex:0 0 auto}
+  .pl-sh-head{display:flex;align-items:flex-start;gap:12px;padding:10px 18px 12px;border-bottom:1px solid var(--line-hairline)}
+  .pl-sh-head h3{margin:4px 0 0;font:700 24px/1.15 var(--font-display);color:var(--text-strong);letter-spacing:var(--tracking-tight)}
+  .pl-eyebrow{display:flex;align-items:center;gap:7px;font:500 11px var(--font-mono);letter-spacing:var(--tracking-mono);text-transform:uppercase;color:var(--text-muted)}
+  .pl-x{margin-left:auto;all:unset;margin-left:auto;cursor:pointer;width:40px;height:40px;display:grid;place-items:center;font-size:26px;color:var(--text-muted)}
+  .pl-sh-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px 18px;display:flex;flex-direction:column;gap:8px}
+  .pl-sh-foot{padding:12px 18px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line-hairline);display:flex;gap:10px}
+  .pl-sh-foot .btn{flex:1;min-height:46px}
+  .pl-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .pl-lbl{font:700 10px var(--font-body);letter-spacing:var(--tracking-wider);text-transform:uppercase;color:var(--text-muted);margin-top:10px}
+  .pl-sh-body select,.pl-sh-body input,.pl-sh-body textarea{width:100%;font:500 16px var(--font-body);padding:11px 12px;border:1px solid var(--line-hairline);
+    border-radius:var(--r-sm);background:var(--pure-white);color:var(--text-strong)}
+  .pl-sh-body select:focus,.pl-sh-body input:focus,.pl-sh-body textarea:focus{outline:none;border-color:var(--line-strong)}
+  .pl-next{display:grid;grid-template-columns:1fr 150px;gap:8px}
+  .pl-contact{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line-hairline);border-radius:var(--r-sm);margin-top:6px}
+  .pl-contact>div:first-child{display:flex;flex-direction:column;min-width:0}
+  .pl-contact span{font:400 12px var(--font-mono);color:var(--text-muted);overflow:hidden;text-overflow:ellipsis}
+  .pl-contact-acts{margin-left:auto;display:flex;gap:6px}
+  .pl-contact-acts .btn{text-decoration:none;display:inline-flex;align-items:center}
+  .pl-items{list-style:none;margin:0;padding:0;border:1px solid var(--line-hairline);border-radius:var(--r-sm)}
+  .pl-items li{display:flex;gap:10px;justify-content:space-between;padding:9px 12px;border-top:1px solid var(--grey-200);font-size:13px}
+  .pl-items li:first-child{border-top:0}
+  .pl-items em{font:normal 11px var(--font-mono);color:var(--text-muted)}
+  .pl-notes{white-space:pre-wrap;font-size:13px;line-height:1.5;color:var(--text-body);background:var(--grey-100);border-radius:var(--r-sm);padding:10px 12px;max-height:180px;overflow-y:auto}
+  .pl-note-add{align-self:flex-start}
+  .pl-menu button{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:13px 4px;border-bottom:1px solid var(--grey-200)}
+  .pl-menu button b{font:700 15px var(--font-body);color:var(--text-strong)}
+  .pl-menu button span{font:400 12px var(--font-mono);color:var(--text-muted)}
+  .pl-menu button.active b{text-decoration:underline;text-underline-offset:4px}
+  .pl-menu-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:14px}
+  .pl-menu-row button{all:unset;cursor:pointer;text-align:center;padding:12px 0;border:1px solid var(--line-hairline);border-radius:var(--r-sm);
+    font:700 11px var(--font-body);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--text-strong)}
+  .pl-menu .pl-signout{border:0;text-align:center;align-items:center;padding:18px 0 6px;font:600 13px var(--font-body);color:var(--text-muted)}
+
+  /* Order tables → cards (Orders tab + club pages) */
+  body.pl-phone table.completed:has(tr.ws-row){display:block;border:0;background:transparent}
+  body.pl-phone table.completed:has(tr.ws-row) thead{display:none}
+  body.pl-phone table.completed:has(tr.ws-row) tbody{display:flex;flex-direction:column;gap:10px}
+  body.pl-phone tr.ws-row{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 14px;background:var(--surface-raised);
+    border:1px solid var(--line-hairline);border-radius:var(--r-md)}
+  body.pl-phone tr.ws-row>td{display:block;padding:0;border:0;min-width:0!important;white-space:normal!important}
+  body.pl-phone tr.ws-row>td:nth-child(1){grid-column:1}
+  body.pl-phone tr.ws-row>td:nth-child(5){grid-column:2;grid-row:1;text-align:right;font-family:var(--font-mono)}
+  body.pl-phone tr.ws-row>td:nth-child(2),body.pl-phone tr.ws-row>td:nth-child(3),body.pl-phone tr.ws-row>td:nth-child(4){grid-column:1/-1;font-size:13px}
+  body.pl-phone tr.ws-row>td:nth-child(4){color:var(--text-muted);font-family:var(--font-mono);font-size:11px}
+  body.pl-phone tr.ws-row>td.acts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:8px;margin-top:4px;border-top:1px solid var(--grey-200)}
+  body.pl-phone tr.ws-row>td.acts .ws-track{flex:1 1 140px;width:auto!important}
+  body.pl-phone tr.ws-detail{display:block;margin-top:-6px}
+  body.pl-phone tr.ws-detail>td{display:block;border-radius:0 0 var(--r-md) var(--r-md);padding:12px 14px!important;border:1px solid var(--line-hairline);border-top:0}
+  body.pl-phone tr.ws-detail .proton-spec{display:block;line-height:1.7}
+
+  /* Size tables + stock: scroll inside their card instead of the page */
+  body.pl-phone .cs-item-table,body.pl-phone .stock-table{display:block;overflow-x:auto;max-width:100%}
+
+  /* Modals: full screen */
+  body.pl-phone .overlay{padding:0;align-items:stretch}
+  body.pl-phone .modal{width:100vw;max-width:100vw;min-height:100%;border-radius:0;border:0}
+  body.pl-phone .modal-head{position:sticky;top:0;z-index:2;background:var(--surface-raised);padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top))}
+  body.pl-phone .modal-head h3{font-size:20px}
+  body.pl-phone .modal-body{grid-template-columns:1fr;padding:16px}
+  body.pl-phone .modal-foot{position:sticky;bottom:0;background:var(--surface-raised);flex-wrap:wrap;padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
 </style>
 </head>
 <body>
@@ -887,6 +1013,7 @@ function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x.toIS
 function fmtDate(s){if(!s)return"";const[y,m,dd]=s.split("-");return `${dd}-${m}-${y}`;}
 
 function renderBoard(){
+  if(plIsPhone()) return renderPhonePipeline();
   const data = filtered();
   const board = document.getElementById("boardView");
   board.innerHTML = "";
@@ -944,7 +1071,8 @@ function cardEl(o,st){
     ${linkChips(o,true)}
     ${nextBadge(o)}
     ${st.key==="delivery"? `<button type="button" class="btn small primary complete-btn" data-id="${esc(o.id)}" title="Delivered — stamp today's date and move to the Completed tab">✓ Complete</button>`:""}`;
-  c.addEventListener("click",()=>openModal(o.id));
+  c.addEventListener("click",()=> plIsPhone()? plOpenSheet(o.id) : openModal(o.id));
+  if(plIsPhone()) c.draggable=false;
   const cb=c.querySelector(".complete-btn"); if(cb) cb.addEventListener("click",e=>{ e.stopPropagation(); completeOrder(o.id); });
   return c;
 }
@@ -958,17 +1086,24 @@ function wireDnD(){
     b.addEventListener("dragover",e=>{e.preventDefault();b.classList.add("drag-over");});
     b.addEventListener("dragleave",()=>b.classList.remove("drag-over"));
     b.addEventListener("drop",async e=>{e.preventDefault();b.classList.remove("drag-over");
-      const o=orders.find(x=>x.id===dragId); if(!o||o.stage===b.dataset.stage) return;
-      const prev=o.stage, next=b.dataset.stage;
-      if(next==="production" && prev!=="production" && needsProdGate(o)){
-        if(!applyProdGate(o, await productionGate(o))) return;   /* cancelled — the card stays where it was */
-      }
-      if(next==="delivered"){ const g=await paymentGate(o); if(!g) return; Object.assign(o, g); }   /* how was it paid? */
-      o.stage=next;o.updated=today();
-      if(next==="delivered" && !o.deliveredDate) o.deliveredDate=today();   /* dropped on ✓ Complete */
-      plannerStampStage(o,prev,next);save();
-      if(next==="production" && prev!=="production" && o.webshopClub) wsNotifyProduction(o);});
+      const o=orders.find(x=>x.id===dragId); if(o) await moveStage(o, b.dataset.stage);});
   });
+}
+/* One stage move for every surface (board drag, phone sheet): production
+   gate, payment gate, delivered stamp, planner stamps, production emails.
+   Returns false when the move was cancelled or is a no-op. */
+async function moveStage(o, next){
+  if(!o||o.stage===next) return false;
+  const prev=o.stage;
+  if(next==="production" && prev!=="production" && needsProdGate(o)){
+    if(!applyProdGate(o, await productionGate(o))) return false;   /* cancelled — the card stays where it was */
+  }
+  if(next==="delivered"){ const g=await paymentGate(o); if(!g) return false; Object.assign(o, g); }   /* how was it paid? */
+  o.stage=next;o.updated=today();
+  if(next==="delivered" && !o.deliveredDate) o.deliveredDate=today();   /* dropped on ✓ Complete */
+  plannerStampStage(o,prev,next);save();
+  if(next==="production" && prev!=="production" && o.webshopClub) wsNotifyProduction(o);
+  return true;
 }
 
 /* ---------- Production gate ----------
@@ -6178,6 +6313,215 @@ function fitKpiValues(){
   window.addEventListener("resize", schedule);
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);   /* mono font arriving changes widths */
 })();
+
+/* ===== Phone view (≤ 760px, or ?m=1) =====
+   Same data and the same actions as the desktop — only the layout changes:
+   a bottom tab bar (Pipeline · Orders · Club shops · More), the pipeline as a
+   stage-grouped list whose cards open a quick-action sheet (call / email,
+   next step, stage move via moveStage(), add a note, open the full editor),
+   and phone CSS that turns tables into cards and modals full-screen.
+   Orders / Club shops / Stock / Overview reuse their desktop renderers. */
+var plPhoneMQ = window.matchMedia("(max-width: 760px)");
+var plForcePhone = /[?&]m=1\b/.test(location.search);
+var plPipeOpen = {};
+var plSheetId = null;
+function plIsPhone(){ return plForcePhone || plPhoneMQ.matches; }
+
+var PL_TABS = [
+  { key:"pipeline", label:"Pipeline", views:["board"], go:"board",
+    icon:'<path d="M4 5h4v14H4zM10 5h4v9h-4zM16 5h4v6h-4z"/>' },
+  { key:"orders", label:"Orders", views:["webshop"], go:"webshop",
+    icon:'<path d="M5 7h14l-1.2 12H6.2z"/><path d="M9 7a3 3 0 0 1 6 0"/>' },
+  { key:"clubs", label:"Club shops", views:["clubshops"], go:"clubshops",
+    icon:'<path d="M4 10l8-5 8 5v9H4z"/><path d="M10 19v-5h4v5"/>' },
+  { key:"more", label:"More", views:["overview","stock","completed","table","planner","analytics"], go:null,
+    icon:'<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>' },
+];
+var PL_MORE = [
+  ["overview","Overview","Headline numbers + P&L"],
+  ["stock","Stock","On-hand by size · quick ± adjust"],
+  ["completed","Completed","Delivered club orders"],
+  ["table","Pipeline table","Every order as a list"],
+  ["planner","Planner","Gantt — best on a laptop"],
+  ["analytics","Analytics","Charts — best on a laptop"],
+];
+
+function plApplyMode(){
+  const on = plIsPhone();
+  document.body.classList.toggle("pl-phone", on);
+  document.body.classList.toggle("pl-has-tabs", on);
+  let bar = document.getElementById("plTabs");
+  if(on && !bar){
+    bar = document.createElement("nav"); bar.id="plTabs"; bar.className="pl-tabs"; bar.setAttribute("aria-label","Sections");
+    bar.innerHTML = PL_TABS.map(t=>`<button type="button" data-tab="${t.key}"><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></button>`).join("");
+    bar.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+      const t = PL_TABS.find(x=>x.key===b.dataset.tab);
+      if(t.go){ plCloseSheet(); setView(t.go); window.scrollTo(0,0); } else plOpenMore();
+    }));
+    document.body.appendChild(bar);
+  }
+  if(bar) bar.classList.toggle("hidden", !on);
+  plMarkTab();
+}
+function plMarkTab(){
+  const bar = document.getElementById("plTabs"); if(!bar) return;
+  bar.querySelectorAll("button").forEach(b=>{
+    const t = PL_TABS.find(x=>x.key===b.dataset.tab);
+    b.classList.toggle("active", t.views.includes(view));
+  });
+}
+/* Keep the tab bar in step with every view change (desktop nav, deep links, buttons). */
+var plSetViewOrig = setView;
+setView = function(v){ if(plSheetId) plCloseSheet(); plSetViewOrig(v); plMarkTab(); };
+plPhoneMQ.addEventListener ? plPhoneMQ.addEventListener("change", ()=>{ plApplyMode(); render(); })
+                           : plPhoneMQ.addListener(()=>{ plApplyMode(); render(); });
+
+/* ---------- pipeline list ---------- */
+function renderPhonePipeline(){
+  const data = filtered();
+  const board = document.getElementById("boardView");
+  board.innerHTML = "";
+  const wrap = document.createElement("div"); wrap.className = "pl-pipe";
+  STAGES.filter(st=>st.key!=="delivered").forEach(st=>{
+    const items = data.filter(o=>o.stage===st.key)
+      .sort((a,b)=>(a.nextDate||"9999").localeCompare(b.nextDate||"9999"));
+    const sec = document.createElement("details");
+    sec.className = "pl-stage";
+    sec.open = (st.key in plPipeOpen) ? plPipeOpen[st.key] : items.length>0;
+    sec.innerHTML = `<summary><span class="stagebar" style="background:${st.color}"></span><span class="name">${esc(st.name)}</span><span class="pill">${items.length}</span></summary><div class="pl-stage-body"></div>`;
+    sec.addEventListener("toggle",()=>{ plPipeOpen[st.key]=sec.open; });
+    const body = sec.querySelector(".pl-stage-body");
+    if(!items.length) body.innerHTML = `<div class="pl-empty">Nothing here</div>`;
+    items.forEach(o=>body.appendChild(cardEl(o,st)));
+    wrap.appendChild(sec);
+  });
+  const done = orders.filter(o=>o.stage==="delivered").length;
+  const more = document.createElement("button");
+  more.type="button"; more.className="pl-link"; more.textContent = `Completed (${done}) →`;
+  more.onclick = ()=>setView("completed");
+  wrap.appendChild(more);
+  board.appendChild(wrap);
+}
+
+/* ---------- quick-action sheet ---------- */
+function plSheetEl(){
+  let el = document.getElementById("plSheet");
+  if(!el){
+    el = document.createElement("div"); el.id="plSheet"; el.className="pl-sheet";
+    el.innerHTML = `<div class="pl-sheet-scrim"></div><section class="pl-sheet-panel" role="dialog" aria-modal="true"></section>`;
+    el.querySelector(".pl-sheet-scrim").addEventListener("click", plCloseSheet);
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function plCloseSheet(){
+  const el = document.getElementById("plSheet");
+  if(el) el.classList.remove("open");
+  document.body.classList.remove("pl-sheet-open");
+  plSheetId = null;
+}
+function plOpenSheet(id){
+  const o = orders.find(x=>x.id===id); if(!o) return;
+  plSheetId = id;
+  const st = stageMap[o.stage] || STAGES[0];
+  const phone = o.phone || (o.parcel && o.parcel.phone) || "";
+  const tel = phone.replace(/[^\d+]/g,"");
+  const items = (o.items||[]).map(i=>`<li><span>${esc(i.name)}${i.spec?` <em>${esc(i.spec)}</em>`:""}</span><b>${+i.qty||0}</b></li>`).join("");
+  const chips = [
+    o.type? `<span class="tag ${o.type==='Club Shop'?'shop':'invoice'}">${esc(o.type)}</span>`:"",
+    (+o.value)? `<span class="tag val">£${(+o.value).toLocaleString()}</span>`:"",
+    (+o.qty)? `<span class="tag">${+o.qty} units</span>`:"",
+    o.factoryOrder? `<span class="tag">Factory ${esc(o.factoryOrder)}</span>`:"",
+  ].join("");
+  const panel = plSheetEl().querySelector(".pl-sheet-panel");
+  panel.innerHTML = `
+    <div class="pl-grab" aria-hidden="true"></div>
+    <header class="pl-sh-head">
+      <div><div class="pl-eyebrow"><span class="stagebar" style="background:${st.color}"></span>${esc(st.name)}</div>
+      <h3>${esc(o.club||"Untitled")}</h3></div>
+      <button type="button" class="pl-x" aria-label="Close">×</button>
+    </header>
+    <div class="pl-sh-body">
+      <div class="pl-chips">${chips}</div>
+      ${(o.contact||o.email||phone)? `<div class="pl-contact">
+        <div><b>${esc(o.contact||"—")}</b>${o.email?`<span>${esc(o.email)}</span>`:""}</div>
+        <div class="pl-contact-acts">
+          ${tel?`<a class="btn small" href="tel:${esc(tel)}">Call</a>`:""}
+          ${o.email?`<a class="btn small" href="mailto:${esc(o.email)}">Email</a>`:""}
+        </div></div>`:""}
+      <label class="pl-lbl">Stage</label>
+      <select class="pl-stage-sel">${STAGES.map(s=>`<option value="${s.key}"${s.key===o.stage?" selected":""}>${esc(s.name)}</option>`).join("")}</select>
+      <label class="pl-lbl">Next step</label>
+      <div class="pl-next">
+        <input class="pl-next-txt" value="${esc(o.next||"")}" placeholder="e.g. Send mockup v2">
+        <input class="pl-next-date" type="date" value="${esc(o.nextDate||"")}">
+      </div>
+      ${items?`<label class="pl-lbl">Items</label><ul class="pl-items">${items}</ul>`:""}
+      ${linkChips(o,true)}
+      <label class="pl-lbl">Notes</label>
+      ${o.notes?`<div class="pl-notes">${esc(o.notes)}</div>`:""}
+      <textarea class="pl-note-new" rows="2" placeholder="Add a note…"></textarea>
+      <button type="button" class="btn small pl-note-add">Add note</button>
+    </div>
+    <footer class="pl-sh-foot">
+      <button type="button" class="btn pl-full">Open full editor</button>
+    </footer>`;
+  panel.querySelector(".pl-x").onclick = plCloseSheet;
+  panel.querySelector(".pl-full").onclick = ()=>{ plCloseSheet(); openModal(o.id); };
+  panel.querySelector(".pl-stage-sel").onchange = async (e)=>{
+    const sel = e.target, want = sel.value;
+    const moved = await moveStage(o, want);
+    if(!moved) sel.value = o.stage;
+    plOpenSheet(o.id);
+  };
+  const saveNext = ()=>{
+    const t = panel.querySelector(".pl-next-txt").value.trim(), d = panel.querySelector(".pl-next-date").value;
+    if(t===(o.next||"") && d===(o.nextDate||"")) return;
+    o.next = t; o.nextDate = d; o.updated = today(); save();
+  };
+  panel.querySelector(".pl-next-txt").addEventListener("change", saveNext);
+  panel.querySelector(".pl-next-date").addEventListener("change", saveNext);
+  panel.querySelector(".pl-note-add").onclick = ()=>{
+    const ta = panel.querySelector(".pl-note-new"), t = ta.value.trim(); if(!t) return;
+    o.notes = (o.notes? o.notes.replace(/\s+$/,"")+"\n" : "") + fmtDate(today())+" — "+t;
+    o.updated = today(); save(); plOpenSheet(o.id);
+  };
+  const el = plSheetEl();
+  el.classList.add("open"); document.body.classList.add("pl-sheet-open");
+}
+
+/* ---------- More menu ---------- */
+function plOpenMore(){
+  const panel = plSheetEl().querySelector(".pl-sheet-panel");
+  plSheetId = "more";
+  panel.innerHTML = `
+    <div class="pl-grab" aria-hidden="true"></div>
+    <header class="pl-sh-head"><div><div class="pl-eyebrow">Proton Lab</div><h3>More</h3></div>
+      <button type="button" class="pl-x" aria-label="Close">×</button></header>
+    <div class="pl-sh-body pl-menu">
+      ${PL_MORE.map(([v,l,d])=>`<button type="button" data-v="${v}" class="${view===v?"active":""}"><b>${l}</b><span>${d}</span></button>`).join("")}
+      <div class="pl-menu-row">
+        <button type="button" data-act="backup">Backup</button>
+        <button type="button" data-act="import">Import</button>
+        <button type="button" data-act="csv">CSV</button>
+      </div>
+      <button type="button" data-act="signout" class="pl-signout">Sign out</button>
+    </div>`;
+  panel.querySelector(".pl-x").onclick = plCloseSheet;
+  panel.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{ plCloseSheet(); setView(b.dataset.v); window.scrollTo(0,0); });
+  panel.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>{
+    const a = b.dataset.act; plCloseSheet();
+    if(a==="backup") document.getElementById("exportBtn").click();
+    else if(a==="import") document.getElementById("importBtn").click();
+    else if(a==="csv") document.getElementById("csvBtn").click();
+    else if(a==="signout"){ const so=document.querySelector(".pl-user button"); if(so) so.click(); }
+  });
+  const el = plSheetEl(); el.classList.add("open"); document.body.classList.add("pl-sheet-open");
+}
+
+/* Re-open the sheet after a save repaints (another device's change, a gate…). */
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && plSheetId) plCloseSheet(); });
+plApplyMode();
 
 /* Deep links: #view=<tab> opens that tab; &solo=1 hides the nav + header
    buttons for a standalone window (Analytics → "↗ New window"). */

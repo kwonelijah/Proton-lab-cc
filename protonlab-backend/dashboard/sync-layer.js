@@ -112,15 +112,16 @@
     css.textContent = `
       .pl-chip{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:90;font:500 11px/1 "DM Mono",ui-monospace,Menlo,monospace;
         letter-spacing:.04em;text-transform:uppercase;background:#0A0A0A;color:#F5F4F0;padding:8px 11px;border-radius:999px;box-shadow:0 2px 8px rgba(10,10,10,.18);
-        display:flex;gap:10px;align-items:center;max-width:calc(100vw - 24px)}
+        display:flex;gap:10px;align-items:center;max-width:calc(100vw - 24px);pointer-events:none}
       .pl-chip.ok{opacity:.0;pointer-events:none;transition:opacity .6s .8s}
       .pl-chip.warn{background:#B3261E}
-      .pl-chip button{font:inherit;color:inherit;background:none;border:1px solid currentColor;border-radius:999px;padding:4px 8px;cursor:pointer;text-transform:inherit}
+      .pl-chip button{pointer-events:auto;font:inherit;color:inherit;background:none;border:1px solid currentColor;border-radius:999px;padding:4px 8px;cursor:pointer;text-transform:inherit}
       .pl-offline-bar{position:sticky;top:0;z-index:80;background:#0A0A0A;color:#F5F4F0;text-align:center;font:600 12px "Montserrat",system-ui,sans-serif;padding:8px 12px;letter-spacing:.04em}
       html.pl-hosted #wsKeyBtn, html.pl-hosted #csKeyBtn{display:none!important}
       .pl-user{font:500 11px "DM Mono",ui-monospace,monospace;letter-spacing:.04em;text-transform:uppercase;color:#6E6E6E;display:flex;gap:8px;align-items:center}
       .pl-user button{font:inherit;background:none;border:1px solid #C9C9C9;border-radius:4px;padding:5px 8px;cursor:pointer;color:#3A3A38}
-      body.pl-has-tabs .pl-chip{bottom:calc(72px + env(safe-area-inset-bottom))}`;
+      body.pl-has-tabs .pl-chip{bottom:calc(72px + env(safe-area-inset-bottom))}
+      body.pl-sheet-open .pl-chip{top:calc(10px + env(safe-area-inset-top));bottom:auto}`;
     document.head.appendChild(css);
     chip = document.createElement("div"); chip.className = "pl-chip ok"; chip.setAttribute("role","status");
     document.body.appendChild(chip);
