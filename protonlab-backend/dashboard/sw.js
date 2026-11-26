@@ -47,3 +47,24 @@ self.addEventListener("fetch", (e) => {
     }
   })());
 });
+
+/* ---------- notifications (lib/push.js sends {title, body, url, tag}) ---------- */
+self.addEventListener("push", (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Proton", {
+    body: d.body || "", tag: d.tag || undefined, renotify: !!d.tag,
+    icon: "/icon.png", badge: "/icon.png", data: { url: d.url || "/dashboard" },
+  }));
+});
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/dashboard";
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const c of wins) {
+      if (new URL(c.url).pathname === "/dashboard") { await c.focus(); try { await c.navigate(url); } catch (err) {} return; }
+    }
+    await self.clients.openWindow(url);
+  })());
+});

@@ -6798,8 +6798,58 @@ function plInstallScreen(){
   const b = panel.querySelector(".pl-install");
   if(b) b.onclick = async ()=>{ plInstallEvt.prompt(); await plInstallEvt.userChoice.catch(()=>{}); plInstallEvt=null; plCloseSheet(); };
 }
-/* plNotifyScreen is defined with the notifications module below. */
-if(typeof plNotifyScreen !== "function") var plNotifyScreen = function(){ const p=plSheetShow("Notifications","Proton Lab",`<div class="pl-empty">Not available yet.</div>`); plBackBtn(p); };
+/* ---------- Notifications (web push; lib/push.js) ---------- */
+function plKeyBytes(b64){ const s=(b64+"=".repeat((4-b64.length%4)%4)).replace(/-/g,"+").replace(/_/g,"/"); return Uint8Array.from(atob(s), c=>c.charCodeAt(0)); }
+async function plPushSub(){
+  if(!("serviceWorker" in navigator) || !("PushManager" in window)) return { supported:false };
+  const reg = await navigator.serviceWorker.ready;
+  return { supported:true, reg, sub: await reg.pushManager.getSubscription() };
+}
+async function plNotifyScreen(){
+  plSheetId = "notify";
+  const panel = plSheetShow("Notifications", "Proton Lab", `<div class="pl-empty">Checking…</div>`);
+  plBackBtn(panel);
+  const body = panel.querySelector(".pl-sh-body");
+  const paint = async (msg)=>{
+    let info = {}; try{ info = await (await fetch("/api/admin?action=push-key")).json(); }catch(e){}
+    const p = await plPushSub().catch(()=>({ supported:false }));
+    const perm = ("Notification" in window)? Notification.permission : "unsupported";
+    const iosNeedsInstall = plPlatform()==="ios" && !plIsInstalled();
+    let html = `<p class="pl-note">Alerts for <b>new orders</b> the moment they're placed, and a <b>Today</b> digest each morning at 7am.</p>`;
+    if(!info.configured) html += `<div class="pl-empty">Not switched on on the server yet — the notification keys (VAPID) need adding in Vercel.</div>`;
+    else if(iosNeedsInstall) html += `<div class="pl-empty">On iPhone, notifications only work in the installed app. Install it first (More → Install as an app), open it from your home screen, then come back here.</div>`;
+    else if(!p.supported || perm==="unsupported") html += `<div class="pl-empty">This browser can't receive notifications.</div>`;
+    else if(perm==="denied") html += `<div class="pl-empty">Notifications are blocked for this site — allow them in your browser / phone settings, then try again.</div>`;
+    else if(p.sub) html += `<div class="pl-meter"><div class="pl-meter-top"><b>On for this device</b><span>${info.devices||1} device${(info.devices||1)===1?"":"s"} in total</span></div></div>
+        <div class="pl-doc-acts"><button type="button" class="btn small" data-n="test">Send a test</button><button type="button" class="btn small" data-n="off">Turn off on this device</button></div>`;
+    else html += `<button type="button" class="btn primary pl-install" data-n="on">Turn on for this device</button>`;
+    if(msg) html += `<p class="pl-note">${esc(msg)}</p>`;
+    body.innerHTML = html;
+    body.querySelectorAll("[data-n]").forEach(b=>b.onclick=async ()=>{
+      b.disabled = true;
+      try{
+        if(b.dataset.n==="on"){
+          const perm2 = await Notification.requestPermission();
+          if(perm2!=="granted") return paint("Permission wasn't granted.");
+          const sub = await p.reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: plKeyBytes(info.key) });
+          const r = await fetch("/api/admin", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ action:"push-subscribe", subscription: sub.toJSON() }) });
+          const d = await r.json().catch(()=>({}));
+          if(!r.ok){ await sub.unsubscribe().catch(()=>{}); return paint(d.error || "Couldn't turn notifications on."); }
+          return paint("Done — try “Send a test”.");
+        }
+        if(b.dataset.n==="off"){
+          await fetch("/api/admin", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ action:"push-unsubscribe", endpoint: p.sub.endpoint }) });
+          await p.sub.unsubscribe().catch(()=>{});
+          return paint("Turned off for this device.");
+        }
+        const r = await fetch("/api/admin", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ action:"push-test" }) });
+        const d = await r.json().catch(()=>({}));
+        paint(r.ok? (d.sent? "Test sent — it should appear in a few seconds." : "Nothing was delivered — try turning it off and on again.") : (d.error||"Test failed."));
+      }catch(e){ paint(e.message); }
+    });
+  };
+  paint();
+}
 
 /* Desktop: a "More" button in the header opens the same menu. */
 (function(){

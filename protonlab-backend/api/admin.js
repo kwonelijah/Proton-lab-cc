@@ -90,6 +90,7 @@ import {
   historyFor,
 } from '../lib/dashboard-store.js';
 import { uploadDoc, openDoc, trashDoc } from '../lib/docs.js';
+import { subscribe as pushSubscribe, unsubscribe as pushUnsubscribe, notifyAll, vapidConfigured, vapidPublicKey, deviceCount } from '../lib/push.js';
 import { Readable } from 'node:stream';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -501,6 +502,104 @@ async function handleLogin(req, res) {
   return res.status(200).json({ ok: true, user: { u: user.u, role: user.role } });
 }
 
+// The order feed (Stripe + bank-transfer orders, split awaiting/dispatched)
+// — the dashboard's JSON feed and the morning Today digest (api/stock-sync.js).
+export async function buildFeed(days = 60, { lookupContacts = true } = {}) {
+  const sinceTs = Math.floor(Date.now() / 1000) - days * 86400;
+
+  let payments;
+  try {
+    payments = await stripe.paymentIntents
+      .list({ created: { gte: sinceTs }, limit: 100 })
+      .autoPagingToArray({ limit: 1000 });
+  } catch (err) {
+    console.error('Stripe list error:', err);
+    const e = new Error('Failed to read orders from Stripe'); e.status = 502; throw e;
+  }
+
+  const awaiting = [];
+  const dispatched = [];
+  const needLookup = [];
+  for (const p of payments) {
+    if (p.status !== 'succeeded') continue;
+    const meta = p.metadata || {};
+    const lineItems = parseLineItems(meta);
+    const club = meta.club || '';
+    const number = orderNumber(p.id);
+    const ship = effectiveShipping(p);
+    const entry = {
+      id: p.id,
+      club,
+      ref: club ? `${club} #${number}` : `Order #${number}`,
+      date: new Date(p.created * 1000).toISOString(),
+      name: meta.customer_name || ship?.name || meta.name || '—',
+      email: meta.customer_email || p.receipt_email || meta.email || '',
+      phone: meta.customer_phone || ship?.phone || meta.phone || '',
+      ...feedAddress(p),   // addr, address, place, shippingName
+      items: lineItems.length ? summariseItems(lineItems, Infinity) : meta?.product || '—',
+      clubHandle: meta.club_handle || '',
+      lineItems: feedLineItems(lineItems, meta, p.currency),
+      shippingAmount: moneyFromMinor(meta.shipping_amount),
+      discountAmount: moneyFromMinor(meta.discount_amount),
+      promoCode: meta.promo_code || '',
+      amount: (p.amount / 100).toFixed(2),
+      symbol: p.currency === 'eur' ? '€' : '£',
+      service: meta.shipping_method || 'standard',
+      productionAt: meta.production_notified_at || null,
+      dispatchedAt: meta.dispatched_at || null,
+      deliveredAt: meta.delivered_at || null,
+      tracking: meta.tracking || null,
+    };
+    if (!entry.email || !entry.phone) needLookup.push(entry);
+    (meta.dispatched_at ? dispatched : awaiting).push(entry);
+  }
+
+  // Bank-transfer orders (lib/bank-orders.js) join the same two lists, in
+  // date order with the Stripe ones, so the dashboard shows one set of
+  // orders. Cancelled ones stay out. `bank` tells the dashboard whether the
+  // store and the account details are configured (its setup notice).
+  const bank = { store: isStoreConfigured() ? 'ok' : 'unconfigured', details: !!bankDetails() };
+  if (bank.store === 'ok') {
+    try {
+      for (const rec of await listBankOrders()) {
+        if (rec.cancelledAt) continue;
+        const entry = bankFeedEntry(rec);
+        (entry.dispatchedAt ? dispatched : awaiting).push(entry);
+      }
+      const newestFirst = (a, b) => String(b.date).localeCompare(String(a.date));
+      awaiting.sort(newestFirst);
+      dispatched.sort(newestFirst);
+    } catch (err) {
+      console.error('bank orders unavailable:', err.message);
+      bank.store = 'error';
+      bank.error = String(err.message || err).slice(0, 200);
+    }
+  }
+
+  // The email/phone the customer types on the Stripe hosted page live on the
+  // Checkout Session (customer_details), not the PaymentIntent — look them up
+  // for entries still missing contact details. Batched to bound latency; the
+  // webhook stamps customer_* metadata on new orders so this shrinks over time.
+  for (let i = 0; lookupContacts && i < needLookup.length; i += 8) {
+    await Promise.all(
+      needLookup.slice(i, i + 8).map(async (entry) => {
+        try {
+          const sessions = await stripe.checkout.sessions.list({ payment_intent: entry.id, limit: 1 });
+          const cd = sessions.data[0]?.customer_details;
+          if (!cd) return;
+          if (!entry.email && cd.email) entry.email = cd.email;
+          if (!entry.phone && cd.phone) entry.phone = cd.phone;
+          if (entry.name === '—' && cd.name) entry.name = cd.name;
+        } catch (err) {
+          console.error('Session lookup failed for', entry.id, err.message);
+        }
+      })
+    );
+  }
+
+  return { awaiting, dispatched, bank, since: days };
+}
+
 // ─── Handler ─────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
@@ -547,6 +646,21 @@ export default async function handler(req, res) {
         console.error('doc upload failed', err?.message);
         return res.status(500).json({ error: 'Upload failed — try again' });
       }
+    }
+    // ── Notifications (lib/push.js) ───────────────────────────────────────
+    if (['push-subscribe', 'push-unsubscribe', 'push-test'].includes(req.body?.action)) {
+      if (auth.via !== 'session') return res.status(403).json({ error: 'Sign in first' });
+      if (!vapidConfigured() || !isStoreConfigured()) return res.status(503).json({ error: 'Notifications are not set up on the server yet (VAPID keys)' });
+      try {
+        if (req.body.action === 'push-subscribe') {
+          const r = await pushSubscribe(req.body.subscription, { u: auth.user.u, ua: req.headers['user-agent'] });
+          if (r.error) return res.status(r.status || 400).json({ error: r.error });
+          return res.status(200).json(r);
+        }
+        if (req.body.action === 'push-unsubscribe') return res.status(200).json(await pushUnsubscribe(String(req.body.endpoint || ''), { u: auth.user.u }));
+        const r = await notifyAll({ title: 'Proton notifications are on', body: 'New orders and the morning Today digest will appear here.', url: '/dashboard#view=today', tag: 'test' }, { u: auth.user.u });
+        return res.status(200).json({ ok: true, ...r });
+      } catch (err) { console.error('push action failed', err?.message); return res.status(500).json({ error: 'Notification setup failed' }); }
     }
     if (req.body?.action === 'doc-delete') {
       if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
@@ -1105,6 +1219,13 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Could not open the document' });
     }
   }
+  if (req.query.action === 'push-key') {
+    res.setHeader('Cache-Control', 'no-store');
+    const configured = vapidConfigured() && isStoreConfigured();
+    let devices = 0;
+    if (configured) { try { devices = await deviceCount(auth.user.u); } catch { /* shown as 0 */ } }
+    return res.status(200).json({ ok: true, configured, key: configured ? vapidPublicKey() : '', devices });
+  }
   if (['usage', 'backups', 'backup', 'history'].includes(req.query.action)) {
     res.setHeader('Cache-Control', 'no-store');
     if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
@@ -1139,97 +1260,10 @@ export default async function handler(req, res) {
   }
 
   const days = /^\d+$/.test(req.query.since || '') ? Number(req.query.since) : 60;
-  const sinceTs = Math.floor(Date.now() / 1000) - days * 86400;
-
-  let payments;
-  try {
-    payments = await stripe.paymentIntents
-      .list({ created: { gte: sinceTs }, limit: 100 })
-      .autoPagingToArray({ limit: 1000 });
-  } catch (err) {
-    console.error('Stripe list error:', err);
-    return res.status(502).json({ error: 'Failed to read orders from Stripe' });
-  }
-
-  const awaiting = [];
-  const dispatched = [];
-  const needLookup = [];
-  for (const p of payments) {
-    if (p.status !== 'succeeded') continue;
-    const meta = p.metadata || {};
-    const lineItems = parseLineItems(meta);
-    const club = meta.club || '';
-    const number = orderNumber(p.id);
-    const ship = effectiveShipping(p);
-    const entry = {
-      id: p.id,
-      club,
-      ref: club ? `${club} #${number}` : `Order #${number}`,
-      date: new Date(p.created * 1000).toISOString(),
-      name: meta.customer_name || ship?.name || meta.name || '—',
-      email: meta.customer_email || p.receipt_email || meta.email || '',
-      phone: meta.customer_phone || ship?.phone || meta.phone || '',
-      ...feedAddress(p),   // addr, address, place, shippingName
-      items: lineItems.length ? summariseItems(lineItems, Infinity) : meta?.product || '—',
-      clubHandle: meta.club_handle || '',
-      lineItems: feedLineItems(lineItems, meta, p.currency),
-      shippingAmount: moneyFromMinor(meta.shipping_amount),
-      discountAmount: moneyFromMinor(meta.discount_amount),
-      promoCode: meta.promo_code || '',
-      amount: (p.amount / 100).toFixed(2),
-      symbol: p.currency === 'eur' ? '€' : '£',
-      service: meta.shipping_method || 'standard',
-      productionAt: meta.production_notified_at || null,
-      dispatchedAt: meta.dispatched_at || null,
-      deliveredAt: meta.delivered_at || null,
-      tracking: meta.tracking || null,
-    };
-    if (!entry.email || !entry.phone) needLookup.push(entry);
-    (meta.dispatched_at ? dispatched : awaiting).push(entry);
-  }
-
-  // Bank-transfer orders (lib/bank-orders.js) join the same two lists, in
-  // date order with the Stripe ones, so the dashboard shows one set of
-  // orders. Cancelled ones stay out. `bank` tells the dashboard whether the
-  // store and the account details are configured (its setup notice).
-  const bank = { store: isStoreConfigured() ? 'ok' : 'unconfigured', details: !!bankDetails() };
-  if (bank.store === 'ok') {
-    try {
-      for (const rec of await listBankOrders()) {
-        if (rec.cancelledAt) continue;
-        const entry = bankFeedEntry(rec);
-        (entry.dispatchedAt ? dispatched : awaiting).push(entry);
-      }
-      const newestFirst = (a, b) => String(b.date).localeCompare(String(a.date));
-      awaiting.sort(newestFirst);
-      dispatched.sort(newestFirst);
-    } catch (err) {
-      console.error('bank orders unavailable:', err.message);
-      bank.store = 'error';
-      bank.error = String(err.message || err).slice(0, 200);
-    }
-  }
-
-  // The email/phone the customer types on the Stripe hosted page live on the
-  // Checkout Session (customer_details), not the PaymentIntent — look them up
-  // for entries still missing contact details. Batched to bound latency; the
-  // webhook stamps customer_* metadata on new orders so this shrinks over time.
-  for (let i = 0; i < needLookup.length; i += 8) {
-    await Promise.all(
-      needLookup.slice(i, i + 8).map(async (entry) => {
-        try {
-          const sessions = await stripe.checkout.sessions.list({ payment_intent: entry.id, limit: 1 });
-          const cd = sessions.data[0]?.customer_details;
-          if (!cd) return;
-          if (!entry.email && cd.email) entry.email = cd.email;
-          if (!entry.phone && cd.phone) entry.phone = cd.phone;
-          if (entry.name === '—' && cd.name) entry.name = cd.name;
-        } catch (err) {
-          console.error('Session lookup failed for', entry.id, err.message);
-        }
-      })
-    );
-  }
+  let feed;
+  try { feed = await buildFeed(days); }
+  catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
+  const { awaiting, dispatched, bank } = feed;
 
   res.setHeader('Cache-Control', 'no-store');
   if (req.query.format === 'json') {

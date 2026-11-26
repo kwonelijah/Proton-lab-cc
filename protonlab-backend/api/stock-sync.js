@@ -21,7 +21,11 @@ import Stripe from 'stripe';
 import { Resend } from 'resend';
 import { applyAndCommit } from '../lib/stock.js';
 import { decodeItems, hasItems } from '../lib/order-items.js';
-import { backupAll, measureStorage } from '../lib/dashboard-store.js';
+import { backupAll, measureStorage, readAll } from '../lib/dashboard-store.js';
+import { notifyAll } from '../lib/push.js';
+import { readClubs } from '../lib/clubs.js';
+import { buildFeed } from './admin.js';
+import todayLib from '../lib/today.cjs';
 import { purgeTrash } from '../lib/docs.js';
 import { isStoreConfigured } from '../lib/bank-orders.js';
 
@@ -84,6 +88,54 @@ async function stampClubSkipped(ids) {
   return stamped;
 }
 
+// ─── Morning job: Today digest (push) + Monday weekly summary ────────────────
+// Inputs are gathered once and shared: dashboard state (1 Blob read), the
+// order feed (Stripe + bank orders, 60 days) and the clubs roster.
+export async function gatherMorning(now = new Date()) {
+  const [state, feed, clubs] = await Promise.all([
+    isStoreConfigured() ? readAll().catch((err) => { console.error('morning: state', err?.message); return null; }) : null,
+    buildFeed(60, { lookupContacts: false }).catch((err) => { console.error('morning: feed', err?.message); return null; }),
+    readClubs().then((r) => r.clubs).catch((err) => { console.error('morning: clubs', err?.message); return null; }),
+  ]);
+  const sec = (k) => state?.sections?.[k]?.data;
+  const today = todayLib.todayItems({ orders: sec('orders'), manual: sec('manual'), windows: sec('clubshops')?.windows, feed, clubs }, now);
+  return { state, feed, clubs, today };
+}
+
+export function digestMessage(today) {
+  const lines = today.sections.flatMap((s) => s.items.slice(0, 2).map((i) => `${i.title} — ${i.sub}`)).slice(0, 3);
+  return { title: `Today: ${today.summary}`, body: lines.join('\n'), url: '/dashboard#view=today', tag: 'today' };
+}
+
+async function morningJob(req, res, { dryRun }) {
+  const now = new Date();
+  const data = await gatherMorning(now);
+  const { today } = data;
+  let push = null;
+  if (today.total && !dryRun) push = await notifyAll(digestMessage(today));
+  let weekly = null;
+  if (now.getUTCDay() === 1 || req.query.weekly === '1') {
+    try {
+      const { sendWeeklySummary } = await import('../lib/weekly-summary.js');
+      weekly = await sendWeeklySummary({ ...data, now, dryRun });
+    } catch (err) {
+      console.error('weekly summary failed', err?.message);
+      weekly = { error: String(err?.message || err).slice(0, 200) };
+    }
+  }
+  if (dryRun && req.query.format === 'html' && weekly?.html) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(200).send(weekly.html);
+  }
+  return res.status(200).json({
+    ok: true, job: 'morning', dryRun,
+    today: { summary: today.summary, counts: today.counts, total: today.total },
+    digest: today.total ? digestMessage(today) : null,
+    push,
+    weekly: weekly ? { sent: !!weekly.sent, to: weekly.to, subject: weekly.subject, error: weekly.error || null } : null,
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -93,6 +145,10 @@ export default async function handler(req, res) {
   }
 
   const dryRun = req.query.dryRun === '1';
+
+  // Second daily cron (vercel.json, 07:00 UTC): the Today digest push, plus
+  // the weekly summary email on Mondays. Never touches stock.
+  if (req.query.job === 'morning') return morningJob(req, res, { dryRun });
 
   // Nightly copy of the order dashboard's state (lib/dashboard-store.js) —
   // dashboard/backups/YYYY-MM-DD/, 30 days kept. Never blocks the stock sync.

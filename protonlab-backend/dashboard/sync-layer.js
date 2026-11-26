@@ -371,6 +371,12 @@
       const ok = await push();
       if(!ok && Object.keys(meta.dirty).length && !confirm("Some changes haven't reached the server (no connection).\n\nSign out anyway and discard them on this device?")) { refreshChip(); return; }
     }
+    /* Stop this device's notifications before the session ends. */
+    try{
+      const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+      const sub = reg && reg.pushManager && await reg.pushManager.getSubscription();
+      if(sub){ await api({ action:"push-unsubscribe", endpoint: sub.endpoint }).catch(()=>{}); await sub.unsubscribe().catch(()=>{}); }
+    }catch(e){}
     await api({ action:"logout" }).catch(()=>{});
     await wipeDevice();
     location.replace("/login");

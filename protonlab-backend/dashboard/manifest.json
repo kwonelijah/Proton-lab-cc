@@ -1,12 +1,21 @@
 {
+  "id": "/dashboard",
   "name": "Proton Lab — Orders",
   "short_name": "Proton",
+  "description": "Private order dashboard for Proton Lab CC",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#F5F4F0",
   "theme_color": "#0A0A0A",
   "icons": [
-    { "src": "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Today", "url": "/dashboard#view=today", "icons": [{ "src": "/icon.png", "sizes": "512x512" }] },
+    { "name": "Orders", "url": "/dashboard#view=webshop", "icons": [{ "src": "/icon.png", "sizes": "512x512" }] }
   ]
 }

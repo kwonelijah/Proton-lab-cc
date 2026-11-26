@@ -37,6 +37,7 @@ import {
   PAY_WITHIN_DAYS,
 } from '../lib/bank-orders.js';
 import { sendBankTransferReceived, sendInternalNotification } from '../lib/email.js';
+import { notifyAll, newOrderMessage } from '../lib/push.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ORIGIN = 'https://protonlab.cc';
@@ -277,6 +278,7 @@ export default async function handler(req, res) {
   const [received, internal] = await Promise.all([
     sendBankTransferReceived(order).catch((e) => ({ ok: false, error: e.message })),
     sendInternalNotification(order).catch((e) => ({ ok: false, error: e.message })),
+    notifyAll(newOrderMessage(order)),   // installed dashboard app; never throws
   ]);
   if (!received.ok) {
     console.error('bank-transfer received email failed for', rec.id, received);

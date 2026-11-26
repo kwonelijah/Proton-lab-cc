@@ -14,6 +14,7 @@ import {
   CUSTOMERS_AUDIENCE_ID,
   addContactToAudience,
 } from '../lib/audiences.js';
+import { notifyAll, newOrderMessage } from '../lib/push.js';
 // import { appendOrder } from '../lib/sheets.js';     // Phase 2
 // import { processNewOrders } from '../lib/agent.js'; // Phase 2
 
@@ -282,6 +283,7 @@ export default async function handler(req, res) {
       addConsentedPurchaser(order, session),
       metaPurchase,
       ga4Purchase,
+      notifyAll(newOrderMessage(order)),   // installed dashboard app; never throws
     ]);
 
     // Phase 2: uncomment these once Google Sheets is configured
