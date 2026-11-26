@@ -51,11 +51,14 @@ const { default: analyticsHandler } = await import('./api/analytics.js');
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
+    const chunks = [];
+    req.on('data', chunk => { chunks.push(chunk); });
     req.on('end', () => {
-      if (!data) return resolve({});
-      try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+      const buf = Buffer.concat(chunks);
+      // Like Vercel: JSON → object; anything else (e.g. a document upload) → Buffer.
+      if (!/json/i.test(String(req.headers['content-type'] || 'application/json'))) return resolve(buf);
+      if (!buf.length) return resolve({});
+      try { resolve(JSON.parse(buf.toString('utf8'))); } catch (e) { reject(e); }
     });
     req.on('error', reject);
   });

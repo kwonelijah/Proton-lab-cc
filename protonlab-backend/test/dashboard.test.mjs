@@ -392,3 +392,100 @@ test('session token with an expiry further out than a fresh session is rejected'
   const t = auth.makeSessionToken({ u: 'elijah', role: 'owner', sv: 1 }, Date.now() + 365 * 864e5);
   assert.equal(auth.readSessionToken(t), null);
 });
+
+// ─── document uploads ────────────────────────────────────────────────────────
+import { Writable } from 'node:stream';
+const docs = await import('../lib/docs.js');
+function mkStreamRes() {
+  const chunks = [];
+  const res = new Writable({ write(c, _e, cb) { chunks.push(Buffer.from(c)); cb(); } });
+  Object.assign(res, { code: 200, headers: {}, body: null,
+    setHeader(k, v) { this.headers[k] = v; }, status(c) { this.code = c; return this; },
+    json(b) { this.body = b; this.end(); return this; }, send(b) { this.body = b; this.end(); return this; } });
+  Object.defineProperty(res, 'statusCode', { set(v) { res.code = v; }, get() { return res.code; } });
+  res.done = new Promise((r) => res.on('finish', r));
+  res.text = () => Buffer.concat(chunks);
+  return res;
+}
+async function upload(h, { name = 'PI.pdf', type = 'application/pdf', body = Buffer.from('%PDF-1.4 test'), order = 'o1' } = {}) {
+  const res = mkRes();
+  await adminHandler({ method: 'POST', query: { action: 'doc-upload', order, name }, body, headers: { host: 'x', 'content-type': 'application/octet-stream', 'x-doc-type': type, ...h } }, res);
+  return res;
+}
+async function openDoc(h, path) {
+  const res = mkStreamRes();
+  await adminHandler({ method: 'GET', query: { action: 'doc', path }, headers: { host: 'x', ...h } }, res);
+  await res.done;
+  return res;
+}
+
+test('docs: upload stores a private blob under docs/<order>/ and it opens only with a session', async () => {
+  reset();
+  const h = await authed();
+  const up = await upload(h, { name: '../../Evil Name?.pdf' });
+  assert.equal(up.code, 200, JSON.stringify(up.body));
+  assert.match(up.body.path, /^docs\/o1\/[0-9a-f]{10}-Evil-Name\.pdf$/, 'path traversal + odd characters stripped');
+  const ok = await openDoc(h, up.body.path);
+  assert.equal(ok.code, 200);
+  assert.equal(ok.text().toString(), '%PDF-1.4 test');
+  assert.equal(ok.headers['Content-Type'], 'application/pdf');
+  assert.match(ok.headers['Content-Disposition'], /^inline; filename="Evil-Name\.pdf"$/);
+  assert.match(ok.headers['Content-Security-Policy'], /sandbox/);
+  const anon = await openDoc({}, up.body.path);
+  assert.equal(anon.code, 401);
+  const viaKey = await openDoc({}, up.body.path + '&key=k');
+  assert.notEqual(viaKey.code, 200);
+  const keyOnly = mkStreamRes();
+  await adminHandler({ method: 'GET', query: { action: 'doc', path: up.body.path, key: 'k' }, headers: { host: 'x' } }, keyOnly);
+  await keyOnly.done;
+  assert.equal(keyOnly.code, 403, 'the shared admin key never opens documents');
+});
+
+test('docs: only docs/ paths can be opened (not state, backups, bank orders or trash)', async () => {
+  reset();
+  const h = await authed();
+  await save(h, [{ section: 'orders', baseVersion: 0, data: [] }]);
+  globalThis.__blob.set('bank-orders/bt_12345.json', '{}');
+  for (const p of ['dashboard/state.json', 'bank-orders/bt_12345.json', 'docs/../dashboard/state.json', 'docs/_trash/x.pdf', 'docs//x', '']) {
+    const r = await openDoc(h, p);
+    assert.equal(r.code, 404, p);
+  }
+});
+
+test('docs: type, size, session-only upload, storage ceiling', async () => {
+  reset();
+  const h = await authed();
+  assert.equal((await upload(h, { type: 'text/html', name: 'x.html' })).code, 415);
+  assert.equal((await upload(h, { type: 'image/svg+xml', name: 'x.svg' })).code, 415, 'SVG can carry script');
+  assert.equal((await upload(h, { body: Buffer.alloc(docs.MAX_DOC_BYTES + 1) })).code, 413);
+  assert.equal((await upload(h, { body: Buffer.alloc(0) })).code, 400);
+  const keyRes = mkRes();
+  await adminHandler({ method: 'POST', query: { action: 'doc-upload', key: 'k', name: 'a.pdf' }, body: Buffer.from('x'), headers: { 'x-doc-type': 'application/pdf' } }, keyRes);
+  assert.equal(keyRes.code, 403);
+  // Storage at 90% of the Hobby GB → refused.
+  await save(h, [{ section: 'orders', baseVersion: 0, data: [] }]);
+  const doc = JSON.parse(globalThis.__blob.get('dashboard/state.json'));
+  doc.meta.storage = { bytes: 0.9e9, count: 1, at: 'x' };
+  globalThis.__blob.set('dashboard/state.json', JSON.stringify(doc));
+  assert.equal((await upload(h)).code, 507);
+});
+
+test('docs: upload updates the storage total; delete moves to trash; purge after 30 days', async () => {
+  reset();
+  const h = await authed();
+  await save(h, [{ section: 'orders', baseVersion: 0, data: [] }]);
+  const up = await upload(h, { body: Buffer.alloc(1000, 1), name: 'mock.png', type: 'image/png' });
+  assert.equal(up.code, 200);
+  assert.equal(JSON.parse(globalThis.__blob.get('dashboard/state.json')).meta.storage.bytes, 1000);
+  const delRes = await admin({ method: 'POST', body: { action: 'doc-delete', path: up.body.path }, headers: h });
+  assert.equal(delRes.code, 200);
+  assert.ok(!globalThis.__blob.has(up.body.path));
+  assert.match(delRes.body.trashed, /^docs\/_trash\/.+__o1__[0-9a-f]{10}-mock\.png$/);
+  assert.equal((await admin({ method: 'POST', body: { action: 'doc-delete', path: 'dashboard/state.json' }, headers: h })).code, 400);
+  // Purge: trash uploaded 31 days ago goes; yesterday's stays.
+  globalThis.__blobAt.set(delRes.body.trashed, new Date(Date.now() - 31 * 864e5));
+  globalThis.__blob.set('docs/_trash/recent.pdf', 'x'); globalThis.__blobAt.set('docs/_trash/recent.pdf', new Date(Date.now() - 864e5));
+  const p = await docs.purgeTrash();
+  assert.equal(p.purged, 1);
+  assert.ok(globalThis.__blob.has('docs/_trash/recent.pdf'));
+});

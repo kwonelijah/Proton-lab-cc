@@ -22,6 +22,7 @@ import { Resend } from 'resend';
 import { applyAndCommit } from '../lib/stock.js';
 import { decodeItems, hasItems } from '../lib/order-items.js';
 import { backupAll, measureStorage } from '../lib/dashboard-store.js';
+import { purgeTrash } from '../lib/docs.js';
 import { isStoreConfigured } from '../lib/bank-orders.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -99,6 +100,7 @@ export default async function handler(req, res) {
   if (!dryRun && isStoreConfigured()) {
     try {
       backup = await backupAll();
+      backup.trash = await purgeTrash().catch((err) => ({ error: err?.message }));
       if (new Date().getUTCDay() === 0) backup.storage = await measureStorage();   // weekly storage total for the usage meter
     }
     catch (err) { console.error('dashboard backup failed', err?.message); backup = { error: String(err?.message || err).slice(0, 200) }; }

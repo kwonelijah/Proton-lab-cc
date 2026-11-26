@@ -491,6 +491,9 @@
   .pl-menu .pl-signout{border:0;text-align:center;align-items:center;padding:18px 0 6px;font:600 13px var(--font-body);color:var(--text-muted)}
 
 
+
+  .doc-file{flex:1;min-width:0;font:400 12px var(--font-mono);color:var(--text-data);padding:8px 10px;border:1px dashed var(--line-hairline);border-radius:var(--r-xs);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pl-doc-acts{display:flex;gap:8px}
   /* More sub-screens (both layouts) */
   .pl-back{all:unset;cursor:pointer;display:block;font:600 11px var(--font-mono);letter-spacing:var(--tracking-mono);text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
   .pl-note{font-size:12px;line-height:1.5;color:var(--text-muted);margin:4px 0 8px}
@@ -922,6 +925,7 @@ function resolveLink(v){
   if(!v) return null;
   v = String(v).trim(); if(!v) return null;
   if(/^(https?|file|mailto):/i.test(v)) return v;
+  if(/^\/api\/admin\?action=doc&/.test(v)) return v;   /* uploaded document (hosted dashboard) */
   const firstSeg = v.split("/")[0];
   if(v.includes("/") && firstSeg.includes(".") && !/\s/.test(firstSeg)) return "https://"+v;
   let p = v;
@@ -1736,18 +1740,24 @@ function renderDocs(){
   const wrap=document.getElementById("docList");
   let rows = editDocs.map((d,i)=>{
     const url=resolveLink(d.link);
+    const linkCell = d.blob
+      ? `<span class="doc-file" title="Uploaded ${esc((d.blob.at||"").slice(0,10))}${d.blob.by?" by "+esc(d.blob.by):""}">${esc(d.blob.name||"file")} · ${(d.blob.size/1024/1024).toFixed(d.blob.size<1048576?2:1)} MB</span>`
+      : `<input class="doc-link" value="${esc(d.link||"")}" placeholder="filename, path, or URL">`;
     return `<div class="doc-row" data-i="${i}">
       <input class="doc-label" list="docLabels" value="${esc(d.label||"")}" placeholder="label">
-      <input class="doc-link" value="${esc(d.link||"")}" placeholder="filename, path, or URL">
+      ${linkCell}
       <a class="doc-open${url?"":" disabled"}" ${url?`href="${esc(url)}" target="_blank" rel="noopener"`:""} title="Open">↗</a>
-      <button class="doc-del" type="button" title="Remove">×</button>
+      <button class="doc-del" type="button" title="${d.blob?"Remove (the file goes to the bin for 30 days when you save)":"Remove"}">×</button>
     </div>`;
   }).join("");
-  if(!editDocs.length) rows=`<div class="li-empty">No documents linked — add invoices, order forms, mockups…</div>`;
+  if(!editDocs.length) rows=`<div class="li-empty">No documents yet — upload invoices, order forms, mockups…</div>`;
+  const hosted = !!window.PL_HOSTED;
   wrap.innerHTML = rows + `
     <div class="li-foot">
-      <button type="button" class="btn small" id="addDocBtn">+ Add document</button>
-      <span class="li-empty" style="padding:0">Just the filename works for files in your Custom Orders folder</span>
+      ${hosted? `<button type="button" class="btn small primary" id="uploadDocBtn">↑ Upload file</button>` : ""}
+      ${hosted && plIsPhone()? `<button type="button" class="btn small" id="photoDocBtn">Take photo</button>` : ""}
+      <button type="button" class="btn small" id="addDocBtn">+ Add link</button>
+      <span class="li-empty" style="padding:0" id="docHint">${hosted? "PDF, Excel, Word, CSV or images up to 4 MB · photos are shrunk automatically" : "Just the filename works for files in your Custom Orders folder"}</span>
     </div>`;
   wireDocs();
 }
@@ -1756,7 +1766,7 @@ function wireDocs(){
   wrap.querySelectorAll(".doc-row").forEach(row=>{
     const i=+row.dataset.i;
     row.querySelector(".doc-label").addEventListener("input",e=>{editDocs[i].label=e.target.value;});
-    row.querySelector(".doc-link").addEventListener("input",e=>{
+    const linkIn=row.querySelector(".doc-link"); if(linkIn) linkIn.addEventListener("input",e=>{
       editDocs[i].link=e.target.value;
       const a=row.querySelector(".doc-open"), url=resolveLink(e.target.value);
       if(url){a.href=url;a.target="_blank";a.rel="noopener";a.classList.remove("disabled");}
@@ -1764,6 +1774,14 @@ function wireDocs(){
     });
     row.querySelector(".doc-del").addEventListener("click",()=>{editDocs.splice(i,1);renderDocs();});
   });
+  const up=(capture)=>async()=>{
+    const file=await plPickFile({capture}); if(!file) return;
+    const hint=document.getElementById("docHint"); if(hint) hint.textContent="Uploading "+file.name+"…";
+    try{ editDocs.push(await plUploadDoc(file, editingId||"new")); renderDocs(); }
+    catch(e){ alert(e.message); if(hint) hint.textContent=""; }
+  };
+  const ub=document.getElementById("uploadDocBtn"); if(ub) ub.addEventListener("click",up(false));
+  const pb=document.getElementById("photoDocBtn"); if(pb) pb.addEventListener("click",up(true));
   const add=document.getElementById("addDocBtn");
   if(add) add.addEventListener("click",()=>{
     editDocs.push({label:"Invoice",link:""}); renderDocs();
@@ -1810,7 +1828,7 @@ function openModal(id){
   editAgg = null;
   editItems = (o.items||[]).map(it=>({name:it.name,qty:it.qty,price:it.price,spec:it.spec||"",synced:!!it.synced}));
   renderItems();   // shows items; qty/value keep their stored values until items are edited
-  editDocs = (o.docs||[]).map(d=>({label:d.label||"",link:d.link||""}));
+  editDocs = (o.docs||[]).map(d=>({label:d.label||"",link:d.link||"",...(d.blob?{blob:d.blob}:{})}));
   renderDocs();
   const linked=document.getElementById("wsLinked");
   if(o.webshopClub){
@@ -1840,7 +1858,7 @@ async function saveOrder(){
       addr:{ line1:get("f_shipline1").trim(), line2:get("f_shipline2").trim(), city:get("f_shipcity").trim(), postal_code:get("f_shippostal").trim(), country:(get("f_shipcountry")||"GB").toUpperCase() } },
     items:editItems.filter(it=>it.name).map(it=>({name:it.name,qty:+it.qty||0,price:+it.price||0,spec:(it.spec||"").trim(),...(it.synced?{synced:true}:{})})),
     discount:(()=>{ const d=wsParseDisc(editDiscount); return d? (d.pct!==undefined? d.pct+"%" : d.gbp.toFixed(2)) : ""; })(),
-    docs:editDocs.filter(d=>(d.link||"").trim()).map(d=>({label:(d.label||"").trim()||"Document",link:d.link.trim()})),
+    docs:editDocs.filter(d=>(d.link||"").trim()).map(d=>({label:(d.label||"").trim()||"Document",link:d.link.trim(),...(d.blob?{blob:d.blob}:{})})),
     updated:today()
   };
   if(!data.club.trim()){alert("Please enter a club / team name.");return;}
@@ -1861,8 +1879,12 @@ async function saveOrder(){
     if(!g) return;   /* cancelled — editor stays open, nothing saved */
     Object.assign(data, g);
   }
+  /* Uploaded files dropped from the list go to the bin (kept 30 days). */
+  const keptBlobs=new Set(data.docs.filter(d=>d.blob).map(d=>d.blob.path));
+  const droppedBlobs=editingId? (o.docs||[]).filter(d=>d.blob && !keptBlobs.has(d.blob.path)).map(d=>d.blob.path) : [];
   if(editingId){ Object.assign(o,data); }
   else{ data.id=uid(); data.created=today(); o=data; orders.unshift(data); }
+  droppedBlobs.forEach(plTrashDoc);
   /* A new club order — or one that just gained its Web shop club — gets its own
      window on the club page (csEnsureWindowFor: claims the current run's
      unclaimed window if there is one, else creates a fresh one). */
@@ -1876,6 +1898,7 @@ async function saveOrder(){
 function deleteOrder(){
   if(editingId&&confirm("Delete this order? This cannot be undone.")){
     const pc=manualOrders.find(m=>m.pipelineId===editingId); if(pc){ manualOrders=manualOrders.filter(m=>m!==pc); saveManual(); }
+    const gone=orders.find(x=>x.id===editingId); ((gone&&gone.docs)||[]).filter(d=>d.blob).forEach(d=>plTrashDoc(d.blob.path));
     orders=orders.filter(x=>x.id!==editingId);closeModal();save();}
 }
 
@@ -6478,7 +6501,9 @@ function plOpenSheet(id){
         <input class="pl-next-date" type="date" value="${esc(o.nextDate||"")}">
       </div>
       ${items?`<label class="pl-lbl">Items</label><ul class="pl-items">${items}</ul>`:""}
-      ${linkChips(o,true)}
+      <label class="pl-lbl">Documents</label>
+      ${linkChips(o,true) || `<div class="pl-empty">None yet</div>`}
+      <div class="pl-doc-acts"><button type="button" class="btn small pl-doc-photo">Take photo</button><button type="button" class="btn small pl-doc-file">Upload file</button></div>
       <label class="pl-lbl">Notes</label>
       ${o.notes?`<div class="pl-notes">${esc(o.notes)}</div>`:""}
       <textarea class="pl-note-new" rows="2" placeholder="Add a note…"></textarea>
@@ -6502,6 +6527,14 @@ function plOpenSheet(id){
   };
   panel.querySelector(".pl-next-txt").addEventListener("change", saveNext);
   panel.querySelector(".pl-next-date").addEventListener("change", saveNext);
+  const docUp = (capture)=> async (e)=>{
+    const file = await plPickFile({capture}); if(!file) return;
+    const b = e.target; b.disabled = true; b.textContent = "Uploading…";
+    try{ const d = await plUploadDoc(file, o.id); (o.docs = o.docs||[]).push(d); o.updated = today(); save(); plOpenSheet(o.id); }
+    catch(err){ alert(err.message); b.disabled = false; b.textContent = capture? "Take photo" : "Upload file"; }
+  };
+  panel.querySelector(".pl-doc-photo").onclick = docUp(true);
+  panel.querySelector(".pl-doc-file").onclick = docUp(false);
   panel.querySelector(".pl-note-add").onclick = ()=>{
     const ta = panel.querySelector(".pl-note-new"), t = ta.value.trim(); if(!t) return;
     o.notes = (o.notes? o.notes.replace(/\s+$/,"")+"\n" : "") + fmtDate(today())+" — "+t;
@@ -6512,6 +6545,60 @@ function plOpenSheet(id){
 }
 
 /* ---------- More menu ---------- */
+/* ---------- Document uploads (hosted) ---------- */
+var PL_DOC_ACCEPT = "application/pdf,.pdf,.xlsx,.xls,.csv,.docx,image/png,image/jpeg,image/webp,image/heic,image/heif";
+var PL_DOC_MIME = { pdf:"application/pdf", xlsx:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", xls:"application/vnd.ms-excel",
+  csv:"text/csv", docx:"application/vnd.openxmlformats-officedocument.wordprocessingml.document", png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", webp:"image/webp" };
+var PL_DOC_MAX = 4 * 1024 * 1024;
+function plPickFile(opts){
+  return new Promise(res=>{
+    const i=document.createElement("input"); i.type="file";
+    i.accept = opts && opts.capture ? "image/*" : PL_DOC_ACCEPT;
+    if(opts && opts.capture) i.setAttribute("capture","environment");
+    i.onchange=()=>res(i.files[0]||null); i.click();
+  });
+}
+/* Phone photos / big images → ≤1600 px JPEG (~300 KB). PDFs etc. untouched. */
+async function plShrinkImage(file){
+  const isImg = /^image\//.test(file.type) || /\.(heic|heif|jpe?g|png|webp)$/i.test(file.name);
+  if(!isImg) return file;
+  if(file.type==="image/png" && file.size < 1.5e6) return file;            // keep small PNG mockups sharp
+  try{
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width*k); c.height = Math.round(bmp.height*k);
+    const g = c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(bmp,0,0,c.width,c.height);
+    let blob = await new Promise(r=>c.toBlob(r,"image/jpeg",0.82));
+    if(blob && blob.size > 1e6) blob = await new Promise(r=>c.toBlob(r,"image/jpeg",0.6));   // very detailed shots
+    if(!blob) return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/,"")+".jpg", { type:"image/jpeg" });
+  }catch(e){ return file; }                                                  // e.g. HEIC on a browser that can't decode it
+}
+function plGuessLabel(n){
+  n=String(n).toLowerCase();
+  if(/proforma|(^|[^a-z])pi([^a-z]|$)/.test(n)) return "Proforma Invoice (PI)";
+  if(/invoice/.test(n)) return "Invoice"; if(/order.?form/.test(n)) return "Order Form"; if(/siz/.test(n)) return "Sizing Sheet";
+  if(/mock/.test(n)) return "Mockup"; if(/receipt/.test(n)) return "Receipt"; if(/quote/.test(n)) return "Quote";
+  if(/\.(png|jpe?g|webp)$/.test(n)) return "Photo"; return "Document";
+}
+async function plUploadDoc(file, orderId){
+  if(window.PL_SYNC && PL_SYNC.isOffline()) throw new Error("No connection — uploads need to be online.");
+  file = await plShrinkImage(file);
+  const ext = (file.name.split(".").pop()||"").toLowerCase();
+  const mime = (file.type && file.type!=="application/octet-stream") ? file.type : (PL_DOC_MIME[ext]||"");
+  if(file.size > PL_DOC_MAX) throw new Error(`${file.name} is ${(file.size/1e6).toFixed(1)} MB — the upload limit is 4 MB. Shrink or split it, or add it as a link.`);
+  const r = await fetch(`/api/admin?action=doc-upload&order=${encodeURIComponent(orderId)}&name=${encodeURIComponent(file.name)}`,
+    { method:"POST", headers:{ "Content-Type":"application/octet-stream", "X-Doc-Type": mime }, body:file });
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error || ("Upload failed ("+r.status+")"));
+  const by = window.PL_SYNC && PL_SYNC.user() ? PL_SYNC.user().u : "";
+  return { label: plGuessLabel(file.name), link: "/api/admin?action=doc&path="+encodeURIComponent(d.path),
+    blob: { path:d.path, size:d.size, type:d.type, name:d.name, at:new Date().toISOString(), by } };
+}
+function plTrashDoc(path){
+  return fetch("/api/admin", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ action:"doc-delete", path }) }).catch(()=>{});
+}
+
 function plSheetShow(title, eyebrow, bodyHtml, bodyClass){
   const panel = plSheetEl().querySelector(".pl-sheet-panel");
   panel.innerHTML = `

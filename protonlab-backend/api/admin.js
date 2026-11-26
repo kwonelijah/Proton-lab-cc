@@ -89,6 +89,8 @@ import {
   restore as storeRestore,
   historyFor,
 } from '../lib/dashboard-store.js';
+import { uploadDoc, openDoc, trashDoc } from '../lib/docs.js';
+import { Readable } from 'node:stream';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -526,6 +528,33 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    // ── Document upload (raw body ≤ 4 MB; lib/docs.js) ───────────────────
+    // POST ?action=doc-upload&order=<id>&name=<file>, X-Doc-Type = the
+    // file's MIME type, body = the file bytes (application/octet-stream).
+    if (req.query.action === 'doc-upload') {
+      if (auth.via !== 'session') return res.status(403).json({ error: 'Sign in to upload' });
+      if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
+      // Body is sent as application/octet-stream (Vercel hands that over as a
+      // Buffer); the real MIME type rides in X-Doc-Type.
+      const type = String(req.headers['x-doc-type'] || '').split(';')[0].trim().toLowerCase();
+      const body = Buffer.isBuffer(req.body) ? req.body : (typeof req.body === 'string' ? Buffer.from(req.body, 'binary') : null);
+      try {
+        const r = await uploadDoc({ orderId: req.query.order, name: req.query.name, type, body });
+        if (r.error) return res.status(r.status || 400).json({ error: r.error });
+        return res.status(200).json(r);
+      } catch (err) {
+        console.error('doc upload failed', err?.message);
+        return res.status(500).json({ error: 'Upload failed — try again' });
+      }
+    }
+    if (req.body?.action === 'doc-delete') {
+      if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
+      try {
+        const r = await trashDoc(String(req.body.path || ''));
+        if (r.error) return res.status(r.status || 400).json({ error: r.error });
+        return res.status(200).json(r);
+      } catch (err) { console.error('doc delete failed', err?.message); return res.status(500).json({ error: 'Delete failed' }); }
+    }
     // ── Dashboard state ───────────────────────────────────────────────────
     // {action:'state-save', section, baseVersion, data, force?} — one section
     // of the dashboard's own records (lib/dashboard-store.js). 409 + the
@@ -1055,6 +1084,24 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error('state read failed', err?.message);
       return res.status(500).json({ error: 'Could not load dashboard data' });
+    }
+  }
+  // ── Uploaded document (session only; streamed, never a blob URL) ─────────
+  if (req.query.action === 'doc') {
+    if (auth.via !== 'session') return res.status(403).json({ error: 'Sign in to open documents' });
+    try {
+      const d = await openDoc(String(req.query.path || ''));
+      if (!d) return res.status(404).json({ error: 'Document not found' });
+      privatePageHeaders(res);
+      res.setHeader('Cache-Control', 'private, no-store');
+      res.setHeader('Content-Type', d.type);
+      res.setHeader('Content-Disposition', `${req.query.download === '1' ? 'attachment' : 'inline'}; filename="${d.name.replace(/"/g, '')}"`);
+      res.setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox");
+      res.statusCode = 200;
+      return Readable.fromWeb(d.stream).pipe(res);
+    } catch (err) {
+      console.error('doc open failed', err?.message);
+      return res.status(500).json({ error: 'Could not open the document' });
     }
   }
   if (['usage', 'backups', 'backup', 'history'].includes(req.query.action)) {

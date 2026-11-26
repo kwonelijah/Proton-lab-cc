@@ -238,6 +238,15 @@ async function patchMeta(fn) {
   return null;
 }
 
+// Running storage total, adjusted on every document upload / delete between
+// the weekly measurements.
+export async function bumpStorage(delta) {
+  return patchMeta((meta) => {
+    const cur = meta.storage || { bytes: 0, count: 0, at: null };
+    meta.storage = { ...cur, bytes: Math.max(0, (cur.bytes || 0) + delta), count: Math.max(0, (cur.count || 0) + Math.sign(delta)) };
+  });
+}
+
 // ─── backups / snapshots / restore ───────────────────────────────────────────
 
 const stamp = (d = new Date()) => d.toISOString().replace(/[:.]/g, '-');
