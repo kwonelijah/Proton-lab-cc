@@ -393,7 +393,7 @@
 .cs-item-table tr.cs-total td{font-weight:700;color:var(--text-strong);border-bottom:none}
 
   /* ===== Phone view (body.pl-phone — ≤760px or ?m=1) ===== */
-  .pl-tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:repeat(4,1fr);
+  .pl-tabs{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:repeat(5,1fr);
     background:rgba(245,244,240,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line-hairline);
     padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
   .pl-tabs button{all:unset;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:48px;cursor:pointer;
@@ -405,7 +405,7 @@
 
   body.pl-phone{font-size:15px;padding-bottom:calc(76px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
   body.pl-phone header{padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));gap:8px}
-  body.pl-phone header .eyebrow,body.pl-phone #importBtn,body.pl-phone #exportBtn,body.pl-phone #csvBtn{display:none}
+  body.pl-phone header .eyebrow,body.pl-phone #importBtn,body.pl-phone #exportBtn,body.pl-phone #csvBtn,body.pl-phone #plMoreBtn{display:none}
   body.pl-phone header .brand .word{font-size:14px}
   body.pl-phone header #addBtn{padding:9px 12px;font-size:11px}
   body.pl-phone .pl-user span{display:none}
@@ -494,6 +494,25 @@
 
   .doc-file{flex:1;min-width:0;font:400 12px var(--font-mono);color:var(--text-data);padding:8px 10px;border:1px dashed var(--line-hairline);border-radius:var(--r-xs);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pl-doc-acts{display:flex;gap:8px}
+
+  /* Today */
+  #todayView{max-width:880px}
+  .td-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:20px 0 8px}
+  .td-title{margin:4px 0 0;font:700 26px/1.2 var(--font-display);color:var(--text-strong);letter-spacing:var(--tracking-tight)}
+  .td-sec{margin-top:18px}
+  .td-sec h3{display:flex;align-items:center;gap:8px;margin:0 0 8px;font:700 11px var(--font-body);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--text-strong)}
+  .td-sec h3 .pill{font-family:var(--font-mono);background:var(--surface-muted);color:var(--text-data);font-size:11px;padding:2px 8px;border-radius:var(--r-xs)}
+  .td-item{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:3px;width:100%;padding:12px 14px;margin-bottom:8px;
+    background:var(--surface-raised);border:1px solid var(--line-hairline);border-left:4px solid var(--grey-300);border-radius:var(--r-sm)}
+  .td-item:hover{border-color:var(--line-strong)}
+  .td-item b{font:700 14px var(--font-body);color:var(--text-strong)}
+  .td-item span{font:400 12px var(--font-mono);letter-spacing:var(--tracking-mono);color:var(--text-muted)}
+  .td-item.sev-high{border-left-color:#B3261E}
+  .td-item.sev-high span{color:#B3261E}
+  .td-item.sev-mid{border-left-color:var(--proton-black)}
+  .td-clear{padding:28px 18px;border:1px dashed var(--line-hairline);border-radius:var(--r-md);color:var(--text-muted);text-align:center}
+  body.pl-phone .td-title{font-size:21px}
+  body.pl-phone .pl-tabs button span{font-size:9px;letter-spacing:.04em}
   /* More sub-screens (both layouts) */
   .pl-back{all:unset;cursor:pointer;display:block;font:600 11px var(--font-mono);letter-spacing:var(--tracking-mono);text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
   .pl-note{font-size:12px;line-height:1.5;color:var(--text-muted);margin:4px 0 8px}
@@ -559,7 +578,7 @@
 <div class="toolbar">
   <input type="search" id="search" placeholder="Search club, contact, notes…">
   <div class="nav" id="nav">
-    <div class="nav-group"><span class="nav-group-label"></span><div class="seg"><button data-view="overview">Overview</button></div></div>
+    <div class="nav-group"><span class="nav-group-label"></span><div class="seg"><button data-view="today">Today</button><button data-view="overview">Overview</button></div></div>
     <div class="nav-group custom"><span class="nav-group-label">Custom kit</span><div class="seg">
       <button data-view="board" class="active">Pipeline</button>
       <button data-view="table">Table</button>
@@ -578,6 +597,7 @@
 </div>
 
 <div id="streamBadge" class="stream-badge hidden"></div>
+<div id="todayView" class="tablewrap hidden"></div>
 <div id="overviewView" class="tablewrap hidden"></div>
 <div id="boardView" class="board"></div>
 <div id="tableView" class="tablewrap hidden"></div>
@@ -834,6 +854,7 @@
 <datalist id="wsClubs"></datalist>
 <datalist id="wsClubNames"></datalist>
 
+<script src="/today.js" defer></script>
 <script src="/sync-layer.js" defer></script>
 <script type="text/plain" id="pl-app">
 /* Monochrome stage ramp — light grey (early) → black (delivered) = pipeline progression */
@@ -976,9 +997,9 @@ function today(){ return new Date().toISOString().slice(0,10); }
 /* ---------- KPIs ---------- */
 /* Which stream a view belongs to — drives the header strip and the badge under
    the nav. null = the view carries its own headline numbers (Overview, Analytics). */
-const VIEW_STREAM = {overview:null, analytics:null, board:"custom", table:"custom", completed:"custom", clubshops:"custom", planner:"custom", webshop:"retail", stock:"retail"};
+const VIEW_STREAM = {today:null, overview:null, analytics:null, board:"custom", table:"custom", completed:"custom", clubshops:"custom", planner:"custom", webshop:"retail", stock:"retail"};
 const STREAM_LABEL = {custom:["Custom kit","made-to-order club kit · pipeline, club shops, planner"], retail:["Retail","Summer 2026 stock sold on protonlab.cc · orders, stock"]};
-const VIEW_IDS = ["overview","board","table","completed","webshop","clubshops","stock","planner","analytics"];
+const VIEW_IDS = ["today","overview","board","table","completed","webshop","clubshops","stock","planner","analytics"];
 function renderKPIs(){
   const el = document.getElementById("kpis");
   const stream = VIEW_STREAM[view];
@@ -6252,7 +6273,8 @@ function anMeters(host, rows, opts){
 
 /* ---------- render + events ---------- */
 function render(){renderKPIs();
-  if(view==="overview") renderOverview();
+  if(view==="today") renderToday();
+  else if(view==="overview") renderOverview();
   else if(view==="board") renderBoard();
   else if(view==="table") renderTable();
   else if(view==="webshop") renderWebshop();
@@ -6372,6 +6394,8 @@ var plSheetId = null;
 function plIsPhone(){ return plForcePhone || plPhoneMQ.matches; }
 
 var PL_TABS = [
+  { key:"today", label:"Today", views:["today"], go:"today",
+    icon:'<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>' },
   { key:"pipeline", label:"Pipeline", views:["board"], go:"board",
     icon:'<path d="M4 5h4v14H4zM10 5h4v9h-4zM16 5h4v6h-4z"/>' },
   { key:"orders", label:"Orders", views:["webshop"], go:"webshop",
@@ -6545,6 +6569,37 @@ function plOpenSheet(id){
 }
 
 /* ---------- More menu ---------- */
+/* ---------- Today (lib/today.cjs → window.PLToday) ---------- */
+var plTodayLoading = false;
+function renderToday(){
+  const el = document.getElementById("todayView");
+  if(!window.PLToday){ el.innerHTML = `<div class="empty">Today needs the hosted dashboard.</div>`; return; }
+  /* The web-shop feed and the club roster load lazily — fetch them once, then repaint. */
+  if(!plTodayLoading && ((!ws.data && !ws.error && !ws.loading) || (!clubShops && !clubShopsErr))){
+    plTodayLoading = true;
+    Promise.all([ (!ws.data && !ws.loading)? wsLoad() : null, (!clubShops)? wsLoadClubs() : null ])
+      .finally(()=>{ plTodayLoading = false; if(view==="today") renderToday(); });
+  }
+  const r = PLToday.todayItems({ orders, feed: ws.data, manual: manualOrders, clubs: clubShops && clubShops.clubs, windows: clubShopData.windows }, new Date());
+  const head = `<div class="td-head"><div><div class="proton-eyebrow">${esc(new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"}))}</div>
+      <h2 class="td-title">${r.total? esc(r.summary) : "All clear"}</h2></div>
+      ${(ws.loading||plTodayLoading)? `<span class="proton-spec">loading orders…</span>` : ws.error? `<span class="proton-spec" title="${esc(ws.error)}">web-shop orders unavailable</span>` : ""}</div>`;
+  const sec = r.sections.filter(x=>x.items.length).map(x=>`
+    <section class="td-sec"><h3>${esc(x.title)} <span class="pill">${x.items.length}</span></h3>
+      ${x.items.map(it=>`<button type="button" class="td-item sev-${it.severity}" data-type="${esc(it.target.type)}" data-id="${esc(it.target.id)}">
+        <b>${esc(it.title)}</b><span>${esc(it.sub)}</span></button>`).join("")}
+    </section>`).join("");
+  el.innerHTML = head + (sec || `<div class="td-clear">Nothing overdue, no windows closing, nothing waiting to dispatch.</div>`);
+  el.querySelectorAll(".td-item").forEach(b=>b.addEventListener("click",()=>plTodayGo(b.dataset.type, b.dataset.id)));
+}
+function plTodayGo(type, id){
+  if(type==="pipeline"){ if(plIsPhone()){ setView("board"); plOpenSheet(id); } else openModal(id); }
+  else if(type==="order"){ wsJumpTo(id); }
+  else if(type==="retail"){ ws.sub="processing"; setView("webshop"); }
+  else if(type==="club"){ setView("clubshops"); try{ csOpenClub(id); cs.sub="processing"; renderClubShops(); }catch(e){} }
+  window.scrollTo(0,0);
+}
+
 /* ---------- Document uploads (hosted) ---------- */
 var PL_DOC_ACCEPT = "application/pdf,.pdf,.xlsx,.xls,.csv,.docx,image/png,image/jpeg,image/webp,image/heic,image/heif";
 var PL_DOC_MIME = { pdf:"application/pdf", xlsx:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", xls:"application/vnd.ms-excel",
@@ -6768,7 +6823,7 @@ plApplyMode();
     const v=h.get("view");
     if(v && VIEW_IDS.includes(v)){ setView(v); return; }
   }catch(e){}
-  setView("board");
+  setView(plIsPhone()? "today" : "board");
 })();
 </script>
 <script>/* file:// (no sync layer): start the app directly */

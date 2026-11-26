@@ -438,6 +438,7 @@ const VIEW_FILES = {
   login: { file: 'login.html', type: 'text/html; charset=utf-8' },
   sw: { file: 'sw.js', type: 'text/javascript; charset=utf-8' },
   sync: { file: 'sync-layer.js', type: 'text/javascript; charset=utf-8' },
+  today: { file: '../lib/today.cjs', type: 'text/javascript; charset=utf-8' },
   manifest: { file: 'manifest.json', type: 'application/manifest+json' },
   icon: { file: 'icon.png', type: 'image/png', binary: true },
 };
@@ -465,7 +466,7 @@ function serveView(req, res, view) {
     return res.status(302).send('');
   }
   if (view === 'sw') res.setHeader('Service-Worker-Allowed', '/');
-  if (view === 'sw' || view === 'sync') res.setHeader('Cache-Control', 'no-cache');
+  if (view === 'sw' || view === 'sync' || view === 'today') res.setHeader('Cache-Control', 'no-cache');
   if (view === 'icon' || view === 'manifest') res.setHeader('Cache-Control', 'public, max-age=86400');
   res.setHeader('Content-Type', v.type);
   return res.status(200).send(readView(v.file, v.binary));

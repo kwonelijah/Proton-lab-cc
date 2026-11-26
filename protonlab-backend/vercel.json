@@ -6,7 +6,7 @@
     },
     "api/admin.js": {
       "maxDuration": 60,
-      "includeFiles": "dashboard/**"
+      "includeFiles": "{dashboard/**,lib/today.cjs}"
     },
     "api/stock-sync.js": {
       "maxDuration": 60
@@ -43,6 +43,10 @@
     {
       "source": "/sync-layer.js",
       "destination": "/api/admin?view=sync"
+    },
+    {
+      "source": "/today.js",
+      "destination": "/api/admin?view=today"
     },
     {
       "source": "/manifest.json",

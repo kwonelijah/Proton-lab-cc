@@ -115,7 +115,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Hosted-dashboard rewrites (mirror vercel.json).
-  const VIEWS = { '/dashboard': 'app', '/login': 'login', '/sw.js': 'sw', '/sync-layer.js': 'sync', '/manifest.json': 'manifest', '/icon.png': 'icon' };
+  const VIEWS = { '/dashboard': 'app', '/login': 'login', '/sw.js': 'sw', '/sync-layer.js': 'sync', '/today.js': 'today', '/manifest.json': 'manifest', '/icon.png': 'icon' };
   if (url.pathname === '/') { res.statusCode = 302; res.setHeader('Location', '/dashboard'); return res.end(); }
   const view = VIEWS[url.pathname];
   if (view) url.searchParams.set('view', view);
