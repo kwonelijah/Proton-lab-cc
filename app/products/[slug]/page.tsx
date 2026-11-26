@@ -6,19 +6,16 @@ import ProductGallery from './ProductGallery'
 import VariantSelector from './VariantSelector'
 import Accordion from '@/components/ui/Accordion'
 import DeliveryNote from '@/components/ui/DeliveryNote'
-import ProductCard, { CARD_LABEL } from '@/components/ui/ProductCard'
+import OtherProducts from './OtherProducts'
+import { CARD_LABEL } from '@/components/ui/ProductCard'
 import { getProducts, getProductByHandle } from '@/lib/api'
 import { getDisplayCurrency } from '@/lib/currency-server'
 import { formatPrice } from '@/lib/utils'
+import { matchesCategory, orderForShop } from '@/lib/shop-categories'
 
 interface PageProps {
   params: { slug: string }
 }
-
-// Hairline black dividers, as on /shop: bottom border on every cell, right
-// border on every cell except the last column (2 on phones, 4 from md).
-const CELL =
-  'border-b border-proton-black [&:not(:nth-child(2n))]:border-r md:[&:not(:nth-child(4n))]:border-r'
 
 // Fisher–Yates, returns a new array.
 function shuffle<T>(list: T[]): T[] {
@@ -72,10 +69,21 @@ export default async function ProductPage({ params }: PageProps) {
 
   const { amount, currencyCode } = product.priceRange.minVariantPrice
 
-  // "Other Products": four of the other live products, picked at random on
-  // every request (this route renders per request because of the currency
-  // cookie), in the shop's full-bleed grid.
-  const others = shuffle((await getProducts(currency)).filter(p => p.handle !== product.handle)).slice(0, 4)
+  // "Other Products": every other live product, alternating jersey / bib
+  // shorts so the row opens on 2 + 2 on desktop and 1 + 1 on phones; anything
+  // else (socks) follows. Which ones lead is random per request (this route
+  // renders per request because of the currency cookie); sold-out ones go to
+  // the back of their group.
+  const rest = (await getProducts(currency)).filter(p => p.handle !== product.handle)
+  const jerseys = orderForShop(shuffle(rest.filter(p => matchesCategory(p, 'jerseys'))))
+  const shorts = orderForShop(shuffle(rest.filter(p => !jerseys.includes(p) && matchesCategory(p, 'bib-shorts'))))
+  const extras = orderForShop(shuffle(rest.filter(p => !jerseys.includes(p) && !shorts.includes(p))))
+  const others = [
+    ...Array.from({ length: Math.max(jerseys.length, shorts.length) }).flatMap((_, i) =>
+      [jerseys[i], shorts[i]].filter(Boolean)
+    ),
+    ...extras,
+  ]
 
   // Product details — the top-right cell of the full-bleed mosaic (UVU's
   // product layout, matching the shop and home grids). Title and price share
@@ -233,19 +241,8 @@ export default async function ProductPage({ params }: PageProps) {
           shot and may not belong in the product gallery (e.g. Red Sky) */}
       <ProductGallery images={product.images.nodes} productTitle={product.title} info={info} />
 
-      {/* Other Products — four random others in the shop's full-bleed grid */}
-      {others.length > 0 && (
-        <section aria-label="Other products">
-          <h2 className={`${CARD_LABEL} text-center text-proton-black py-4`}>Other Products</h2>
-          <ul className="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-proton-black">
-            {others.map(p => (
-              <li key={p.id} className={CELL}>
-                <ProductCard product={p} variant="shop" />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* Other Products — a slide-along row of the shop cards */}
+      <OtherProducts products={others} />
     </PageWrapper>
   )
 }

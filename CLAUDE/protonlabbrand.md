@@ -79,6 +79,11 @@ Supports `disabled` prop — applies `opacity-40 cursor-not-allowed`.
 - Sold-out products are SHOWN: a black "Sold Out" line above the name (all sizes struck through), no badge; `orderForShop` puts them last
 - Links to `/products/[handle]`; `aria-label` adds " — Sold Out"
 
+### OtherProducts (`app/products/[slug]/OtherProducts.tsx`)
+- "Other Products" row under every product: all other live products in one full-bleed scroll-snap row of `variant="shop"` cards with black hairlines, 4 across on desktop / 2 on phones
+- Order is set in the page: jersey, bib shorts, jersey, bib shorts (random within each type, sold-out last), then anything else — so it opens on 2 + 2 on desktop and 1 + 1 on phones
+- One small arrow (32px white square, black hairline, thin chevron) on the right edge, centred on the photo: slides one card, returns to the start from the end; hidden when everything fits. No auto-scroll; phones can swipe
+
 ### ShopFilter (`app/shop/ShopFilter.tsx`) + ShopCollection (`app/shop/ShopCollection.tsx`)
 - "Filter" trigger (12px caps, 44px tall, `aria-expanded`/`aria-controls`) on the Playfair heading's baseline; opens a bordered list (All + categories) beneath it
 - Categories come from `lib/shop-categories.ts` (`SHOP_CATEGORIES`: tags → label); only categories with a live product are offered; selection is client state, not a URL param
