@@ -128,6 +128,8 @@ Create `api/success.js` and `api/cancel.js` as Vercel functions, or handle on th
 
 ## What NOT to do
 
+- Do not delete `public/` — its presence stops Vercel serving the project root (source, `config/bank.js`, `dashboard/`) as static files; only `public/robots.txt` is published
+
 - Do not commit `.env` — it's in `.gitignore`
 - Do not change `SITE_URL` in code — update it in Vercel dashboard
 - Do not use `bodyParser: true` on the webhook endpoint
