@@ -27,6 +27,11 @@ function ask(question, hidden = false) {
   });
 }
 
+if (!process.stdin.isTTY) {
+  console.error('This needs to read your password privately — run it in the macOS Terminal app (not via "!" in Claude Code):');
+  console.error('  cd ~/Desktop/proton-lab-cc/.claude/worktrees/dashboard-online && node protonlab-backend/scripts/hash-password.mjs --secret');
+  process.exit(1);
+}
 const u = (await ask('Username: ')).trim() || 'elijah';
 const pw = await ask('Password (min 12 characters): ', true);
 if (pw.length < 12) {
