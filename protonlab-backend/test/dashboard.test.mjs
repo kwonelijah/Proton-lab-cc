@@ -489,3 +489,14 @@ test('docs: upload updates the storage total; delete moves to trash; purge after
   assert.equal(p.purged, 1);
   assert.ok(globalThis.__blob.has('docs/_trash/recent.pdf'));
 });
+
+test('legacy HTML admin page: never rendered for a session; key reflected safely', async () => {
+  reset();
+  const { cookie } = await login();
+  const viaSession = await admin({ query: { key: '</script><script>alert(1)</script>' }, headers: { cookie } });
+  assert.equal(viaSession.code, 400);
+  assert.equal(typeof viaSession.body, 'object');
+  const { renderPage } = await import('../api/admin.js');
+  const html = renderPage({ awaiting: [], dispatched: [], key: '</script><script>alert(1)</script>', since: 60 });
+  assert.doesNotMatch(html, /<\/script><script>alert/);
+});

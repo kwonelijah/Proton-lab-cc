@@ -410,7 +410,7 @@ export function renderPage({ awaiting, dispatched, key, since }) {
     status.textContent = 'Sending…';
     status.className = 'status';
     try {
-      const res = await fetch(location.pathname + '?key=' + encodeURIComponent(${JSON.stringify(key)}), {
+      const res = await fetch(location.pathname + '?key=' + encodeURIComponent(${JSON.stringify(String(key ?? '')).replace(/</g, '\\u003c')}), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pi: tr.dataset.pi, tracking }),
@@ -1270,5 +1270,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ awaiting, dispatched, since: days, capabilities: ADMIN_CAPABILITIES, bank });
   }
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  // The legacy HTML admin page is for the shared key only — a session-cookie
+  // request never renders it (its ?key would otherwise be reflected unchecked).
+  if (auth.via !== 'key') return res.status(400).json({ error: 'Use the dashboard, or add format=json' });
   return res.status(200).send(renderPage({ awaiting, dispatched, key: req.query.key, since: days }));
 }
