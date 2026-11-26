@@ -33,9 +33,9 @@ if (!process.stdin.isTTY) {
   process.exit(1);
 }
 const u = (await ask('Username: ')).trim() || 'elijah';
-const pw = await ask('Password (min 12 characters): ', true);
-if (pw.length < 12) {
-  console.error('Password too short — use at least 12 characters.');
+const pw = await ask('Password (8+ characters, with a number and a capital letter): ', true);
+if (pw.length < 8 || !/[0-9]/.test(pw) || !/[A-Z]/.test(pw)) {
+  console.error('Password needs at least 8 characters, including a number and a capital letter.');
   process.exit(1);
 }
 const pw2 = await ask('Repeat password: ', true);
