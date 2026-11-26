@@ -207,56 +207,125 @@
     return changed;
   }
 
-  /* ---------- push ---------- */
-  const timers = {}, inflight = {}, again = {};
+  /* ---------- change history (hidden log, sent with each save) ---------- */
+  const SUMMARY_FIELDS = { notes:true };
+  function summarise(f, v){
+    if(v === undefined || v === null || v === "") return null;
+    if(SUMMARY_FIELDS[f]) return "(" + String(v).length + " chars)";
+    if(typeof v === "object") return Array.isArray(v) ? "[" + v.length + " items]" : "{…}";
+    const t = String(v); return t.length > 120 ? t.slice(0,119) + "…" : t;
+  }
+  function recordLabel(r){ return r ? String(r.club || r.ref || r.name || r.id || "") : ""; }
+  function diffRecord(a, b){
+    const out = [];
+    for(const f of new Set([...Object.keys(a||{}), ...Object.keys(b||{})])){
+      if(f === "updated") continue;
+      if(!eq(a ? a[f] : undefined, b ? b[f] : undefined)) out.push({ f, from: summarise(f, a && a[f]), to: summarise(f, b && b[f]) });
+    }
+    return out;
+  }
+  function historyFor(section, before, after){
+    const t = new Date().toISOString(), out = [];
+    if(Array.isArray(before) || Array.isArray(after)){
+      const m = arr => new Map((Array.isArray(arr) ? arr : []).filter(x => x && x.id != null).map(x => [String(x.id), x]));
+      const bm = m(before), am = m(after);
+      for(const [id, x] of am){
+        const y = bm.get(id);
+        if(!y) out.push({ t, section, id, label: recordLabel(x), changes:[{ f:"*", from:null, to:"created" }] });
+        else { const c = diffRecord(y, x); if(c.length) out.push({ t, section, id, label: recordLabel(x), changes: c }); }
+      }
+      for(const [id, y] of bm) if(!am.has(id)) out.push({ t, section, id, label: recordLabel(y), changes:[{ f:"*", from:"exists", to:"deleted" }] });
+    }else if(isObj(before) || isObj(after)){
+      const b = isObj(before) ? before : {}, a = isObj(after) ? after : {};
+      for(const k of new Set([...Object.keys(b), ...Object.keys(a)])){
+        if(!eq(b[k], a[k])) out.push({ t, section, id: k, label: k, changes:[{ f: k, from: summarise(k, b[k]), to: summarise(k, a[k]) }] });
+      }
+    }
+    return out.slice(0, 150);
+  }
+
+  /* ---------- push (all dirty sections in ONE request) ---------- */
+  const PUSH_DELAY = 3000;
+  let pushTimer = null, inflight = false, again = false, pushedSinceSnapshot = false;
   function onWrite(section){
     meta.dirty[section] = true; saveMeta(); refreshChip();
-    clearTimeout(timers[section]);
-    timers[section] = setTimeout(() => push(section), 700);
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => push(), PUSH_DELAY);
   }
-  async function push(section){
-    if(inflight[section]){ again[section] = true; return; }
-    inflight[section] = true;
+  async function push(opts){
+    opts = opts || {};
+    const sections = Object.keys(meta.dirty);
+    if(!sections.length){ if(opts.snapshot && pushedSinceSnapshot) return snapshotNow(opts); return true; }
+    if(inflight){ again = true; return false; }
+    inflight = true; clearTimeout(pushTimer);
     try{
-      let local = readLocal(section);
-      const appView = clone(local);
-      let base = meta.known[section];
-      let srv = meta.server[section] || null;
-      /* Start from the merge of what the app knows vs the last server copy we
-         saw — a no-op unless another device changed something since load. */
-      let data = srv ? merge3(base, local, srv.data) : local;
-      let ver = srv ? srv.v : 0;
+      const work = sections.map(s => {
+        const local = readLocal(s), base = meta.known[s], srv = meta.server[s] || null;
+        return { s, local, appView: clone(local), base, data: srv ? merge3(base, local, srv.data) : local, ver: srv ? srv.v : 0 };
+      });
+      const history = [].concat(...work.map(w => historyFor(w.s, w.base, w.local)));
       for(let attempt = 0; attempt < 5; attempt++){
-        const { status: st, ok, d } = await api({ action:"state-save", section, baseVersion: ver, data: data === undefined ? null : data });
-        if(ok && d.ok){
-          meta.server[section] = { v: d.version, data: clone(data) };
-          meta.known[section] = appView;                  // what the running app holds
-          if(!eq(data, appView)){ writeLocal(section, data); stale = true; }
-          delete meta.dirty[section]; meta.syncedAt = new Date().toISOString(); saveMeta();
-          break;
+        const body = { action:"state-save", history, snapshot: !!opts.snapshot,
+          changes: work.map(w => ({ section: w.s, baseVersion: w.ver, data: w.data === undefined ? null : w.data })) };
+        const res = await realFetch("/api/admin", { method:"POST", credentials:"same-origin", keepalive: !!opts.keepalive,
+          headers:{ "Content-Type":"application/json", "X-PL":"1" }, body: JSON.stringify(body) });
+        if(res.status === 401){ location.replace("/login"); throw new Error("signed out"); }
+        const d = await res.json().catch(() => ({}));
+        if(res.ok && d.ok){
+          for(const w of work){
+            meta.server[w.s] = { v: d.versions[w.s], data: clone(w.data) };
+            meta.known[w.s] = w.appView;                      // what the running app holds
+            /* An edit made while this request was in flight stays dirty and is
+               merged on the next push (known = appView, server = what we sent). */
+            if(eq(readLocal(w.s), w.appView)){
+              if(!eq(w.data, w.appView)){ writeLocal(w.s, w.data); stale = true; }
+              delete meta.dirty[w.s];
+            }
+          }
+          meta.syncedAt = new Date().toISOString(); saveMeta();
+          pushedSinceSnapshot = !(d.snapshot && (d.snapshot.ok || d.snapshot.skipped));
+          return true;
         }
-        if(st === 409 && d.conflict){
-          const cur = d.current;
-          meta.server[section] = cur ? { v: cur.version, data: cur.data } : null;
-          data = merge3(base, local, cur ? cur.data : undefined);
-          ver = cur ? cur.version : 0;
+        if(res.status === 409 && d.conflict){
+          for(const w of work){
+            const cur = d.current ? d.current[w.s] : undefined;
+            if(cur === undefined) continue;
+            meta.server[w.s] = cur ? { v: cur.version, data: cur.data } : null;
+            w.data = merge3(w.base, w.local, cur ? cur.data : undefined);
+            w.ver = cur ? cur.version : 0;
+          }
           continue;
         }
-        throw new Error(d.error || ("HTTP " + st));
+        throw new Error(d.error || ("HTTP " + res.status));
       }
-      if(meta.dirty[section]) throw new Error("could not reconcile — retrying");
+      throw new Error("could not reconcile — retrying");
     }catch(e){
-      console.warn("sync push failed", section, e);
+      console.warn("sync push failed", e);
+      if(String(e.message) === "signed out") return false;
       if(!navigator.onLine) setOffline(true);
-      else status("warn", "Not saved yet — retrying", { label:"Retry", run:() => push(section) });
-      clearTimeout(timers[section]);
-      timers[section] = setTimeout(() => push(section), 15000);
+      else status("warn", "Not saved yet — retrying", { label:"Retry", run:() => push() });
+      clearTimeout(pushTimer); pushTimer = setTimeout(() => push(), 15000);
+      return false;
     }finally{
-      inflight[section] = false;
-      if(again[section]){ again[section] = false; push(section); }
-      else refreshChip();
+      inflight = false;
+      if(again){ again = false; push(); } else refreshChip();
     }
   }
+  async function snapshotNow(opts){
+    try{
+      const r = await realFetch("/api/admin", { method:"POST", credentials:"same-origin", keepalive: !!(opts && opts.keepalive),
+        headers:{ "Content-Type":"application/json", "X-PL":"1" }, body: JSON.stringify({ action:"snapshot" }) });
+      if(r.ok) pushedSinceSnapshot = false;
+    }catch(e){}
+    return true;
+  }
+  /* Leaving the page / app: save now and take a session snapshot (online only). */
+  function onLeave(){
+    if(offline || !navigator.onLine) return;
+    if(Object.keys(meta.dirty).length || pushedSinceSnapshot) push({ keepalive:true, snapshot:true });
+  }
+  window.addEventListener("pagehide", onLeave);
+  document.addEventListener("visibilitychange", () => { if(document.hidden) onLeave(); });
 
   /* ---------- intercept the app's writes ---------- */
   Storage.prototype.setItem = function(k, v){
@@ -286,21 +355,44 @@
     toast("Mac-only file — path copied");
   }, true);
 
-  /* ---------- account ---------- */
+  /* ---------- account + sign-out (wipes this device's copy) ---------- */
+  async function wipeDevice(){
+    const keys = [];
+    for(let i = 0; i < ls.length; i++){ const k = ls.key(i); if(/^(proton_|pl_)/.test(k)) keys.push(k); }
+    keys.forEach(k => rawRemove.call(ls, k));
+    try{ sessionStorage.clear(); }catch(e){}
+    try{ await new Promise(res => { const r = indexedDB.deleteDatabase("proton_analytics_db"); r.onsuccess = r.onerror = r.onblocked = () => res(); }); }catch(e){}
+    try{ if(navigator.serviceWorker) for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); }catch(e){}
+    try{ if(window.caches) for(const k of await caches.keys()) if(/^pl-/.test(k)) await caches.delete(k); }catch(e){}
+  }
+  async function signOut(){
+    if(Object.keys(meta.dirty).length){
+      status("", "Saving before sign-out…");
+      const ok = await push();
+      if(!ok && Object.keys(meta.dirty).length && !confirm("Some changes haven't reached the server (no connection).\n\nSign out anyway and discard them on this device?")) { refreshChip(); return; }
+    }
+    await api({ action:"logout" }).catch(()=>{});
+    await wipeDevice();
+    location.replace("/login");
+  }
   function addAccount(){
     const spacer = document.querySelector(".topbar .spacer, header .spacer");
     if(!spacer || document.querySelector(".pl-user")) return;
     const w = document.createElement("span"); w.className = "pl-user";
     w.innerHTML = `<span></span><button type="button">Sign out</button>`;
     w.firstChild.textContent = user ? user.u : "";
-    w.lastChild.onclick = async () => { await api({ action:"logout" }).catch(()=>{}); location.replace("/login"); };
+    w.lastChild.onclick = signOut;
     spacer.after(w);
   }
 
-  /* ---------- refresh from server when the page comes back ---------- */
+  /* ---------- refresh from server: on return to the tab, at most every 5 min ---------- */
+  const PULL_GAP = 5 * 60 * 1000;
+  let lastPull = 0;
   const modalOpen = () => !!document.querySelector(".overlay:not(.hidden), .pl-sheet.open");
-  async function pull(){
+  async function pull(force){
     if(document.hidden) return;
+    if(!force && Date.now() - lastPull < PULL_GAP) return;
+    lastPull = Date.now();
     try{
       const st = await fetchState();
       if(offline){ setOffline(false); if(discarded){ location.reload(); return; } }
@@ -310,15 +402,15 @@
     }catch(e){ if(!navigator.onLine) setOffline(true); }
   }
   document.addEventListener("visibilitychange", () => { if(!document.hidden) pull(); });
-  window.addEventListener("online", pull);
+  window.addEventListener("focus", () => pull());
+  window.addEventListener("online", () => pull(true));
   window.addEventListener("offline", () => setOffline(true));
-  setInterval(pull, 60000);
 
   /* ---------- boot ---------- */
   rawSet.call(ls, "proton_admin_key", "session");          // app's "key set?" checks; the cookie is the real auth
   (async () => {
     let st = null;
-    try{ st = await fetchState(); }
+    try{ st = await fetchState(); lastPull = Date.now(); }
     catch(e){ if(String(e.message) === "signed out") return; }
     if(st){
       user = st.user || null;
@@ -331,11 +423,12 @@
     addAccount();
     if(!st) setOffline(true);
     else{
-      for(const s of Object.keys(meta.dirty)) push(s);     // writes left over from an earlier session
+      if(Object.keys(meta.dirty).length) push();              // writes left over from an earlier session
       refreshChip();
     }
     if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(e => console.warn("sw", e));
   })();
 
-  window.PL_SYNC = { merge3, push, pull, meta: () => meta };
+  window.PL_SYNC = { merge3, push, pull: () => pull(true), signOut, meta: () => meta, user: () => user, api,
+    isOffline: () => offline };
 })();

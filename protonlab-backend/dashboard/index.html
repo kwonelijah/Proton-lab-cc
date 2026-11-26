@@ -490,6 +490,27 @@
     font:700 11px var(--font-body);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--text-strong)}
   .pl-menu .pl-signout{border:0;text-align:center;align-items:center;padding:18px 0 6px;font:600 13px var(--font-body);color:var(--text-muted)}
 
+
+  /* More sub-screens (both layouts) */
+  .pl-back{all:unset;cursor:pointer;display:block;font:600 11px var(--font-mono);letter-spacing:var(--tracking-mono);text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+  .pl-note{font-size:12px;line-height:1.5;color:var(--text-muted);margin:4px 0 8px}
+  .pl-check{display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--grey-200);font-size:14px}
+  .pl-check input{width:20px;height:20px;padding:0;flex:0 0 auto}
+  .pl-check em{margin-left:auto;font:normal 11px var(--font-mono);color:var(--text-muted)}
+  .pl-sh-body .pl-restore,.pl-sh-body .pl-install{margin-top:14px;min-height:46px}
+  .pl-meter{padding:10px 0}
+  .pl-meter-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+  .pl-meter-top span{font-family:var(--font-mono);font-size:12px;color:var(--text-muted)}
+  .pl-meter-bar{height:8px;background:var(--grey-200);border-radius:4px;overflow:hidden}
+  .pl-meter-bar i{display:block;height:100%;background:var(--proton-black)}
+  .pl-meter.warn .pl-meter-bar i{background:#B3261E}
+  .pl-steps{margin:4px 0;padding-left:20px;font-size:14px;line-height:1.7}
+  @media(min-width:761px){
+    .pl-sheet-panel{left:50%;right:auto;bottom:auto;top:10vh;width:min(560px,92vw);max-height:80vh;border-radius:var(--r-md);transform:translate(-50%,24px);opacity:0;transition:transform 200ms var(--ease),opacity 200ms var(--ease)}
+    .pl-sheet.open .pl-sheet-panel{transform:translate(-50%,0);opacity:1}
+    .pl-sheet:not(.open) .pl-sheet-panel{visibility:hidden}
+    .pl-grab{display:none}
+  }
   /* Order tables → cards (Orders tab + club pages) */
   body.pl-phone table.completed:has(tr.ws-row){display:block;border:0;background:transparent}
   body.pl-phone table.completed:has(tr.ws-row) thead{display:none}
@@ -6491,33 +6512,161 @@ function plOpenSheet(id){
 }
 
 /* ---------- More menu ---------- */
-function plOpenMore(){
+function plSheetShow(title, eyebrow, bodyHtml, bodyClass){
   const panel = plSheetEl().querySelector(".pl-sheet-panel");
-  plSheetId = "more";
   panel.innerHTML = `
     <div class="pl-grab" aria-hidden="true"></div>
-    <header class="pl-sh-head"><div><div class="pl-eyebrow">Proton Lab</div><h3>More</h3></div>
+    <header class="pl-sh-head"><div><div class="pl-eyebrow">${eyebrow}</div><h3>${title}</h3></div>
       <button type="button" class="pl-x" aria-label="Close">×</button></header>
-    <div class="pl-sh-body pl-menu">
-      ${PL_MORE.map(([v,l,d])=>`<button type="button" data-v="${v}" class="${view===v?"active":""}"><b>${l}</b><span>${d}</span></button>`).join("")}
+    <div class="pl-sh-body ${bodyClass||""}">${bodyHtml}</div>`;
+  panel.querySelector(".pl-x").onclick = plCloseSheet;
+  const el = plSheetEl(); el.classList.add("open"); document.body.classList.add("pl-sheet-open");
+  return panel;
+}
+function plBack(panel){
+  const h = panel.querySelector(".pl-sh-head > div");
+  const b = document.createElement("button"); b.type="button"; b.className="pl-back"; b.textContent="‹ More";
+  b.onclick = plOpenMore; h.prepend(b);
+}
+function plOpenMore(){
+  plSheetId = "more";
+  const phoneViews = plIsPhone()? PL_MORE.map(([v,l,d])=>`<button type="button" data-v="${v}" class="${view===v?"active":""}"><b>${l}</b><span>${d}</span></button>`).join("") : "";
+  const panel = plSheetShow("More", "Proton Lab", `
+      ${phoneViews}
+      <button type="button" data-sub="backups"><b>Backups &amp; restore</b><span>Nightly + end-of-session snapshots</span></button>
+      <button type="button" data-sub="usage"><b>Storage &amp; usage</b><span>Vercel Hobby allowance this month</span></button>
+      ${plIsInstalled()? "" : `<button type="button" data-sub="install"><b>Install as an app</b><span>Home screen / dock, full screen</span></button>`}
+      <button type="button" data-sub="notify"><b>Notifications</b><span>New orders + morning Today digest</span></button>
+      <button type="button" data-act="refresh"><b>Refresh data</b><span>Pull the latest from the server now</span></button>
       <div class="pl-menu-row">
         <button type="button" data-act="backup">Backup</button>
         <button type="button" data-act="import">Import</button>
         <button type="button" data-act="csv">CSV</button>
       </div>
-      <button type="button" data-act="signout" class="pl-signout">Sign out</button>
-    </div>`;
-  panel.querySelector(".pl-x").onclick = plCloseSheet;
+      <button type="button" data-act="signout" class="pl-signout">Sign out</button>`, "pl-menu");
   panel.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{ plCloseSheet(); setView(b.dataset.v); window.scrollTo(0,0); });
-  panel.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>{
-    const a = b.dataset.act; plCloseSheet();
+  panel.querySelectorAll("[data-sub]").forEach(b=>b.onclick=()=>({ backups:plBackups, usage:plUsage, install:plInstallScreen, notify:plNotifyScreen })[b.dataset.sub]());
+  panel.querySelectorAll("[data-act]").forEach(b=>b.onclick=async ()=>{
+    const a = b.dataset.act;
+    if(a==="refresh"){ b.querySelector("span").textContent="Refreshing…"; if(window.PL_SYNC) await PL_SYNC.pull(); plCloseSheet(); location.reload(); return; }
+    plCloseSheet();
     if(a==="backup") document.getElementById("exportBtn").click();
     else if(a==="import") document.getElementById("importBtn").click();
     else if(a==="csv") document.getElementById("csvBtn").click();
-    else if(a==="signout"){ const so=document.querySelector(".pl-user button"); if(so) so.click(); }
+    else if(a==="signout"){ if(window.PL_SYNC) PL_SYNC.signOut(); }
   });
-  const el = plSheetEl(); el.classList.add("open"); document.body.classList.add("pl-sheet-open");
 }
+
+/* ---------- Backups & restore ---------- */
+var PL_KIND = { session:"End of session", nightly:"Nightly", restore:"Before a restore" };
+var PL_SECTION_NAME = { orders:"Pipeline orders", manual:"Manual web-shop orders", planner:"Planner", clubshops:"Club-shop windows", retailcosts:"Retail costs", analytics:"Analytics inputs", stockAliases:"Stock name matches" };
+function plWhen(iso){ try{ return new Date(iso).toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); }catch(e){ return iso; } }
+async function plBackups(){
+  plSheetId = "backups";
+  const panel = plSheetShow("Backups", "Restore", `<div class="pl-empty">Loading…</div>`, "pl-menu");
+  plBackBtn(panel);
+  try{
+    const r = await fetch("/api/admin?action=backups"); const d = await r.json();
+    if(!r.ok) throw new Error(d.error||r.status);
+    const body = panel.querySelector(".pl-sh-body");
+    if(!d.backups.length){ body.innerHTML = `<div class="pl-empty">No backups yet — the first nightly copy is taken at 20:00 UTC, and a snapshot is saved whenever you leave after making changes.</div>`; return; }
+    body.innerHTML = `<p class="pl-note">Restoring replaces the chosen parts of the dashboard with that copy. The current state is saved first, so a restore can be undone.</p>` +
+      d.backups.map(b=>`<button type="button" data-path="${esc(b.path)}"><b>${esc(plWhen(b.at))}</b><span>${PL_KIND[b.kind]||b.kind} · ${(b.size/1024).toFixed(0)} KB</span></button>`).join("");
+    body.querySelectorAll("[data-path]").forEach(b=>b.onclick=()=>plBackupDetail(b.dataset.path, b.querySelector("b").textContent));
+  }catch(e){ panel.querySelector(".pl-sh-body").innerHTML = `<div class="pl-empty">Couldn't load backups (${esc(e.message)})</div>`; }
+}
+function plBackBtn(panel){
+  const h = panel.querySelector(".pl-sh-head > div");
+  const b = document.createElement("button"); b.type="button"; b.className="pl-back"; b.textContent="‹ Back";
+  b.onclick = ()=> plSheetId==="backup-detail"? plBackups() : plOpenMore(); h.prepend(b);
+}
+async function plBackupDetail(path, label){
+  plSheetId = "backup-detail";
+  const panel = plSheetShow(esc(label), "Restore from", `<div class="pl-empty">Loading…</div>`);
+  plBackBtn(panel);
+  const body = panel.querySelector(".pl-sh-body");
+  try{
+    const r = await fetch("/api/admin?action=backup&path="+encodeURIComponent(path)); const d = await r.json();
+    if(!r.ok) throw new Error(d.error||r.status);
+    body.innerHTML = `<label class="pl-lbl">Choose what to restore</label>` +
+      Object.keys(PL_SECTION_NAME).map(s=>`<label class="pl-check"><input type="checkbox" value="${s}"${d.counts[s]?"":" disabled"}${s==="orders"&&d.counts[s]?" checked":""}> <span>${PL_SECTION_NAME[s]}</span><em>${d.counts[s]} ${d.counts[s]===1?"entry":"entries"}</em></label>`).join("") +
+      `<button type="button" class="btn primary pl-restore">Restore selected</button>`;
+    body.querySelector(".pl-restore").onclick = async (e)=>{
+      const sections = [...body.querySelectorAll("input:checked")].map(i=>i.value);
+      if(!sections.length) return;
+      if(!confirm(`Restore ${sections.map(s=>PL_SECTION_NAME[s]).join(", ")} from ${label}?\n\nThe current state is saved first, so you can undo this from Backups.`)) return;
+      e.target.disabled = true; e.target.textContent = "Restoring…";
+      if(window.PL_SYNC) await PL_SYNC.push();                 // don't restore over unsaved edits
+      const rr = await fetch("/api/admin", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ action:"restore", path, sections }) });
+      const dd = await rr.json().catch(()=>({}));
+      if(!rr.ok){ alert("Restore failed: "+(dd.error||rr.status)); e.target.disabled=false; e.target.textContent="Restore selected"; return; }
+      /* Drop this device's copy of the restored sections and reload from the server. */
+      const KEYS = { orders:"proton_orders_v6", manual:"proton_ws_manual_v1", planner:"proton_planner_v1", clubshops:"proton_clubshops_v1", retailcosts:"proton_retail_costs_v1", analytics:"proton_analytics_v1", stockAliases:"proton_stock_aliases_v1" };
+      try{ const m = JSON.parse(Storage.prototype.getItem.call(localStorage,"pl_sync_meta_v1")||"{}"); dd.restored.forEach(s=>{ delete (m.known||{})[s]; delete (m.server||{})[s]; delete (m.dirty||{})[s]; }); m.server={...m.server}; Storage.prototype.setItem.call(localStorage,"pl_sync_meta_v1",JSON.stringify(m)); }catch(x){}
+      location.reload();
+    };
+  }catch(err){ body.innerHTML = `<div class="pl-empty">Couldn't read that backup (${esc(err.message)})</div>`; }
+}
+
+/* ---------- Storage & usage meter ---------- */
+async function plUsage(){
+  plSheetId = "usage";
+  const panel = plSheetShow("Storage & usage", "Vercel Hobby", `<div class="pl-empty">Loading…</div>`);
+  plBackBtn(panel);
+  const body = panel.querySelector(".pl-sh-body");
+  try{
+    const r = await fetch("/api/admin?action=usage"); const d = await r.json();
+    if(!r.ok) throw new Error(d.error||r.status);
+    const bar = (label, used, limit, fmt) => {
+      const pct = limit? Math.min(100, used/limit*100) : 0;
+      return `<div class="pl-meter${pct>=70?" warn":""}"><div class="pl-meter-top"><b>${label}</b><span>${fmt(used)} / ${fmt(limit)}</span></div><div class="pl-meter-bar"><i style="width:${pct.toFixed(1)}%"></i></div></div>`;
+    };
+    const n = v => Math.round(v).toLocaleString(), gb = v => v>=1e9? (v/1e9).toFixed(2)+" GB" : (v/1e6).toFixed(1)+" MB";
+    const storage = d.storage? d.storage.bytes : null;
+    body.innerHTML =
+      bar("Reads this month", d.reads, d.limits.reads, n) +
+      bar("Writes this month", d.writes + d.lists, d.limits.writes, n) +
+      (storage!=null? bar("Storage", storage, d.limits.storageBytes, gb) : `<div class="pl-note">Storage total is measured every Sunday night.</div>`) +
+      `<p class="pl-note">Estimates for ${esc(d.month)}. On the Hobby plan, going over any allowance pauses file storage for 30 days — the dashboard <i>and</i> bank-transfer checkout. Bars turn red at 70%.</p>`;
+  }catch(e){ body.innerHTML = `<div class="pl-empty">Couldn't load usage (${esc(e.message)})</div>`; }
+}
+
+/* ---------- Install as an app ---------- */
+var plInstallEvt = null;
+window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); plInstallEvt = e; });
+function plIsInstalled(){ return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true; }
+function plPlatform(){
+  const ua = navigator.userAgent;
+  if(/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1)) return "ios";
+  if(/Android/.test(ua)) return "android";
+  if(/Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua)) return "mac-safari";
+  return "desktop";
+}
+function plInstallScreen(){
+  plSheetId = "install";
+  const p = plPlatform();
+  const steps = {
+    ios: `<ol class="pl-steps"><li>Open this page in <b>Safari</b>.</li><li>Tap <b>Share</b> (the square with the arrow).</li><li>Tap <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open <b>Proton</b> from your home screen — it runs full screen, and notifications can be switched on.</li></ol>`,
+    android: `<ol class="pl-steps"><li>Tap <b>Install</b> below — or Chrome menu ⋮ → <b>Install app</b>.</li><li>Open <b>Proton</b> from your home screen.</li></ol>`,
+    "mac-safari": `<ol class="pl-steps"><li>In Safari's menu bar: <b>File → Add to Dock</b>.</li><li>Open <b>Proton</b> from the Dock or Launchpad.</li></ol>`,
+    desktop: `<ol class="pl-steps"><li>Click <b>Install</b> below — or the install icon at the right of the address bar (Chrome / Edge).</li><li>It opens in its own window from your Dock / Start menu.</li></ol>`,
+  }[p];
+  const panel = plSheetShow("Install as an app", "Proton Lab", steps + (plInstallEvt? `<button type="button" class="btn primary pl-install">Install</button>` : ""));
+  plBackBtn(panel);
+  const b = panel.querySelector(".pl-install");
+  if(b) b.onclick = async ()=>{ plInstallEvt.prompt(); await plInstallEvt.userChoice.catch(()=>{}); plInstallEvt=null; plCloseSheet(); };
+}
+/* plNotifyScreen is defined with the notifications module below. */
+if(typeof plNotifyScreen !== "function") var plNotifyScreen = function(){ const p=plSheetShow("Notifications","Proton Lab",`<div class="pl-empty">Not available yet.</div>`); plBackBtn(p); };
+
+/* Desktop: a "More" button in the header opens the same menu. */
+(function(){
+  const spacer = document.querySelector("header .spacer");
+  if(!spacer || document.getElementById("plMoreBtn")) return;
+  const b = document.createElement("button"); b.type="button"; b.className="btn"; b.id="plMoreBtn"; b.textContent="More";
+  b.onclick = plOpenMore;
+  const exp = document.getElementById("importBtn"); (exp||spacer).before(b);
+})();
 
 /* Re-open the sheet after a save repaints (another device's change, a gate…). */
 document.addEventListener("keydown", e=>{ if(e.key==="Escape" && plSheetId) plCloseSheet(); });

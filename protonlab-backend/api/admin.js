@@ -73,8 +73,22 @@ import {
   clearCookie,
   getSession,
   privatePageHeaders,
+  loginRetryAfter,
+  recordLoginFailure,
+  clearLoginFailures,
 } from '../lib/auth.js';
-import { readAll, saveSection, isSection, countOf } from '../lib/dashboard-store.js';
+import {
+  readAll,
+  saveSections,
+  countOf,
+  countsOf,
+  usage as storeUsage,
+  snapshot as storeSnapshot,
+  listBackups,
+  readBackup,
+  restore as storeRestore,
+  historyFor,
+} from '../lib/dashboard-store.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -467,12 +481,19 @@ async function handleLogin(req, res) {
   if (!process.env.SESSION_SECRET || !process.env.DASHBOARD_USERS) {
     return res.status(503).json({ error: 'Login not configured (SESSION_SECRET / DASHBOARD_USERS)' });
   }
+  const wait = loginRetryAfter(req, req.body.u);
+  if (wait) {
+    res.setHeader('Retry-After', String(wait));
+    return res.status(429).json({ error: `Too many attempts — try again in ${Math.ceil(wait / 60)} min` });
+  }
   const started = Date.now();
   const user = await checkLogin(req.body.u, req.body.password).catch(() => null);
   if (!user) {
+    recordLoginFailure(req, req.body.u);
     await sleep(Math.max(0, 800 - (Date.now() - started)));
     return res.status(401).json({ error: 'Wrong username or password' });
   }
+  clearLoginFailures(req, req.body.u);
   res.setHeader('Set-Cookie', sessionCookie(req, makeSessionToken(user)));
   return res.status(200).json({ ok: true, user: { u: user.u, role: user.role } });
 }
@@ -510,18 +531,38 @@ export default async function handler(req, res) {
     // of the dashboard's own records (lib/dashboard-store.js). 409 + the
     // current section when baseVersion is stale; the client merges and retries.
     if (req.body?.action === 'state-save') {
-      const { section, baseVersion, data, force } = req.body;
+      // {changes:[{section, baseVersion, data}], history?, snapshot?} — one
+      // batched write of the dashboard's own records (lib/dashboard-store.js).
+      // The v1 single-section shape {section, baseVersion, data} still works.
       if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
-      if (!isSection(section)) return res.status(400).json({ error: `Unknown section "${String(section).slice(0, 40)}"` });
+      const b = req.body;
+      const changes = Array.isArray(b.changes) ? b.changes : (b.section ? [{ section: b.section, baseVersion: b.baseVersion, data: b.data }] : []);
       try {
-        const r = await saveSection(section, { baseVersion, data, user: auth.user.u, force: force === true });
-        if (r.conflict) return res.status(409).json({ ok: false, conflict: true, current: r.current });
+        const r = await saveSections(changes, { user: auth.user.u, history: b.history, force: b.force === true });
+        if (r.conflict) return res.status(409).json({ ok: false, conflict: true, current: r.current, stale: r.stale });
         if (r.error) return res.status(r.status || 400).json({ error: r.error });
-        return res.status(200).json({ ok: true, section, version: r.version, updatedAt: r.updatedAt, count: countOf(data) });
+        const counts = {};
+        for (const c of changes) counts[c.section] = countOf(c.data);
+        let snap = null;
+        if (b.snapshot === true) snap = await storeSnapshot().catch((err) => ({ error: err?.message }));
+        return res.status(200).json({ ok: true, rev: r.rev, versions: r.versions, updatedAt: r.updatedAt, counts, snapshot: snap });
       } catch (err) {
-        console.error('state-save failed', section, err?.message);
+        console.error('state-save failed', err?.message);
         return res.status(500).json({ error: 'Could not save — try again' });
       }
+    }
+    if (req.body?.action === 'snapshot') {
+      if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
+      try { return res.status(200).json({ ok: true, ...(await storeSnapshot()) }); }
+      catch (err) { console.error('snapshot failed', err?.message); return res.status(500).json({ error: 'Snapshot failed' }); }
+    }
+    if (req.body?.action === 'restore') {
+      if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
+      try {
+        const r = await storeRestore(String(req.body.path || ''), { sections: req.body.sections, user: auth.user.u });
+        if (r.error) return res.status(r.status || 400).json({ error: r.error });
+        return res.status(200).json(r);
+      } catch (err) { console.error('restore failed', err?.message); return res.status(500).json({ error: 'Restore failed' }); }
     }
 
     // ── Stock movement ────────────────────────────────────────────────────
@@ -1009,11 +1050,28 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
     try {
-      const sections = await readAll();
-      return res.status(200).json({ ok: true, user: auth.user, sections, at: new Date().toISOString() });
+      const { rev, sections } = await readAll();
+      return res.status(200).json({ ok: true, user: auth.user, rev, sections, at: new Date().toISOString() });
     } catch (err) {
       console.error('state read failed', err?.message);
       return res.status(500).json({ error: 'Could not load dashboard data' });
+    }
+  }
+  if (['usage', 'backups', 'backup', 'history'].includes(req.query.action)) {
+    res.setHeader('Cache-Control', 'no-store');
+    if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
+    try {
+      if (req.query.action === 'usage') return res.status(200).json({ ok: true, ...(await storeUsage()) });
+      if (req.query.action === 'backups') return res.status(200).json({ ok: true, backups: await listBackups() });
+      if (req.query.action === 'backup') {
+        const doc = await readBackup(String(req.query.path || ''));
+        if (!doc) return res.status(404).json({ error: 'Backup not found' });
+        return res.status(200).json({ ok: true, path: req.query.path, rev: doc.rev || 0, counts: countsOf(doc) });
+      }
+      return res.status(200).json({ ok: true, entries: await historyFor({ id: req.query.id, section: req.query.section, limit: req.query.limit }) });
+    } catch (err) {
+      console.error(req.query.action, 'failed', err?.message);
+      return res.status(500).json({ error: 'Could not load' });
     }
   }
   if (req.query.action === 'whoami') {

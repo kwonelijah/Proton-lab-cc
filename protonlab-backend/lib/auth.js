@@ -73,6 +73,40 @@ export async function checkLogin(u, password) {
   return ok && user ? { u: user.u, role: user.role || 'owner', sv: user.sv || 1 } : null;
 }
 
+// ─── Login throttle ──────────────────────────────────────────────────────────
+// In memory per function instance (no Blob ops, so failed logins can never
+// eat the storage budget): 5 failures per IP or per username in 15 minutes →
+// 429 until the window clears. On top of the ~800 ms delay per failure.
+export const THROTTLE = { max: 5, windowMs: 15 * 60 * 1000 };
+const fails = new Map();   // key → [timestamps]
+export function clientIp(req) {
+  const xf = String(req.headers?.['x-forwarded-for'] || '').split(',')[0].trim();
+  return xf || String(req.headers?.['x-real-ip'] || '') || 'unknown';
+}
+const throttleKeys = (req, u) => [`ip:${clientIp(req)}`, `u:${String(u || '').trim().toLowerCase()}`];
+function recent(key, now) {
+  const list = (fails.get(key) || []).filter((t) => now - t < THROTTLE.windowMs);
+  if (list.length) fails.set(key, list); else fails.delete(key);
+  return list;
+}
+// → seconds to wait, or 0
+export function loginRetryAfter(req, u, now = Date.now()) {
+  let wait = 0;
+  for (const k of throttleKeys(req, u)) {
+    const list = recent(k, now);
+    if (list.length >= THROTTLE.max) wait = Math.max(wait, Math.ceil((list[0] + THROTTLE.windowMs - now) / 1000));
+  }
+  return wait;
+}
+export function recordLoginFailure(req, u, now = Date.now()) {
+  if (fails.size > 5000) fails.clear();   // memory guard against key spraying
+  for (const k of throttleKeys(req, u)) fails.set(k, recent(k, now).concat(now));
+}
+export function clearLoginFailures(req, u) {
+  for (const k of throttleKeys(req, u)) fails.delete(k);
+}
+export function _resetThrottle() { fails.clear(); }
+
 // ─── Sessions ────────────────────────────────────────────────────────────────
 
 function secret() {
@@ -98,6 +132,7 @@ export function readSessionToken(token, now = Date.now()) {
   let s;
   try { s = JSON.parse(fromB64u(payload).toString('utf8')); } catch { return null; }
   if (!s || typeof s.exp !== 'number' || s.exp < now) return null;
+  if (s.exp > now + SESSION_DAYS * 864e5 + 60e3) return null;   // never longer than a fresh session
   // The user must still exist with the same session version — removing a user
   // or bumping `sv` in DASHBOARD_USERS revokes their cookies immediately.
   const user = findUser(s.u);

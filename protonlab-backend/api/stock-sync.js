@@ -21,7 +21,7 @@ import Stripe from 'stripe';
 import { Resend } from 'resend';
 import { applyAndCommit } from '../lib/stock.js';
 import { decodeItems, hasItems } from '../lib/order-items.js';
-import { backupAll } from '../lib/dashboard-store.js';
+import { backupAll, measureStorage } from '../lib/dashboard-store.js';
 import { isStoreConfigured } from '../lib/bank-orders.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -97,7 +97,10 @@ export default async function handler(req, res) {
   // dashboard/backups/YYYY-MM-DD/, 30 days kept. Never blocks the stock sync.
   let backup = null;
   if (!dryRun && isStoreConfigured()) {
-    try { backup = await backupAll(); }
+    try {
+      backup = await backupAll();
+      if (new Date().getUTCDay() === 0) backup.storage = await measureStorage();   // weekly storage total for the usage meter
+    }
     catch (err) { console.error('dashboard backup failed', err?.message); backup = { error: String(err?.message || err).slice(0, 200) }; }
   }
 

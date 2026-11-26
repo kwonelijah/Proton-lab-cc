@@ -5,7 +5,7 @@
    business data itself is cached by the sync layer in localStorage; API
    calls are never cached here. A redirect to /login (signed out) is never
    stored over a good copy. */
-const CACHE = "pl-shell-v1";
+const CACHE = "pl-shell-v2";
 const SHELL = ["/dashboard", "/sync-layer.js", "/manifest.json", "/icon.png"];
 
 self.addEventListener("install", (e) => {
@@ -27,12 +27,14 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin === location.origin && url.pathname.startsWith("/api/")) return;   // data: never cached here
-  const shell = url.origin === location.origin && (SHELL.includes(url.pathname) || req.mode === "navigate");
+  /* Only the dashboard shell — never /login or anything else, so a signed-out
+     device holds nothing of the dashboard's. */
+  const shell = url.origin === location.origin && SHELL.includes(url.pathname);
   if (!shell && !isFont(url)) return;
 
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
-    const key = req.mode === "navigate" && url.pathname === "/dashboard" ? "/dashboard" : req;
+    const key = url.pathname === "/dashboard" ? "/dashboard" : req;
     try {
       const res = await fetch(req);
       // Only store real pages — never the 302 → /login or an error.
