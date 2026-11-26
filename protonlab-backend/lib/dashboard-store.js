@@ -37,7 +37,11 @@ export const MAX_STATE_BYTES = 3.5 * 1024 * 1024;           // under Vercel's 4.
 export const HISTORY_MAX = 4000;
 export const HISTORY_MAX_BYTES = 600 * 1024;
 // Vercel Blob, Hobby plan (docs 2026-09-23). Over any of these → Blob blocked for 30 days.
-export const LIMITS = { storageBytes: 1e9, reads: 10000, writes: 2000, transferBytes: 10e9 };
+// Storage is per account: the PUBLIC store proton-lab-cc-blob (site media,
+// ~113 MB on 2026-11-26) shares the 1 GB, and this code can only list the
+// private store — so its size is reserved here (BLOB_OTHER_STORES_BYTES).
+const OTHER_STORES_BYTES = Number(process.env.BLOB_OTHER_STORES_BYTES || 120e6);
+export const LIMITS = { storageBytes: 1e9 - OTHER_STORES_BYTES, reads: 10000, writes: 2000, transferBytes: 10e9 };
 
 const OPTS = { access: 'private', contentType: 'application/json', addRandomSuffix: false, cacheControlMaxAge: 60 };
 export const isSection = (s) => SECTIONS.includes(s);
