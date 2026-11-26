@@ -755,6 +755,18 @@
   .card,.card .row{min-width:0}
   .card .row{row-gap:6px}
   .kpi,.td-item,.pl-contact>div{min-width:0;overflow-wrap:anywhere}
+  /* sidebar show/hide (top-left, Ctrl-Cmd-S) */
+  .pl-side-toggle{display:none}
+  body:not(.pl-phone):not(.solo) .pl-side-toggle{display:grid;place-items:center;position:fixed;top:14px;left:14px;z-index:45;width:36px;height:36px;
+    padding:0;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text-muted);cursor:pointer}
+  .pl-side-toggle:hover{background:var(--surface-hover);color:var(--text-strong)}
+  .pl-side-toggle svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+  body:not(.pl-phone):not(.solo) .pl-side{padding-top:16px;transition:transform 220ms var(--ease),visibility 0s}
+  .pl-side-logo{padding:2px 10px 24px 44px}
+  body:not(.pl-phone):not(.solo){transition:padding-left 220ms var(--ease)}
+  body.pl-side-closed:not(.pl-phone):not(.solo){padding-left:0}
+  body.pl-side-closed:not(.pl-phone):not(.solo) .pl-side{transform:translateX(-100%);visibility:hidden;transition:transform 220ms var(--ease),visibility 0s 220ms}
+  body.pl-side-closed:not(.pl-phone):not(.solo) header{padding-left:62px}
   .pl-today{background:var(--signal)}   /* "now" line, as in Calendar */
   @media (prefers-reduced-motion: reduce){ *,*::before,*::after{transition-duration:0s!important;animation-duration:0s!important} }
 
@@ -7161,6 +7173,17 @@ plApplyMode();
   const t = document.getElementById("plTitle");
   const name = (v)=> NAMES[v] || "";
   const paint = ()=>{ document.body.dataset.view = view; if(t) t.textContent = name(view); document.title = (name(view)? name(view)+" · " : "") + "Proton Lab"; };
+  /* sidebar show/hide — remembered on this device */
+  const KEY = "pl_side_closed";
+  const tg = document.createElement("button"); tg.type = "button"; tg.id = "plSideToggle"; tg.className = "pl-side-toggle";
+  tg.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="M9.5 5v14"/></svg>';
+  const applySide = (closed)=>{ document.body.classList.toggle("pl-side-closed", closed); const l = closed? "Show sidebar" : "Hide sidebar";
+    tg.setAttribute("aria-label", l); tg.setAttribute("aria-expanded", String(!closed)); tg.title = l + " (Ctrl-\u2318-S)"; };
+  let sideClosed = false; try{ sideClosed = localStorage.getItem(KEY)==="1"; }catch(e){}
+  applySide(sideClosed);
+  tg.onclick = ()=>{ sideClosed = !sideClosed; try{ localStorage.setItem(KEY, sideClosed? "1" : "0"); }catch(e){} applySide(sideClosed); };
+  document.body.appendChild(tg);
+  document.addEventListener("keydown", (e)=>{ if(e.ctrlKey && e.metaKey && e.key.toLowerCase()==="s"){ e.preventDefault(); tg.click(); } });
   const prev = setView;
   setView = function(v){ prev(v); paint(); };
   paint();

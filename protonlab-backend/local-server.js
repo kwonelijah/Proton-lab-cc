@@ -38,6 +38,25 @@ function loadDotEnvLocal() {
 }
 loadDotEnvLocal();
 if (!process.env.SITE_URL) process.env.SITE_URL = 'http://localhost:3000';
+
+// No sign-in on localhost (Elijah, 2026-11-26). This server only ever runs on
+// the Mac and is never deployed, so the hosted dashboard keeps its login: every
+// request here gets a session cookie for a local-only owner whose password hash
+// can never match, and /login redirects to /dashboard. LOCAL_REQUIRE_LOGIN=1
+// turns the real sign-in back on for testing it.
+const LOCAL_NO_LOGIN = process.env.LOCAL_REQUIRE_LOGIN !== '1';
+const LOCAL_USER = { u: 'local', role: 'owner', sv: 1 };
+if (LOCAL_NO_LOGIN) {
+  if ((process.env.SESSION_SECRET || '').length < 32) {
+    process.env.SESSION_SECRET = (await import('node:crypto')).randomBytes(32).toString('hex');
+  }
+  let users = [];
+  try { users = JSON.parse(process.env.DASHBOARD_USERS || '[]'); } catch { users = []; }
+  if (!Array.isArray(users)) users = [];
+  if (!users.some((x) => x && x.u === LOCAL_USER.u)) users.push({ ...LOCAL_USER, hash: 'local-no-login' });
+  process.env.DASHBOARD_USERS = JSON.stringify(users);
+  console.log('Dashboard sign-in: OFF on localhost (LOCAL_REQUIRE_LOGIN=1 to turn it on)');
+}
 if (process.env.LOCAL_MOCK_BLOB === '1') {
   register('./test/hooks-blob.mjs', import.meta.url);
   if (!process.env.BLOB_READ_WRITE_TOKEN) process.env.BLOB_READ_WRITE_TOKEN = 'local-mock';
@@ -48,6 +67,14 @@ const { default: checkoutHandler } = await import('./api/create-checkout-session
 const { default: bankOrderHandler } = await import('./api/bank-transfer-order.js');
 const { default: adminHandler } = await import('./api/admin.js');
 const { default: analyticsHandler } = await import('./api/analytics.js');
+const { makeSessionToken, COOKIE } = await import('./lib/auth.js');
+
+// Replace any pl_session cookie on the request with a fresh local-owner one.
+function signInLocally(req) {
+  const others = String(req.headers.cookie || '').split(';').map((s) => s.trim())
+    .filter((s) => s && !s.startsWith(COOKIE + '='));
+  req.headers.cookie = [...others, `${COOKIE}=${makeSessionToken(LOCAL_USER)}`].join('; ');
+}
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -116,7 +143,10 @@ const server = http.createServer(async (req, res) => {
 
   // Hosted-dashboard rewrites (mirror vercel.json).
   const VIEWS = { '/dashboard': 'app', '/login': 'login', '/sw.js': 'sw', '/sync-layer.js': 'sync', '/today.js': 'today', '/manifest.json': 'manifest', '/icon.png': 'icon' };
-  if (url.pathname === '/') { res.statusCode = 302; res.setHeader('Location', '/dashboard'); return res.end(); }
+  if (url.pathname === '/' || (LOCAL_NO_LOGIN && url.pathname === '/login')) {
+    res.statusCode = 302; res.setHeader('Location', '/dashboard'); return res.end();
+  }
+  if (LOCAL_NO_LOGIN) signInLocally(req);
   const view = VIEWS[url.pathname];
   if (view) url.searchParams.set('view', view);
 
