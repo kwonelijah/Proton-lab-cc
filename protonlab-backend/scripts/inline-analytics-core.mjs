@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const dash = process.argv[2] || path.join(process.env.HOME || '', 'Desktop/Proton Dashboard/order-dashboard.html');
+const dash = process.argv[2] || new URL('../dashboard/analytics.js', import.meta.url).pathname;   // the Analytics tab code (lazy-loaded by the hosted dashboard since 2026-11-27)
 const src = fs.readFileSync(new URL('../lib/analytics-core.cjs', import.meta.url), 'utf8');
 if (/<\/script/i.test(src) || /<!--/.test(src)) { console.error('refusing: the core contains </script> or <!--'); process.exit(1); }
 

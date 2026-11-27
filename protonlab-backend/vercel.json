@@ -57,6 +57,10 @@
       "destination": "/api/admin?view=evri"
     },
     {
+      "source": "/analytics.js",
+      "destination": "/api/admin?view=analytics"
+    },
+    {
       "source": "/manifest.json",
       "destination": "/api/admin?view=manifest"
     },

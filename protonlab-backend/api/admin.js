@@ -446,6 +446,7 @@ const VIEW_FILES = {
   sync: { file: 'sync-layer.js', type: 'text/javascript; charset=utf-8' },
   today: { file: '../lib/today.cjs', type: 'text/javascript; charset=utf-8' },
   evri: { file: '../lib/evri-match.cjs', type: 'text/javascript; charset=utf-8' },
+  analytics: { file: 'analytics.js', type: 'text/javascript; charset=utf-8', auth: true },   // the Analytics tab, loaded on demand
   manifest: { file: 'manifest.json', type: 'application/manifest+json' },
   icon: { file: 'icon.png', type: 'image/png', binary: true },
 };
@@ -473,7 +474,7 @@ function serveView(req, res, view) {
     return res.status(302).send('');
   }
   if (view === 'sw') res.setHeader('Service-Worker-Allowed', '/');
-  if (view === 'sw' || view === 'sync' || view === 'today' || view === 'evri') res.setHeader('Cache-Control', 'no-cache');
+  if (view === 'sw' || view === 'sync' || view === 'today' || view === 'evri' || view === 'analytics') res.setHeader('Cache-Control', 'no-cache');
   if (view === 'icon' || view === 'manifest') res.setHeader('Cache-Control', 'public, max-age=86400');
   res.setHeader('Content-Type', v.type);
   return res.status(200).send(readView(v.file, v.binary));
@@ -510,7 +511,7 @@ async function handleLogin(req, res) {
 
 // The order feed (Stripe + bank-transfer orders, split awaiting/dispatched)
 // — the dashboard's JSON feed and the morning Today digest (api/stock-sync.js).
-export async function buildFeed(days = 60, { lookupContacts = true } = {}) {
+export async function buildFeed(days = 60, { lookupContacts = true, window = 0 } = {}) {
   const sinceTs = Math.floor(Date.now() / 1000) - days * 86400;
 
   let payments;
@@ -587,6 +588,25 @@ export async function buildFeed(days = 60, { lookupContacts = true } = {}) {
     }
   }
 
+  // Speed (2026-11-27): the dashboard asks for a year (so revenue totals are
+  // whole) but only needs RECENT finished retail orders on screen. With
+  // `window`, retail orders dispatched / refunded longer ago than that are
+  // dropped after the year's retail total is taken; club orders are all kept
+  // (their club pages total each order window). Contact lookups then run only
+  // on what is returned.
+  const isClub = (o) => !!o.clubHandle || (!!o.club && o.club !== 'Proton Lab' && o.club !== 'N/A');
+  const totals = { retailRevenue: 0, retailOrders: 0, days };
+  for (const o of awaiting.concat(dispatched)) if (!isClub(o)) { totals.retailRevenue += Number(o.amount) || 0; totals.retailOrders++; }
+  totals.retailRevenue = Math.round(totals.retailRevenue * 100) / 100;
+  let shown = { dispatched, refunded };
+  if (window > 0) {
+    const cutoff = new Date(Date.now() - window * 86400e3).toISOString();
+    const recent = (o, when) => isClub(o) || String(when || o.date || '') >= cutoff;
+    shown = { dispatched: dispatched.filter((o) => recent(o, o.dispatchedAt)), refunded: refunded.filter((o) => recent(o, o.refundedAt)) };
+  }
+  const keep = new Set(awaiting.concat(shown.dispatched, shown.refunded));
+  needLookup.splice(0, needLookup.length, ...needLookup.filter((e) => keep.has(e)));
+
   // The email/phone the customer types on the Stripe hosted page live on the
   // Checkout Session (customer_details), not the PaymentIntent — look them up
   // for entries still missing contact details. Batched to bound latency; the
@@ -608,7 +628,22 @@ export async function buildFeed(days = 60, { lookupContacts = true } = {}) {
     );
   }
 
-  return { awaiting, dispatched, refunded, bank, since: days };
+  return { awaiting, dispatched: shown.dispatched, refunded: shown.refunded, bank, since: days, window: window || null, totals };
+}
+
+// 60-second per-instance cache of the JSON feed (2026-11-27): repeat opens
+// reuse the last Stripe read. Any POST (dispatch, status, update-order,
+// mark-paid, mark-returned, cancel…) clears it, so a change is never hidden.
+const FEED_TTL_MS = 60_000;
+const feedCache = new Map();
+export function clearFeedCache() { feedCache.clear(); }
+async function cachedFeed(days, window) {
+  const k = `${days}:${window}`;
+  const hit = feedCache.get(k);
+  if (hit && Date.now() - hit.at < FEED_TTL_MS) return { ...hit.feed, cached: true };
+  const feed = await buildFeed(days, { window });
+  feedCache.set(k, { at: Date.now(), feed });
+  return feed;
 }
 
 // Refund state from the expanded latest charge: 'full' | 'partial' | null,
@@ -664,6 +699,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    clearFeedCache();
     // ── Invoice from the Mac folder watch (2026-11-27) ──────────────────
     // POST ?action=invoice-upload, body = the PDF, X-Invoice = JSON
     // {no, total, date, client, billTo}. One clear deal (by club name) →
@@ -1398,14 +1434,15 @@ export default async function handler(req, res) {
   }
 
   const days = /^\d+$/.test(req.query.since || '') ? Number(req.query.since) : 60;
+  const window = Math.min(Math.max(parseInt(req.query.window, 10) || 0, 0), days);
   let feed;
-  try { feed = await buildFeed(days); }
+  try { feed = req.query.format === 'json' ? await cachedFeed(days, window) : await buildFeed(days); }
   catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
-  const { awaiting, dispatched, refunded, bank } = feed;
+  const { awaiting, dispatched, refunded, bank, totals } = feed;
 
   res.setHeader('Cache-Control', 'no-store');
   if (req.query.format === 'json') {
-    return res.status(200).json({ awaiting, dispatched, refunded, since: days, capabilities: ADMIN_CAPABILITIES, bank });
+    return res.status(200).json({ awaiting, dispatched, refunded, since: days, window: window || null, totals, cached: !!feed.cached, capabilities: ADMIN_CAPABILITIES, bank });
   }
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   // The legacy HTML admin page is for the shared key only — a session-cookie

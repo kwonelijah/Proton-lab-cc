@@ -97,3 +97,37 @@ test('markAlerted: true once per key', async () => {
   assert.equal(await store.markAlerted('usage-70:2026-11'), true);
   assert.equal(await store.markAlerted('usage-70:2026-11'), false);
 });
+
+test('feed window: old finished retail orders dropped (club orders kept), year totals intact', async () => {
+  reset();
+  const day = 86400;
+  globalThis.__stripe.pis.push(
+    pi('pi_new', { metadata: { dispatched_at: new Date(Date.now() - 5 * day * 1000).toISOString() } }),
+    pi('pi_old', { created: now - 200 * day, metadata: { dispatched_at: new Date(Date.now() - 190 * day * 1000).toISOString() } }),
+    pi('pi_oldclub', { created: now - 200 * day, metadata: { club: 'UCL CC', club_handle: 'ucl', dispatched_at: new Date(Date.now() - 190 * day * 1000).toISOString() } }),
+    pi('pi_wait', { created: now - 150 * day }),
+  );
+  const f = await buildFeed(365, { lookupContacts: false, window: 90 });
+  assert.deepEqual(f.dispatched.map((o) => o.id).sort(), ['pi_new', 'pi_oldclub']);
+  assert.deepEqual(f.awaiting.map((o) => o.id), ['pi_wait'], 'awaiting orders are never trimmed');
+  assert.deepEqual([f.totals.retailOrders, f.totals.retailRevenue], [3, 135], 'the year total still counts the trimmed retail order');
+  const all = await buildFeed(365, { lookupContacts: false });
+  assert.equal(all.dispatched.length, 3, 'no window → everything');
+});
+
+test('JSON feed: cached for 60 s per instance, any POST clears it', async () => {
+  reset();
+  const { clearFeedCache } = await import('../api/admin.js');
+  clearFeedCache();
+  globalThis.__stripe.pis.push(pi('pi_1'));
+  const q = { key: 'k', format: 'json', since: '365', window: '90' };
+  const a = await call(adminHandler, { method: 'GET', query: q });
+  assert.equal(a.body.cached, false);
+  globalThis.__stripe.pis.push(pi('pi_2'));
+  const b = await call(adminHandler, { method: 'GET', query: q });
+  assert.equal(b.body.cached, true); assert.equal(b.body.awaiting.length, 1, 'served from the cache');
+  await call(adminHandler, { method: 'POST', query: { key: 'k' }, body: { action: 'mark-returned', pi: 'bad' } });
+  const c = await call(adminHandler, { method: 'GET', query: q });
+  assert.equal(c.body.cached, false); assert.equal(c.body.awaiting.length, 2);
+  assert.equal(c.body.window, 90); assert.ok(c.body.totals);
+});
