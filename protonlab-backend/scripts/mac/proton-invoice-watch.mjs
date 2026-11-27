@@ -5,7 +5,7 @@
 // builder's sidecar <name>.json (or from the PDF text via pdftotext); POSTs
 // it to /api/admin?action=invoice-upload, which attaches it to the matching
 // deal (or lists it on Today as "Invoices to link").
-// Run by launchd (com.protonlab.invoices, every 5 minutes).
+// Run by launchd (com.protonlab.invoices, once a day at 21:35).
 //   --baseline   mark every invoice already on disk as sent (install.sh does this once)
 //   --dry-run    show what would be sent
 import fs from 'node:fs';

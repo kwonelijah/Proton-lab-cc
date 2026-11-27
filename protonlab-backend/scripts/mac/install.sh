@@ -2,7 +2,7 @@
 # scripts/mac/install.sh — sets up the two Mac helpers (run in Terminal):
 #   com.protonlab.backup    21:30 daily — download the dashboard backup to
 #                           ~/Desktop/Proton /Backups/Dashboard/dashboard-YYYY-MM-DD.json
-#   com.protonlab.invoices  every 5 min — upload new invoices from
+#   com.protonlab.invoices  21:35 daily — upload new invoices from
 #                           ~/Desktop/Proton /Custom Orders/<Client>/Invoices/
 # The key never appears on screen or in a file: it is created here, stored in
 # the macOS Keychain and copied to the clipboard once for Vercel.
@@ -57,7 +57,7 @@ PLIST
 }
 write_plist com.protonlab.backup '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>21</integer><key>Minute</key><integer>30</integer></dict>' proton-backup.mjs
 "$NODE" "$BIN/proton-invoice-watch.mjs" --baseline   # existing invoices are NOT uploaded
-write_plist com.protonlab.invoices '<key>StartInterval</key><integer>300</integer><key>RunAtLoad</key><true/>' proton-invoice-watch.mjs
+write_plist com.protonlab.invoices '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>21</integer><key>Minute</key><integer>35</integer></dict>' proton-invoice-watch.mjs   # once a day (Elijah, 2026-11-27)
 
 echo "2) Background jobs installed: ${LABELS[*]}"
 echo "3) macOS only lets background jobs read the Desktop with Full Disk Access."
