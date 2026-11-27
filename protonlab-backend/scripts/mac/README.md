@@ -9,7 +9,7 @@ Two small background jobs on Elijah's Mac, installed by `zsh scripts/mac/install
 
 Both authenticate with `DASHBOARD_MAC_KEY`: created by the installer, kept in the macOS Keychain (`proton-dashboard-mac`), copied to the clipboard once for Vercel. On the server that key can only list/download backups and upload invoices (`api/admin.js`, after the gate).
 
-The installer copies the scripts to `~/Library/Application Support/ProtonLab/bin/`, so the jobs keep working if this checkout moves. Re-run it after changing them. macOS needs Full Disk Access for the `node` binary (the installer prints the path) because the jobs read the Desktop.
+The installer copies the scripts to `~/Library/Application Support/ProtonLab/bin/`, so the jobs keep working if this checkout moves. Re-run it after changing them. The jobs run on a private copy of Node (`~/Library/Application Support/ProtonLab/bin/proton-node`); macOS Full Disk Access is granted to that copy only (the jobs read the Desktop), so the everyday nvm `node` stays restricted.
 
 By hand: `node scripts/mac/proton-backup.mjs` · `node scripts/mac/proton-invoice-watch.mjs --dry-run` · logs in `~/Library/Logs/`. Remove: `zsh scripts/mac/install.sh --uninstall`.
 

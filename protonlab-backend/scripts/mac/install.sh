@@ -19,9 +19,14 @@ if [[ "$1" == "--uninstall" ]]; then
   exit 0
 fi
 
-NODE=$(command -v node) || { echo "Node.js isn't installed (brew install node)"; exit 1; }
+SYS_NODE=$(command -v node) || { echo "Node.js isn't installed (brew install node)"; exit 1; }
 mkdir -p "$BIN" "$AGENTS" "$HOME/Library/Logs"
 cp "$HERE/lib.mjs" "$HERE/proton-backup.mjs" "$HERE/proton-invoice-watch.mjs" "$BIN/"
+# A private copy of Node just for these jobs (2026-11-27): Full Disk Access is
+# granted to THIS file only, so the everyday node (nvm — career-ops, Claude
+# Code tools, site builds) stays restricted; nvm upgrades don't break the jobs.
+NODE="$BIN/proton-node"
+cp "$SYS_NODE" "$NODE.new" && chmod 755 "$NODE.new" && mv -f "$NODE.new" "$NODE"
 
 if ! /usr/bin/security find-generic-password -s proton-dashboard-mac >/dev/null 2>&1; then
   KEY=$(/usr/bin/openssl rand -base64 64 | tr -dc 'A-Za-z0-9' | cut -c1-48)
@@ -55,7 +60,9 @@ write_plist com.protonlab.backup '<key>StartCalendarInterval</key><dict><key>Hou
 write_plist com.protonlab.invoices '<key>StartInterval</key><integer>300</integer><key>RunAtLoad</key><true/>' proton-invoice-watch.mjs
 
 echo "2) Background jobs installed: ${LABELS[*]}"
-echo "3) macOS only lets background jobs read the Desktop with Full Disk Access:"
+echo "3) macOS only lets background jobs read the Desktop with Full Disk Access."
+echo "   Give it to the PRIVATE copy only (not your everyday node):"
 echo "   System Settings → Privacy & Security → Full Disk Access → + → Cmd-Shift-G →"
 echo "   $NODE"
+echo "   (Re-running this installer replaces the copy — then switch it off and on again there.)"
 echo "   Logs: ~/Library/Logs/proton-backup.log and proton-invoices.log"
