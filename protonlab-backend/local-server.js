@@ -142,7 +142,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Hosted-dashboard rewrites (mirror vercel.json).
-  const VIEWS = { '/dashboard': 'app', '/login': 'login', '/sw.js': 'sw', '/sync-layer.js': 'sync', '/today.js': 'today', '/manifest.json': 'manifest', '/icon.png': 'icon' };
+  const VIEWS = { '/dashboard': 'app', '/login': 'login', '/sw.js': 'sw', '/sync-layer.js': 'sync', '/today.js': 'today', '/evri-match.js': 'evri', '/manifest.json': 'manifest', '/icon.png': 'icon' };
   if (url.pathname === '/' || (LOCAL_NO_LOGIN && url.pathname === '/login')) {
     res.statusCode = 302; res.setHeader('Location', '/dashboard'); return res.end();
   }

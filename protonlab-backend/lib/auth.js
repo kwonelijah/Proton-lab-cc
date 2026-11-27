@@ -170,6 +170,16 @@ export function clearCookie(req) {
 
 // → {ok:true, via:'session'|'key', user} or {ok:false, status, error}
 export function authorize(req) {
+  // The Mac helpers (scripts/mac/: nightly backup download, invoice folder
+  // watch) use their own key, sent as a Bearer header. A request carrying one
+  // is judged on that key alone (never on a cookie); api/admin.js then only
+  // lets it list/download backups and upload invoices (2026-11-27).
+  const bearer = String(req.headers?.authorization || '').replace(/^Bearer\s+/i, '');
+  if (bearer) {
+    const macKey = process.env.DASHBOARD_MAC_KEY;
+    if (macKey && macKey.length >= 32 && safeEqual(bearer, macKey)) return { ok: true, via: 'mac', user: { u: 'mac', role: 'mac' } };
+    return { ok: false, status: 403, error: 'Forbidden' };
+  }
   let session = null;
   try { session = getSession(req); } catch { session = null; }
   if (session) {

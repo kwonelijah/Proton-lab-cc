@@ -5,8 +5,8 @@
    business data itself is cached by the sync layer in localStorage; API
    calls are never cached here. A redirect to /login (signed out) is never
    stored over a good copy. */
-const CACHE = "pl-shell-v3";
-const SHELL = ["/dashboard", "/sync-layer.js", "/today.js", "/manifest.json", "/icon.png"];
+const CACHE = "pl-shell-v4";
+const SHELL = ["/dashboard", "/sync-layer.js", "/today.js", "/evri-match.js", "/manifest.json", "/icon.png"];
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();

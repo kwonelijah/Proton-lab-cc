@@ -86,8 +86,13 @@ import {
   snapshot as storeSnapshot,
   listBackups,
   readBackup,
+  readBackupText,
   restore as storeRestore,
   historyFor,
+  patchOrder,
+  invoiceDeal,
+  stateSnapshot,
+  patchMetaExported as patchStateMeta,
 } from '../lib/dashboard-store.js';
 import { uploadDoc, openDoc, trashDoc } from '../lib/docs.js';
 import { subscribe as pushSubscribe, unsubscribe as pushUnsubscribe, notifyAll, vapidConfigured, vapidPublicKey, deviceCount } from '../lib/push.js';
@@ -440,6 +445,7 @@ const VIEW_FILES = {
   sw: { file: 'sw.js', type: 'text/javascript; charset=utf-8' },
   sync: { file: 'sync-layer.js', type: 'text/javascript; charset=utf-8' },
   today: { file: '../lib/today.cjs', type: 'text/javascript; charset=utf-8' },
+  evri: { file: '../lib/evri-match.cjs', type: 'text/javascript; charset=utf-8' },
   manifest: { file: 'manifest.json', type: 'application/manifest+json' },
   icon: { file: 'icon.png', type: 'image/png', binary: true },
 };
@@ -467,7 +473,7 @@ function serveView(req, res, view) {
     return res.status(302).send('');
   }
   if (view === 'sw') res.setHeader('Service-Worker-Allowed', '/');
-  if (view === 'sw' || view === 'sync' || view === 'today') res.setHeader('Cache-Control', 'no-cache');
+  if (view === 'sw' || view === 'sync' || view === 'today' || view === 'evri') res.setHeader('Cache-Control', 'no-cache');
   if (view === 'icon' || view === 'manifest') res.setHeader('Cache-Control', 'public, max-age=86400');
   res.setHeader('Content-Type', v.type);
   return res.status(200).send(readView(v.file, v.binary));
@@ -627,7 +633,7 @@ export function refundInfo(p) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-PL');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-PL, X-Invoice, X-Doc-Type, Authorization');
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -649,7 +655,85 @@ export default async function handler(req, res) {
     return res.status(auth.status).json({ error: auth.error });
   }
 
+  // The Mac key (scripts/mac/) may only list/download backups and upload
+  // invoices — nothing else on this endpoint (2026-11-27).
+  if (auth.via === 'mac') {
+    const allowed = (req.method === 'GET' && (req.query.action === 'backups' || (req.query.action === 'backup' && req.query.download === '1')))
+      || (req.method === 'POST' && req.query.action === 'invoice-upload');
+    if (!allowed) return res.status(403).json({ error: 'Not allowed with the Mac key' });
+  }
+
   if (req.method === 'POST') {
+    // ── Invoice from the Mac folder watch (2026-11-27) ──────────────────
+    // POST ?action=invoice-upload, body = the PDF, X-Invoice = JSON
+    // {no, total, date, client, billTo}. One clear deal (by club name) →
+    // attached + invoice no / amount / sent date, unpaid; otherwise kept in
+    // meta.unmatchedInvoices for "Invoices to link" on Today. Re-sending the
+    // same number changes nothing.
+    if (req.query.action === 'invoice-upload') {
+      if (auth.via !== 'mac' && auth.via !== 'session') return res.status(403).json({ error: 'Not allowed' });
+      if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
+      let info;
+      try { info = JSON.parse(String(req.headers['x-invoice'] || '{}')); } catch { return res.status(400).json({ error: 'Bad X-Invoice header' }); }
+      const no = String(info.no || '').padStart(5, '0');
+      if (!/^\d{5}$/.test(no)) return res.status(400).json({ error: 'Invoice number must be 5 digits' });
+      const total = Number(info.total);
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(String(info.date || '')) ? info.date : new Date().toISOString().slice(0, 10);
+      const body = Buffer.isBuffer(req.body) ? req.body : null;
+      if (!body || body.slice(0, 4).toString() !== '%PDF') return res.status(400).json({ error: 'Body must be the invoice PDF' });
+      try {
+        const doc = await stateSnapshot();
+        const orders = doc.sections?.orders?.data || [];
+        const already = orders.find((o) => o && o.invoiceNo === no) || (doc.meta?.unmatchedInvoices || []).find((v) => v.no === no);
+        if (already) return res.status(200).json({ ok: true, duplicate: true, no, order: already.id || null });
+        const deal = invoiceDeal(orders, [info.client, info.billTo]);
+        const up = await uploadDoc({ orderId: deal ? deal.id : 'unmatched-invoices', name: `Invoice_${no}.pdf`, type: 'application/pdf', body });
+        if (up.error) return res.status(up.status || 400).json({ error: up.error });
+        const docEntry = { label: `Invoice ${no}`, link: `/api/admin?action=doc&path=${encodeURIComponent(up.path)}`,
+          blob: { path: up.path, size: up.size, type: up.type, name: up.name, at: new Date().toISOString(), by: auth.user.u } };
+        if (deal) {
+          const r = await patchOrder(deal.id, (o) => {
+            o.docs = Array.isArray(o.docs) ? o.docs : [];
+            o.docs.push(docEntry);
+            o.paidVia = 'invoice'; o.invoiceNo = no;
+            if (Number.isFinite(total)) o.invoiceAmount = total.toFixed(2);
+            o.invoiceSentDate = date;
+            if (!o.invoicePaidDate) o.invoicePaidDate = '';
+            o.updated = new Date().toISOString().slice(0, 10);
+          }, { user: auth.user.u });
+          if (r.error) return res.status(r.status || 500).json({ error: r.error });
+          return res.status(200).json({ ok: true, no, matched: true, order: deal.id, club: deal.club });
+        }
+        await patchStateMeta((meta) => {
+          meta.unmatchedInvoices = (meta.unmatchedInvoices || []).filter((v) => v.no !== no);
+          meta.unmatchedInvoices.push({ no, total: Number.isFinite(total) ? total : null, date, client: String(info.client || info.billTo || '').slice(0, 80), doc: docEntry });
+        });
+        return res.status(200).json({ ok: true, no, matched: false });
+      } catch (err) { console.error('invoice upload failed', err?.message); return res.status(500).json({ error: 'Invoice upload failed' }); }
+    }
+    // {action:'invoice-link', no, order} — Today's "choose the deal" for an
+    // unmatched invoice: attach it to that deal and clear it from the list.
+    if (req.body?.action === 'invoice-link') {
+      if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
+      const no = String(req.body.no || '');
+      try {
+        const doc = await stateSnapshot();
+        const v = (doc.meta?.unmatchedInvoices || []).find((x) => x.no === no);
+        if (!v) return res.status(404).json({ error: 'That invoice is no longer waiting' });
+        const r = await patchOrder(String(req.body.order || ''), (o) => {
+          o.docs = Array.isArray(o.docs) ? o.docs : [];
+          if (v.doc) o.docs.push(v.doc);
+          o.paidVia = 'invoice'; o.invoiceNo = no;
+          if (v.total != null) o.invoiceAmount = Number(v.total).toFixed(2);
+          o.invoiceSentDate = v.date;
+          if (!o.invoicePaidDate) o.invoicePaidDate = '';
+          o.updated = new Date().toISOString().slice(0, 10);
+        }, { user: auth.user.u });
+        if (r.error) return res.status(r.status || 500).json({ error: r.error });
+        await patchStateMeta((meta) => { meta.unmatchedInvoices = (meta.unmatchedInvoices || []).filter((x) => x.no !== no); });
+        return res.status(200).json({ ok: true, no, order: r.order.id });
+      } catch (err) { console.error('invoice link failed', err?.message); return res.status(500).json({ error: 'Could not link the invoice' }); }
+    }
     // ── Document upload (raw body ≤ 4 MB; lib/docs.js) ───────────────────
     // POST ?action=doc-upload&order=<id>&name=<file>, X-Doc-Type = the
     // file's MIME type, body = the file bytes (application/octet-stream).
@@ -1280,6 +1364,13 @@ export default async function handler(req, res) {
       if (req.query.action === 'usage') { const u = await storeUsage(); return res.status(200).json({ ok: true, ...u, level: usageLevel(u) }); }
       if (req.query.action === 'backups') return res.status(200).json({ ok: true, backups: await listBackups() });
       if (req.query.action === 'backup') {
+        if (req.query.download === '1') {
+          const text = await readBackupText(String(req.query.path || ''));
+          if (!text) return res.status(404).json({ error: 'Backup not found' });
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
+          return res.status(200).send(text);
+        }
         const doc = await readBackup(String(req.query.path || ''));
         if (!doc) return res.status(404).json({ error: 'Backup not found' });
         return res.status(200).json({ ok: true, path: req.query.path, rev: doc.rev || 0, counts: countsOf(doc) });

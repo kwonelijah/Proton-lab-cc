@@ -864,6 +864,12 @@
   .pl-subnav[hidden]{display:none!important}
   body.pl-phone .pl-subnav{width:100%;display:flex} body.pl-phone .pl-subnav button{flex:1;min-height:36px}
   body:is([data-view="today"],[data-view="overview"],[data-view="analytics"],[data-view="stock"],[data-view="planner"]) .toolbar #search{display:none}
+  .ev-unmatched .ev-st,.ev-failed .ev-st{color:var(--signal);font-weight:600} .ev-match .ev-st{font-weight:600} .ev-dispatched td,.ev-no-tracking td{color:var(--text-muted)}
+  .pl-inv-filter{width:100%;margin:4px 0 8px}
+  .pl-inv-list{display:flex;flex-direction:column;gap:2px;max-height:55vh;overflow:auto}
+  .pl-inv-deal{all:unset;cursor:pointer;display:flex;justify-content:space-between;gap:10px;padding:12px 10px;border-radius:10px;min-height:24px}
+  .pl-inv-deal:hover,.pl-inv-deal:focus-visible{background:var(--surface-muted)} .pl-inv-deal span{color:var(--text-muted);font-size:13px}
+  .pl-inv-deal[hidden]{display:none}
   .pl-today{background:var(--signal)}   /* "now" line, as in Calendar */
   @media (prefers-reduced-motion: reduce){ *,*::before,*::after{transition-duration:0s!important;animation-duration:0s!important} }
 
@@ -947,6 +953,8 @@
       <div class="field"><label>Order value (£) <span class="hint" id="f_valueHint">revenue</span></label><input id="f_value" type="number" min="0" step="0.01" placeholder="0"></div>
       <h4 class="f-sect">Payment <span class="hint" id="f_paidHint">How Proton was paid; Analytics counts bank transfers from here</span></h4>
       <div class="field"><label>Paid via</label><select id="f_paidvia"><option value="">— not recorded</option><option value="stripe">Club shop (Stripe)</option><option value="invoice">Invoice · bank transfer</option></select></div>
+      <div class="field pay-inv"><label>Invoice no. <span class="hint">filled in when the invoice PDF is uploaded from the Mac</span></label><input id="f_invoiceno" inputmode="numeric" placeholder="e.g. 00035"></div>
+      <div class="field pay-inv"><label>Invoice sent on</label><input id="f_invoicesent" type="date"></div>
       <div class="field pay-inv"><label>Invoice amount (£) <span class="hint">received by bank transfer</span></label><input id="f_invoiceamount" type="number" min="0" step="0.01" placeholder="0"></div>
       <div class="field pay-inv"><label>Invoice paid on <span class="hint">blank = still outstanding (not counted yet)</span></label><input id="f_invoicedate" type="date"></div>
       <h4 class="f-sect">Costs</h4>
@@ -1172,6 +1180,7 @@
 <datalist id="wsClubNames"></datalist>
 
 <script src="/today.js" defer></script>
+<script src="/evri-match.js" defer></script>
 <script src="/sync-layer.js" defer></script>
 <script type="text/plain" id="pl-app">
 /* Monochrome stage ramp — light grey (early) → black (delivered) = pipeline progression */
@@ -1748,7 +1757,7 @@ function paidLabel(o){ return !o||!o.paidVia? "—" : o.paidVia==="stripe"? "Clu
 function paidTag(o){
   if(!o||!o.paidVia) return "";
   if(o.paidVia==="stripe") return `<span class="tag shop" title="Members paid through the club shop (Stripe)">Club shop</span>`;
-  return `<span class="tag invoice" title="${o.invoicePaidDate? "Bank transfer received "+fmtDate(o.invoicePaidDate) : "Invoice outstanding — not counted until a paid date is set"}">Bank transfer ${gbp(invoiceAmountOf(o))}${o.invoicePaidDate? "" : " · unpaid"}</span>`;
+  return `<span class="tag invoice" title="${o.invoicePaidDate? "Bank transfer received "+fmtDate(o.invoicePaidDate) : "Invoice outstanding — not counted until a paid date is set"}">${o.invoiceNo? "Invoice "+esc(o.invoiceNo)+" · " : "Bank transfer "}${gbp(invoiceAmountOf(o))}${o.invoicePaidDate? "" : " · unpaid"}</span>`;
 }
 /* Stripe money behind a pipeline order: the aggregate of its linked club
    window (or the club's current window). null until the feed has loaded or
@@ -2169,7 +2178,7 @@ function openModal(id){
   set("f_club",o.club);set("f_contact",o.contact);set("f_email",o.email);
   set("f_source",o.source||"They reached out");set("f_stage",o.stage||"contact");
   set("f_type",o.type||"");set("f_wsclub",o.webshopClub);set("f_qty",o.qty);set("f_value",o.value);set("f_cost",o.cost);set("f_designfee",o.designFee);set("f_postevri",o.postageEvri);set("f_freight",o.freightCost);set("f_intlparcels",o.intlParcelsCost);
-  set("f_paidvia",o.paidVia||"");set("f_invoiceamount",o.invoiceAmount);set("f_invoicedate",o.invoicePaidDate||"");
+  set("f_paidvia",o.paidVia||"");set("f_invoiceamount",o.invoiceAmount);set("f_invoicedate",o.invoicePaidDate||"");set("f_invoiceno",o.invoiceNo||"");set("f_invoicesent",o.invoiceSentDate||"");
   set("f_design",o.design);set("f_factory",o.factoryOrder);set("f_tracking",o.tracking);set("f_nextdate",o.nextDate);
   { const p=o.parcel||{}, a=p.addr||{};
     document.getElementById("f_shipws").checked=!!o.shipViaWebshop;
@@ -2209,7 +2218,7 @@ async function saveOrder(){
     stage:get("f_stage"),type:get("f_type"),webshopClub:get("f_wsclub").trim(),qty:get("f_qty"),value:get("f_value"),cost:get("f_cost"),designFee:get("f_designfee"),postageEvri:get("f_postevri"),freightCost:get("f_freight"),intlParcelsCost:get("f_intlparcels"),postageEvriAuto:postageIsAuto(),
     design:get("f_design"),factoryOrder:get("f_factory").trim(),tracking:get("f_tracking"),nextDate:get("f_nextdate"),
     next:get("f_next"),notes:get("f_notes"),
-    paidVia:get("f_paidvia"),invoiceAmount:get("f_invoiceamount"),invoicePaidDate:get("f_invoicedate"),
+    paidVia:get("f_paidvia"),invoiceAmount:get("f_invoiceamount"),invoicePaidDate:get("f_invoicedate"),invoiceNo:get("f_invoiceno").trim(),invoiceSentDate:get("f_invoicesent"),
     shipViaWebshop:document.getElementById("f_shipws").checked,
     parcel:{ name:get("f_shipname").trim(), phone:get("f_shipphone").trim(), service:get("f_shipservice"),
       addr:{ line1:get("f_shipline1").trim(), line2:get("f_shipline2").trim(), city:get("f_shipcity").trim(), postal_code:get("f_shippostal").trim(), country:(get("f_shipcountry")||"GB").toUpperCase() } },
@@ -2571,6 +2580,7 @@ function paintWebshop(){
       <button class="btn small" id="wsAddBtn">Add manual order</button>
       <button class="btn small" id="wsRetailCsvBtn" title="Every retail order with cost of goods, postage and profit">Retail CSV</button>
       <button class="btn small" id="wsCsvBtn"${selCount?"":" disabled"}>Evri CSV (${selCount})</button>
+      <button class="btn small ev-import" title="Read Evri's tracking CSV and dispatch the matching orders">Import tracking</button>
       <button class="btn small" id="wsRefreshBtn">Refresh</button>
       <button class="btn small" id="wsKeyBtn">${localStorage.getItem(WS_KEY_STORE)?"Change key":"Set key"}</button>
     </div>`;
@@ -3898,6 +3908,7 @@ function paintClubPage(wrap){
       <button class="btn small" id="csManualBtn" title="Record a member's order paid outside the shop — bank transfer, cash or a late payment — in this window">Add manual order</button>
       <button class="btn small" id="csSizesBtn"${agg.items.length?"":" disabled"} title="Download this window's size sheet — one row per product and size, Excel-ready">Sizes CSV</button>
       <button class="btn small" id="csEvriBtn"${selCount?"":" disabled"} title="Evri CSV for the selected member orders">Evri CSV (${selCount})</button>
+      <button class="btn small ev-import" title="Read Evri's tracking CSV and dispatch the matching orders">Import tracking</button>
       <button class="btn small" id="csRefreshBtn2">Refresh</button>
     </div>
     ${wins.length?`<div class="seg" id="csWinSeg" style="margin:0 0 14px">
@@ -6986,7 +6997,7 @@ function renderToday(){
     Promise.all([ (!ws.data && !ws.loading)? wsLoad() : null, (!clubShops)? wsLoadClubs() : null ])
       .finally(()=>{ plTodayLoading = false; if(view==="today") renderToday(); });
   }
-  const r = PLToday.todayItems({ orders, feed: ws.data, manual: manualOrders, clubs: clubShops && clubShops.clubs, windows: clubShopData.windows }, new Date());
+  const r = PLToday.todayItems({ orders, feed: ws.data, manual: manualOrders, clubs: clubShops && clubShops.clubs, windows: clubShopData.windows, unmatchedInvoices: plHealth && plHealth.unmatchedInvoices }, new Date());
   const head = `<div class="td-head"><div><div class="proton-eyebrow">${esc(new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"}))}</div>
       <h2 class="td-title">${r.total? esc(r.summary) : "All clear"}</h2></div>
       ${(ws.loading||plTodayLoading)? `<span class="proton-spec">loading orders…</span>` : ws.error? `<span class="proton-spec" title="${esc(ws.error)}">web-shop orders unavailable</span>` : ""}</div>`;
@@ -7422,6 +7433,107 @@ plApplyMode();
     else if(!e.shiftKey && (i===-1 || i===f.length-1)){ e.preventDefault(); f[0].focus(); }
   });
 })();
+
+/* ---------- Import tracking from Evri (2026-11-27) ----------
+   Evri's tracking CSV → match rows to orders (lib/evri-match.cjs, columns
+   detected, not assumed) → review → "Dispatch N orders" runs the normal
+   single dispatch for each (same emails + stamps; already-dispatched orders
+   are refused by the server, so nothing is sent twice). */
+document.addEventListener("click", (e)=>{ const b=e.target.closest && e.target.closest(".ev-import"); if(!b) return; e.preventDefault(); evImportStart(); });
+function evImportStart(){
+  const inp=document.createElement("input"); inp.type="file"; inp.accept=".csv,text/csv,text/plain";
+  inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>evImportReview(String(rd.result||""), f.name); rd.readAsText(f); };
+  inp.click();
+}
+async function evImportReview(text, fileName){
+  if(!window.PLEvri){ plToast("Import needs the hosted dashboard"); return; }
+  if(!ws.data && !ws.loading){ try{ await wsLoad(); }catch(e){} }
+  if(!ws.data){ plToast("Orders aren't loaded — open Orders and try again"); return; }
+  const rows=PLEvri.parseCSV(text), cols=PLEvri.detectColumns(rows);
+  if(cols.track<0 || cols.ref<0){ plToast(`Couldn't find a ${cols.track<0?"tracking":"reference"} column in ${fileName}`); return; }
+  const pool=(ws.data.awaiting||[]).concat(ws.data.dispatched||[]);
+  const byId=Object.fromEntries(pool.map(o=>[o.id,o]));
+  const res=PLEvri.matchRows(rows, cols, pool);
+  const head=cols.header? rows[0] : null;
+  const LABEL={match:"Ready", dispatched:"Already dispatched", unmatched:"Not found", ambiguous:"Unclear — choose", "no-tracking":"No tracking"};
+  let ov=document.getElementById("evImpOverlay");
+  if(!ov){ ov=document.createElement("div"); ov.className="overlay hidden"; ov.id="evImpOverlay"; document.body.appendChild(ov); }
+  const rowHTML=(x,i)=>{
+    const o=x.order? byId[x.order] : null;
+    const pick= x.status==="ambiguous"? `<select class="ev-pick" data-i="${i}"><option value="">Choose…</option>${x.candidates.map(id=>`<option value="${esc(id)}">${esc(byId[id].ref)} · ${esc(byId[id].name||"")}</option>`).join("")}</select>` : "";
+    return `<tr data-i="${i}" class="ev-${x.status}"><td>${esc(x.ref||"—")}</td><td class="num">${esc(x.tracking||"—")}</td>
+      <td>${o? esc(o.ref)+" · "+esc(o.name||"") : pick||"—"}</td><td class="ev-st">${LABEL[x.status]||x.status}</td></tr>`; };
+  const count=()=>res.filter(x=>x.status==="match").length;
+  const sum=()=>{ const c={}; res.forEach(x=>c[x.status]=(c[x.status]||0)+1); return Object.entries(c).map(([k,n])=>`${n} ${LABEL[k].toLowerCase().replace(" — choose","")}`).join(" · "); };
+  ov.innerHTML=`<div class="modal" style="width:min(980px,94vw)">
+    <div class="modal-head"><h3>Import tracking</h3><button class="x" id="evX">&times;</button></div>
+    <div class="modal-body" style="display:block">
+      <p class="proton-spec" style="margin:0 0 6px">${esc(fileName)} · ${res.length} row${res.length===1?"":"s"}${head? ` · tracking from “${esc(head[cols.track])}”, order from “${esc(head[cols.ref])}”`:""}</p>
+      <p class="ev-sum" style="margin:0 0 12px;font-weight:600">${sum()}</p>
+      <table class="completed"><thead><tr><th>Reference</th><th>Tracking</th><th>Order</th><th>Status</th></tr></thead><tbody>${res.map(rowHTML).join("")}</tbody></table>
+      <p class="proton-spec" style="margin:12px 0 0">Each order gets the normal dispatch email with its tracking number. Unpaid bank-transfer orders are refused.</p>
+    </div>
+    <div class="modal-foot"><button class="btn primary" id="evGo">Dispatch ${count()} order${count()===1?"":"s"}</button><button class="btn ghost" id="evCancel">Cancel</button></div></div>`;
+  ov.classList.remove("hidden");
+  const close=()=>{ ov.classList.add("hidden"); if(view==="webshop") paintWebshop(); else if(view==="clubshops") renderClubShops(); };
+  ov.querySelector("#evX").onclick=close; ov.querySelector("#evCancel").onclick=close;
+  const go=ov.querySelector("#evGo");
+  const refreshGo=()=>{ const n=count(); go.textContent=`Dispatch ${n} order${n===1?"":"s"}`; go.disabled=!n; ov.querySelector(".ev-sum").textContent=sum(); };
+  ov.querySelectorAll(".ev-pick").forEach(sel=>sel.onchange=()=>{ const x=res[+sel.dataset.i]; if(sel.value){ x.order=sel.value; x.status=byId[sel.value].dispatchedAt? "dispatched" : "match"; } else { x.order=null; x.status="ambiguous"; }
+    sel.closest("tr").querySelector(".ev-st").textContent=LABEL[x.status]; refreshGo(); });
+  refreshGo();
+  go.onclick=async ()=>{
+    const todo=res.map((x,i)=>[x,i]).filter(([x])=>x.status==="match");
+    go.disabled=true; let done=0, failed=0;
+    const one=async ([x,i])=>{
+      const tr=ov.querySelector(`tr[data-i="${i}"]`), st=tr.querySelector(".ev-st");
+      st.textContent="Sending…";
+      try{
+        const key=localStorage.getItem(WS_KEY_STORE);
+        const resp=await fetch(`${BACKEND}/api/admin?key=${encodeURIComponent(key||"")}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ pi:x.order, tracking:x.tracking }) });
+        const d=await resp.json().catch(()=>({}));
+        if(!resp.ok || !d.ok) throw new Error(d.error||("HTTP "+resp.status));
+        const k=ws.data.awaiting.findIndex(o=>o.id===x.order);
+        if(k>-1){ const o=ws.data.awaiting.splice(k,1)[0]; o.dispatchedAt=new Date().toISOString(); o.tracking=x.tracking; ws.data.dispatched.unshift(o); }
+        x.status="sent"; st.textContent="Dispatched ✓"; done++;
+      }catch(err){ x.status="failed"; st.textContent="Failed: "+err.message; failed++; }
+      go.textContent=`Dispatching… ${done+failed}/${todo.length}`;
+    };
+    for(let k=0;k<todo.length;k+=3) await Promise.all(todo.slice(k,k+3).map(one));
+    go.textContent=failed? `Done · ${done} dispatched, ${failed} failed` : `Done · ${done} dispatched`;
+    ov.querySelector("#evCancel").textContent="Close";
+    plToast(`${done} order${done===1?"":"s"} dispatched${failed?` · ${failed} failed`:""}`);
+  };
+}
+
+/* ---------- Invoices to link (2026-11-27) ----------
+   An invoice PDF the Mac folder watch uploaded but couldn't match to a deal
+   by club name: Today → "choose the deal" → the server attaches it to the
+   chosen deal (number, amount, sent date, unpaid) and clears it. */
+function plLinkInvoice(no){
+  const v = ((plHealth&&plHealth.unmatchedInvoices)||[]).find(x=>x.no===no); if(!v) return;
+  const deals = orders.filter(o=>o && !o.deleted).sort((a,b)=>(a.stage==="delivered")-(b.stage==="delivered") || String(a.club||"").localeCompare(String(b.club||"")));
+  const panel = plSheetShow(`Invoice ${esc(no)}`, `${v.total!=null? esc(gbp(v.total))+" · " : ""}${esc(v.client||"")}`,
+    `<p class="pl-empty" style="margin:0 0 6px">Choose the deal this invoice belongs to.</p>
+     <input type="search" class="pl-inv-filter" placeholder="Filter deals…" aria-label="Filter deals">
+     <div class="pl-inv-list">${deals.map(o=>`<button type="button" class="pl-inv-deal" data-id="${esc(o.id)}"><b>${esc(o.club||"Untitled")}</b><span>${esc((stageMap[o.stage]||{}).name||o.stage||"")}</span></button>`).join("")}</div>`);
+  plSheetId = "invoice";
+  const f = panel.querySelector(".pl-inv-filter");
+  f.oninput = ()=>{ const q=f.value.trim().toLowerCase(); panel.querySelectorAll(".pl-inv-deal").forEach(b=>b.hidden = !!q && !b.textContent.toLowerCase().includes(q)); };
+  panel.querySelectorAll(".pl-inv-deal").forEach(b=>b.onclick=async ()=>{
+    b.disabled = true;
+    try{
+      const res = await fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json","X-PL":"1"}, body: JSON.stringify({ action:"invoice-link", no, order:b.dataset.id }) });
+      const d = await res.json().catch(()=>({}));
+      if(!res.ok || !d.ok) throw new Error(d.error || "Failed");
+      plHealth.unmatchedInvoices = plHealth.unmatchedInvoices.filter(x=>x.no!==no);
+      plCloseSheet();
+      plToast(`Invoice ${no} linked to ${b.querySelector("b").textContent}`);
+      if(window.PL_SYNC && PL_SYNC.pull) await PL_SYNC.pull({ force:true });
+      render();
+    }catch(e){ b.disabled = false; plToast("Couldn't link: "+e.message); }
+  });
+}
 
 /* ---------- Mark the next step done (2026-11-26) ----------
    Ticking clears next/nextDate and logs "dd-mm-yyyy — ✓ Done: <step>" in the

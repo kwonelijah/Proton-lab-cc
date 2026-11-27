@@ -217,10 +217,49 @@ export async function usage() {
     lists: u.lists + pending.lists,
     storage: doc.meta.storage || null,
     health: doc.meta.health || null,
+    unmatchedInvoices: doc.meta.unmatchedInvoices || [],
     limits: LIMITS,
     estimate: true,
   };
 }
+
+// ─── one pipeline deal, server-side (2026-11-27) ─────────────────────────────
+// Read state → change one order in the `orders` section → bump its version →
+// write with ifMatch (retried like saveSections). Open dashboards see the
+// change on their next pull, or merge it on their next save (409 → merge3).
+export async function patchOrder(id, fn, { user = 'mac' } = {}) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const { doc, etag } = await readState();
+    if (!etag) return { error: 'No dashboard data yet', status: 404 };
+    const sec = doc.sections.orders;
+    const o = sec && Array.isArray(sec.data) ? sec.data.find((x) => x && x.id === id) : null;
+    if (!o) return { error: 'Deal not found', status: 404 };
+    fn(o, doc);
+    sec.version = (sec.version || 0) + 1; sec.updatedAt = new Date().toISOString(); sec.updatedBy = user;
+    doc.rev = (doc.rev || 0) + 1;
+    foldUsage(doc.meta);
+    try { await putText(STATE_PATH, JSON.stringify(doc), { allowOverwrite: true, ifMatch: etag }); return { ok: true, order: o, version: sec.version }; }
+    catch (err) { if (!isPrecondition(err)) throw err; }
+  }
+  return { error: 'Too many concurrent saves — try again', status: 503 };
+}
+
+// Invoices from the Mac folder watch → the deal they belong to. Match on the
+// client folder / bill-to name against each deal's club (normalised: case,
+// punctuation and words like "cycling club" ignored). One clear match only.
+const normName = (s) => String(s || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9 ]+/g, ' ')
+  .replace(/\b(the|university|uni|of|cycling|cycle|club|cc|rt|race|team|road|tri|triathlon)\b/g, ' ').replace(/\s+/g, ' ').trim();
+export function invoiceDeal(orders, names) {
+  const want = [...new Set((names || []).map(normName).filter(Boolean))];
+  if (!want.length) return null;
+  const live = (orders || []).filter((o) => o && !o.deleted && o.club);
+  const hits = live.filter((o) => want.includes(normName(o.club)));
+  if (hits.length === 1) return hits[0];
+  if (hits.length > 1) { const open = hits.filter((o) => o.stage !== 'delivered'); return open.length === 1 ? open[0] : null; }
+  return null;
+}
+export async function stateSnapshot() { return (await readState()).doc; }
+export async function patchMetaExported(fn) { return patchMeta(fn); }
 
 // How close this month is to the Hobby limits (writes = advanced ops =
 // puts + lists). level 90 / 70 / 0 drives the reminders (2026-11-27).
@@ -334,6 +373,12 @@ export async function snapshot({ reason = 'session', now = new Date() } = {}) {
 }
 
 const isBackupPath = (p) => typeof p === 'string' && p.startsWith(BACKUP_PREFIX) && !p.includes('..') && p.endsWith('.json');
+
+export async function readBackupText(path) {
+  if (!isBackupPath(path)) return null;
+  const raw = await readText(path);
+  return raw ? raw.text : null;
+}
 
 export async function readBackup(path) {
   if (!isBackupPath(path)) return null;

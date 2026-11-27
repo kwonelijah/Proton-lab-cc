@@ -6,7 +6,7 @@
     },
     "api/admin.js": {
       "maxDuration": 60,
-      "includeFiles": "{dashboard/**,lib/today.cjs}"
+      "includeFiles": "{dashboard/**,lib/today.cjs,lib/evri-match.cjs}"
     },
     "api/stock-sync.js": {
       "maxDuration": 60
@@ -51,6 +51,10 @@
     {
       "source": "/today.js",
       "destination": "/api/admin?view=today"
+    },
+    {
+      "source": "/evri-match.js",
+      "destination": "/api/admin?view=evri"
     },
     {
       "source": "/manifest.json",

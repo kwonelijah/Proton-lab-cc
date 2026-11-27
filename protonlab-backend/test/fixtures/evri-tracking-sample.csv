@@ -1,0 +1,8 @@
+Parcel Number,Customer Reference,Recipient First Name,Recipient Last Name,Postcode,Status
+H01ABC1234567890,Order #11111,Ann,Smith,BS1 1AA,Collected
+H01ABC1234567891,"UCL CC #22222",Bob,Jones,WC1E 6BT,Collected
+H01ABC1234567892,Order #33333,Cat,Brown,BS8 1TH,Collected
+H01ABC1234567893,Order #99999,Dan,White,EH1 1AA,Collected
+,Order #44444,Eve,Black,G1 1AA,Awaiting
+H01ABC1234567895,Test University #55555,Fay,Green,CF5 2YB,Collected
+H01ABC1234567896,PL-12345,Gus,Grey,CF5 2YB,Collected
