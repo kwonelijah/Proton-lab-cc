@@ -802,6 +802,10 @@
   .pl-toast button{all:unset;cursor:pointer;font-weight:700;padding:6px 10px;border-radius:8px;text-decoration:underline;text-underline-offset:3px}
   .pl-toast button:focus-visible{outline:2px solid var(--surface-page)}
   body.pl-phone .pl-toast{bottom:calc(84px + env(safe-area-inset-bottom))}
+  .ws-refund{background:transparent;border:1px solid var(--signal);color:var(--signal)}
+  .pl-banner{margin:6px 0 4px;padding:12px 14px;border-radius:var(--r-md);background:var(--surface-muted);color:var(--text-strong);font:500 13.5px/1.45 var(--font-body);box-shadow:inset 3px 0 0 var(--text-strong)}
+  .pl-banner.bad{box-shadow:inset 3px 0 0 var(--signal)}
+  .pl-banner-more{all:unset;cursor:pointer;font-weight:700;text-decoration:underline;text-underline-offset:3px;margin-left:4px}
   .pl-today{background:var(--signal)}   /* "now" line, as in Calendar */
   @media (prefers-reduced-motion: reduce){ *,*::before,*::after{transition-duration:0s!important;animation-duration:0s!important} }
 
@@ -2436,7 +2440,7 @@ function wsOrderRowHTML(o, actions, opts){
       </td></tr>`:"";
       return `
       <tr data-pi="${esc(o.id)}" class="ws-row" title="Click to ${opts.openMap[o.id]?"hide":"view"} address & contact details">
-        <td>${check}<strong>${esc(o.ref)}</strong>${manualTag}${bankTag}${svcTag}${prodTag}<br><span class="proton-spec">${esc((o.date||"").slice(0,10))}</span></td>
+        <td>${check}<strong>${esc(o.ref)}</strong>${manualTag}${bankTag}${svcTag}${prodTag}${wsRefundTagHTML(o)}<br><span class="proton-spec">${esc((o.date||"").slice(0,10))}</span></td>
         <td>${esc(o.name)}<br><span class="proton-spec" style="text-transform:none">${esc(o.email||"")}</span></td>
         <td style="white-space:normal;min-width:200px">${esc(o.items)}</td>
         <td>${esc(o.place)}</td>
@@ -2520,8 +2524,9 @@ function paintWebshop(){
   const dispOnly = data.dispatched.filter(o=>!wsIsClubOrder(o) && !wsIsDelivered(o));
   const delivered = data.dispatched.filter(o=>!wsIsClubOrder(o) && wsIsDelivered(o));
   const revenue = processing.concat(dispOnly, delivered).reduce((s,o)=>s+(+o.amount||0),0);   /* bank-transfer orders count from placement, paid or not */
+  const refundedList = ((ws.data&&ws.data.refunded)||[]).filter(o=>!wsIsClubOrder(o));
   const sub = ws.sub || "processing";
-  const subList = sub==="dispatched"? dispOnly : sub==="delivered"? delivered : processing;
+  const subList = sub==="dispatched"? dispOnly : sub==="delivered"? delivered : sub==="refunded"? refundedList : processing;
 
   let html = toolbar(clubSel);
   if(notice) html += `<div class="proton-spec" style="text-transform:none;padding:0 0 14px">${notice}</div>`;
@@ -2537,19 +2542,20 @@ function paintWebshop(){
       <button data-sub="processing"${sub==="processing"?' class="active"':""}>Processing (${processing.length})</button>
       <button data-sub="dispatched"${sub==="dispatched"?' class="active"':""}>Dispatched (${dispOnly.length})</button>
       <button data-sub="delivered"${sub==="delivered"?' class="active"':""}>Delivered (${delivered.length})</button>
+      <button data-sub="refunded"${sub==="refunded"?' class="active"':""}>Refunded (${refundedList.length})</button>
     </div>`;
 
   if(!subList.length){
-    html += `<div class="empty">${sub==="processing"?"Nothing awaiting dispatch — all caught up.":sub==="dispatched"?"No parcels currently in transit.":"No delivered orders in this window."}</div>`;
+    html += `<div class="empty">${sub==="processing"?"Nothing awaiting dispatch — all caught up.":sub==="dispatched"?"No parcels currently in transit.":sub==="refunded"?"No refunded orders in this window.":"No delivered orders in this window."}</div>`;
     wrap.innerHTML=html; wire(); return;
   }
 
   {
     const aw = sub==="processing"? subList : [];
     const dp = sub==="processing"? [] : subList;
-    const rowOpts = {selectable:true, retail:true, selMap:ws.sel, openMap:ws.open};
+    const rowOpts = {selectable:sub!=="refunded", retail:true, selMap:ws.sel, openMap:ws.open};
     let rows = aw.map(o=>wsOrderRowHTML(o, wsDispatchActionsHTML(o), rowOpts)).join("");
-    rows += dp.map(o=>wsOrderRowHTML(o, wsDispatchedTagHTML(o), rowOpts)).join("");
+    rows += dp.map(o=>wsOrderRowHTML(o, sub==="refunded"? wsReturnActionsHTML(o) : wsDispatchedTagHTML(o), rowOpts)).join("");
     html += `
       <table class="completed" style="margin-top:14px">
         <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Destination</th><th>Value</th><th>Dispatch</th></tr></thead>
@@ -2559,6 +2565,43 @@ function paintWebshop(){
 
   wrap.innerHTML = html; wire();
   wsWireOrderRows(wrap, {selMap:ws.sel, openMap:ws.open, repaint:paintWebshop, onMoved:(st)=>{ws.sub=st;}});
+  wrap.querySelectorAll("[data-returned]").forEach(b=>b.addEventListener("click", e=>{ e.stopPropagation(); wsMarkReturned(b.dataset.returned, b, paintWebshop); }));
+}
+
+/* ---------- Refunds (2026-11-27) ----------
+   The feed reads each order's refund from Stripe. A fully refunded order
+   leaves Processing/Dispatched (and the Evri export) and is kept under
+   Refunded; "Received back" stamps it on Stripe and puts its items back into
+   stock in one server step (once only — a second press is refused). */
+function wsRefundTagHTML(o){
+  if(!o || !o.refunded) return "";
+  const when = o.refundedAt? " · "+fmtDate(o.refundedAt.slice(0,10)) : "";
+  return o.refunded==="full"
+    ? ` <span class="tag ws-refund" title="Refunded in Stripe">Refunded £${esc(o.refundedAmount)}${when}</span>`
+    : ` <span class="tag ws-refund" title="Partly refunded in Stripe — still to dispatch">Part-refunded £${esc(o.refundedAmount)}${when}</span>`;
+}
+function wsReturnActionsHTML(o){
+  if(o.returnedAt) return `<span class="tag" title="Items put back in stock">Back in stock · ${fmtDate(o.returnedAt.slice(0,10))}</span>`;
+  return `<button type="button" class="btn small" data-returned="${esc(o.id)}" title="The kit has come back: put its items back in stock">Received back</button>`;
+}
+async function wsMarkReturned(id, btn, repaint){
+  const o = ((ws.data&&ws.data.refunded)||[]).find(x=>x.id===id); if(!o) return;
+  if(btn){ btn.disabled = true; btn.textContent = "Saving…"; }
+  try{
+    const key = localStorage.getItem(WS_KEY_STORE);
+    const res = await fetch(`${BACKEND}/api/admin?key=${encodeURIComponent(key||"")}`,{
+      method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ action:"mark-returned", pi:id }) });
+    const d = await res.json().catch(()=>({}));
+    if(res.status===409){ o.returnedAt = d.returnedAt || new Date().toISOString(); repaint(); return; }
+    if(!res.ok || !d.ok) throw new Error(d.error || "Failed");
+    o.returnedAt = d.returnedAt;
+    const back = (d.stock&&d.stock.applied)? d.stock.applied.length : 0;
+    plToast(d.stock&&d.stock.error? `Marked received back · stock not updated: ${d.stock.error}` : `Received back · ${back} item${back===1?"":"s"} back in stock`);
+    repaint();
+  }catch(e){
+    if(btn){ btn.disabled = false; btn.textContent = "Received back"; }
+    plToast("Couldn't save: "+e.message);
+  }
 }
 
 /* ---------- Manual orders (non-Stripe / special price) ---------- */
@@ -6820,6 +6863,24 @@ function plOpenSheet(id){
 /* ---------- More menu ---------- */
 /* ---------- Today (lib/today.cjs → window.PLToday) ---------- */
 var plTodayLoading = false;
+/* Health banner on Today (2026-11-27): a failed nightly backup / stock sync,
+   or the Vercel Blob allowance at 70%+ this month. Usage is fetched at most
+   every 30 min (each fetch is a Blob read). */
+let plHealth = null, plHealthAt = 0, plHealthLoading = false;
+function plHealthBannerHTML(){
+  if(!/^https?:$/.test(location.protocol)) return "";
+  if(!plHealthLoading && Date.now()-plHealthAt > 30*60*1000){
+    plHealthLoading = true;
+    fetch("/api/admin?action=usage").then(r=>r.ok? r.json() : null).then(d=>{ plHealth=d; plHealthAt=Date.now(); }).catch(()=>{}).finally(()=>{ plHealthLoading=false; if(view==="today") renderToday(); });
+  }
+  if(!plHealth) return "";
+  const h = plHealth.health || {}, lv = plHealth.level || {};
+  const bits = [];
+  if(h.backupOk===false) bits.push(`Last night's backup failed${h.backupError? " ("+esc(h.backupError)+")" : ""}.`);
+  if(h.stockSyncOk===false) bits.push(`Last night's stock sync failed${h.stockSyncError? " ("+esc(h.stockSyncError)+")" : ""}.`);
+  if(lv.level) bits.push(`Storage allowance at ${lv.pct}% this month (writes ${lv.writes}% · reads ${lv.reads}% · storage ${lv.storage}%). Going over blocks storage for 30 days.`);
+  return bits.length? `<div class="pl-banner${(h.backupOk===false||h.stockSyncOk===false||lv.level>=90)?" bad":""}" role="status">${bits.join(" ")} <button type="button" class="pl-banner-more" onclick="plUsage()">Details</button></div>` : "";
+}
 function renderToday(){
   const el = document.getElementById("todayView");
   if(!window.PLToday){ el.innerHTML = `<div class="empty">Today needs the hosted dashboard.</div>`; return; }
@@ -6840,13 +6901,15 @@ function renderToday(){
         return (x.key==="next" && it.target.type==="pipeline")
           ? `<div class="td-row sev-${it.severity}"><button type="button" class="pl-done" data-done="${esc(it.target.id)}" aria-label="Mark next step for ${esc(it.title)} done" title="Mark done"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.7 2.7 5.3-5.5"/></svg></button>${row}</div>` : row; }).join("")}
     </section>`).join("");
-  el.innerHTML = head + (sec || `<div class="td-clear">Nothing overdue, no windows closing, nothing waiting to dispatch.</div>`);
+  el.innerHTML = plHealthBannerHTML() + head + (sec || `<div class="td-clear">Nothing overdue, no windows closing, nothing waiting to dispatch.</div>`);
   el.querySelectorAll(".td-item").forEach(b=>b.addEventListener("click",()=>plTodayGo(b.dataset.type, b.dataset.id)));
 }
 function plTodayGo(type, id){
   if(type==="pipeline"){ if(plIsPhone()){ setView("board"); plOpenSheet(id); } else openModal(id); }
   else if(type==="order"){ wsJumpTo(id); }
   else if(type==="retail"){ ws.sub="processing"; setView("webshop"); }
+  else if(type==="refund"){ ws.sub="refunded"; setView("webshop"); }
+  else if(type==="invoice"){ if(typeof plLinkInvoice==="function") plLinkInvoice(id); }
   else if(type==="club"){ setView("clubshops"); try{ csOpenClub(id); cs.sub="processing"; renderClubShops(); }catch(e){} }
   window.scrollTo(0,0);
 }

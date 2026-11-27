@@ -17,6 +17,7 @@
 // list() + one get per order is fine at club-shop volumes (~1 s per 100).
 
 import { put, get, list } from '@vercel/blob';
+import { _pendingOps as blobOps } from './dashboard-store.js';   // count every Blob call in the usage meter (2026-11-27)
 import { summariseItems } from './order-items.js';
 import { COLLECTION_LABEL } from '../config/shipping.js';
 import { BANK_DETAILS } from '../config/bank.js';
@@ -52,6 +53,7 @@ const pathOf = (id) => `${BANK_ORDER_PREFIX}${id}.json`;
 const BLOB_OPTS = { access: 'private', contentType: 'application/json', addRandomSuffix: false, cacheControlMaxAge: 60 };
 
 async function readJson(pathname) {
+  blobOps.reads++;
   const r = await get(pathname, { access: 'private', useCache: false });
   if (!r || r.statusCode !== 200) return null;
   const text = await new Response(r.stream).text();
@@ -68,6 +70,7 @@ export async function listBankOrders() {
   const paths = [];
   let cursor;
   do {
+    blobOps.lists++;
     const page = await list({ prefix: BANK_ORDER_PREFIX, cursor, limit: 1000 });
     for (const b of page.blobs || []) if (b.pathname.endsWith('.json')) paths.push(b.pathname);
     cursor = page.hasMore ? page.cursor : undefined;
@@ -100,6 +103,7 @@ export async function createBankOrder(fields) {
     const id = `bt_${number}`;
     const rec = { v: 1, id, number, payRef: `PL-${number}`, ...fields };
     try {
+      blobOps.writes++;
       await put(pathOf(id), JSON.stringify(rec), { ...BLOB_OPTS, allowOverwrite: false });
       return rec;
     } catch (err) {
@@ -117,6 +121,7 @@ export async function updateBankOrder(id, patch) {
   const rec = await getBankOrder(id);
   if (!rec) return null;
   const next = { ...rec, ...(typeof patch === 'function' ? patch(rec) : patch), updatedAt: new Date().toISOString() };
+  blobOps.writes++;
   await put(pathOf(id), JSON.stringify(next), { ...BLOB_OPTS, allowOverwrite: true });
   return next;
 }

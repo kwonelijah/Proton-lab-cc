@@ -267,8 +267,12 @@
       for(let attempt = 0; attempt < 5; attempt++){
         const body = { action:"state-save", history, snapshot: !!opts.snapshot,
           changes: work.map(w => ({ section: w.s, baseVersion: w.ver, data: w.data === undefined ? null : w.data })) };
-        const res = await realFetch("/api/admin", { method:"POST", credentials:"same-origin", keepalive: !!opts.keepalive,
-          headers:{ "Content-Type":"application/json", "X-PL":"1" }, body: JSON.stringify(body) });
+        /* Browsers refuse keepalive bodies over 64 KB (the request throws), so
+           keepalive is used only for small saves; bigger ones go as a normal
+           request and stay dirty until they land (2026-11-27). */
+        const json = JSON.stringify(body);
+        const res = await realFetch("/api/admin", { method:"POST", credentials:"same-origin", keepalive: !!opts.keepalive && json.length < 60000,
+          headers:{ "Content-Type":"application/json", "X-PL":"1" }, body: json });
         if(res.status === 401){ location.replace("/login"); throw new Error("signed out"); }
         const d = await res.json().catch(() => ({}));
         if(res.ok && d.ok){
@@ -320,12 +324,20 @@
     return true;
   }
   /* Leaving the page / app: save now and take a session snapshot (online only). */
-  function onLeave(){
+  /* Going to the background: save at once with a normal request (the page
+     still runs for a moment; iOS then pauses timers, so don't wait for the
+     3 s debounce). Unloading: keepalive, which only small saves can use. */
+  function onLeave(unloading){
     if(offline || !navigator.onLine) return;
-    if(Object.keys(meta.dirty).length || pushedSinceSnapshot) push({ keepalive:true, snapshot:true });
+    if(Object.keys(meta.dirty).length || pushedSinceSnapshot) push({ keepalive: !!unloading, snapshot:true });
   }
-  window.addEventListener("pagehide", onLeave);
-  document.addEventListener("visibilitychange", () => { if(document.hidden) onLeave(); });
+  window.addEventListener("pagehide", () => onLeave(true));
+  document.addEventListener("visibilitychange", () => { if(document.hidden) onLeave(false); });
+  /* Anything still unsaved goes as soon as the app is back or online again. */
+  function retryDirty(){ if(!offline && navigator.onLine && Object.keys(meta.dirty).length && !inflight) push(); }
+  window.addEventListener("focus", retryDirty);
+  window.addEventListener("online", retryDirty);
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) retryDirty(); });
 
   /* ---------- intercept the app's writes ---------- */
   Storage.prototype.setItem = function(k, v){

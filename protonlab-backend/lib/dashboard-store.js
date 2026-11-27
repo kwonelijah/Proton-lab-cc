@@ -216,9 +216,37 @@ export async function usage() {
     writes: u.writes + pending.writes,
     lists: u.lists + pending.lists,
     storage: doc.meta.storage || null,
+    health: doc.meta.health || null,
     limits: LIMITS,
     estimate: true,
   };
+}
+
+// How close this month is to the Hobby limits (writes = advanced ops =
+// puts + lists). level 90 / 70 / 0 drives the reminders (2026-11-27).
+export function usageLevel(u) {
+  const w = ((u.writes || 0) + (u.lists || 0)) / LIMITS.writes;
+  const r = (u.reads || 0) / LIMITS.reads;
+  const st = u.storage && u.storage.bytes ? u.storage.bytes / LIMITS.storageBytes : 0;
+  const top = Math.max(w, r, st);
+  return { pct: Math.round(top * 100), writes: Math.round(w * 100), reads: Math.round(r * 100), storage: Math.round(st * 100), level: top >= 0.9 ? 90 : top >= 0.7 ? 70 : 0 };
+}
+
+// Last nightly run: backup / stock sync ok or not (shown on Today + digest).
+export async function recordHealth(patch) {
+  return patchMeta((meta) => { meta.health = { ...(meta.health || {}), ...patch }; });
+}
+
+// True the first time `key` is seen (e.g. 'usage-70:2026-11'), so a reminder
+// is pushed once per threshold per month.
+export async function markAlerted(key) {
+  let first = false;
+  await patchMeta((meta) => {
+    meta.alerted = meta.alerted || {};
+    for (const k of Object.keys(meta.alerted)) if (!k.endsWith(new Date().toISOString().slice(0, 7))) delete meta.alerted[k];
+    if (!meta.alerted[key]) { meta.alerted[key] = new Date().toISOString(); first = true; }
+  });
+  return first;
 }
 
 // Storage total (cron, weekly) — 1 list per 1000 blobs.

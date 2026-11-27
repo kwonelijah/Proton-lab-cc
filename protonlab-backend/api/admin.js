@@ -82,7 +82,7 @@ import {
   saveSections,
   countOf,
   countsOf,
-  usage as storeUsage,
+  usage as storeUsage, usageLevel,
   snapshot as storeSnapshot,
   listBackups,
   readBackup,
@@ -116,7 +116,7 @@ const SHIPPING_METHODS = ['standard', 'next-day', 'international', 'club', 'coll
 // to lists the action — a dashboard updated ahead of the backend must never
 // send a POST the old code would misread (an unknown action used to fall
 // through to the dispatch path and email the customer).
-const ADMIN_CAPABILITIES = ['update-order', 'analytics', 'bank-transfer', 'state'];   // 'analytics' = /api/analytics is deployed; 'bank-transfer' = feed carries bank-transfer orders + mark-paid / cancel-order / send kind:'bank-received'
+const ADMIN_CAPABILITIES = ['update-order', 'analytics', 'bank-transfer', 'state', 'refunds'];   // 'analytics' = /api/analytics is deployed; 'bank-transfer' = feed carries bank-transfer orders + mark-paid / cancel-order / send kind:'bank-received'
 function shippingMethodOf(v) {
   return SHIPPING_METHODS.includes(v) ? v : null;
 }
@@ -510,7 +510,9 @@ export async function buildFeed(days = 60, { lookupContacts = true } = {}) {
   let payments;
   try {
     payments = await stripe.paymentIntents
-      .list({ created: { gte: sinceTs }, limit: 100 })
+      // latest_charge (+ its refunds) is expanded so refunds show without extra
+      // calls (2026-11-27): a fully refunded order leaves awaiting/dispatched.
+      .list({ created: { gte: sinceTs }, limit: 100, expand: ['data.latest_charge.refunds'] })
       .autoPagingToArray({ limit: 1000 });
   } catch (err) {
     console.error('Stripe list error:', err);
@@ -519,6 +521,7 @@ export async function buildFeed(days = 60, { lookupContacts = true } = {}) {
 
   const awaiting = [];
   const dispatched = [];
+  const refunded = [];   // fully refunded Stripe orders — past, out of dispatch
   const needLookup = [];
   for (const p of payments) {
     if (p.status !== 'succeeded') continue;
@@ -549,9 +552,11 @@ export async function buildFeed(days = 60, { lookupContacts = true } = {}) {
       dispatchedAt: meta.dispatched_at || null,
       deliveredAt: meta.delivered_at || null,
       tracking: meta.tracking || null,
+      ...refundInfo(p),
     };
     if (!entry.email || !entry.phone) needLookup.push(entry);
-    (meta.dispatched_at ? dispatched : awaiting).push(entry);
+    if (entry.refunded === 'full') refunded.push(entry);
+    else (meta.dispatched_at ? dispatched : awaiting).push(entry);
   }
 
   // Bank-transfer orders (lib/bank-orders.js) join the same two lists, in
@@ -597,7 +602,24 @@ export async function buildFeed(days = 60, { lookupContacts = true } = {}) {
     );
   }
 
-  return { awaiting, dispatched, bank, since: days };
+  return { awaiting, dispatched, refunded, bank, since: days };
+}
+
+// Refund state from the expanded latest charge: 'full' | 'partial' | null,
+// the refunded amount, when (latest refund), and the received-back stamp
+// that `mark-returned` writes (2026-11-27).
+export function refundInfo(p) {
+  const ch = p.latest_charge && typeof p.latest_charge === 'object' ? p.latest_charge : null;
+  const refundedMinor = ch ? Number(ch.amount_refunded || 0) : 0;
+  const paid = Number(p.amount_received || p.amount || 0);
+  if (!refundedMinor) return { refunded: null, returnedAt: p.metadata?.returned_at || null };
+  const times = ((ch.refunds && ch.refunds.data) || []).map((r) => r.created).filter(Boolean);
+  return {
+    refunded: refundedMinor >= paid ? 'full' : 'partial',
+    refundedAmount: (refundedMinor / 100).toFixed(2),
+    refundedAt: times.length ? new Date(Math.max(...times) * 1000).toISOString() : null,
+    returnedAt: p.metadata?.returned_at || null,
+  };
 }
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
@@ -728,6 +750,31 @@ export default async function handler(req, res) {
         console.error('stock-move failed:', err);
         return res.status(502).json({ error: `Stock update failed: ${err.message}` });
       }
+    }
+
+    // ── Refund received back ──────────────────────────────────────────────
+    // {action:'mark-returned', pi} — the refunded kit has come back: stamps
+    // returned_at on the PaymentIntent (409 if already stamped, so stock is
+    // never put back twice) and puts its line items back into stock.csv
+    // (club kit has no stock rows and is skipped by applyAndCommit).
+    if (req.body?.action === 'mark-returned') {
+      const pi = String(req.body.pi || '');
+      if (!/^pi_[A-Za-z0-9]+$/.test(pi)) return res.status(400).json({ error: 'Missing or invalid pi' });
+      let p;
+      try { p = await stripe.paymentIntents.retrieve(pi); }
+      catch { return res.status(404).json({ error: 'Order not found' }); }
+      if (p.metadata?.returned_at) return res.status(409).json({ error: 'Already marked as received back', returnedAt: p.metadata.returned_at });
+      const movements = parseLineItems(p.metadata || {})
+        .filter((l) => l.handle && l.size && Number(l.qty) > 0)
+        .map((l) => ({ handle: l.handle, size: l.size, qty: Number(l.qty) }));
+      const returnedAt = new Date().toISOString();
+      await stripe.paymentIntents.update(pi, { metadata: { returned_at: returnedAt } });
+      let stock = null;
+      if (movements.length) {
+        try { stock = await applyAndCommit(movements, `stock: returned #${orderNumber(pi)} [return]`); }
+        catch (err) { console.error('return restock failed:', err); stock = { error: String(err.message || err).slice(0, 200) }; }
+      }
+      return res.status(200).json({ ok: true, returnedAt, movements, stock });
     }
 
     // ── Club-wide production notification ─────────────────────────────────
@@ -1230,7 +1277,7 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     if (!isStoreConfigured()) return res.status(503).json({ error: 'Blob store not configured' });
     try {
-      if (req.query.action === 'usage') return res.status(200).json({ ok: true, ...(await storeUsage()) });
+      if (req.query.action === 'usage') { const u = await storeUsage(); return res.status(200).json({ ok: true, ...u, level: usageLevel(u) }); }
       if (req.query.action === 'backups') return res.status(200).json({ ok: true, backups: await listBackups() });
       if (req.query.action === 'backup') {
         const doc = await readBackup(String(req.query.path || ''));
@@ -1263,11 +1310,11 @@ export default async function handler(req, res) {
   let feed;
   try { feed = await buildFeed(days); }
   catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
-  const { awaiting, dispatched, bank } = feed;
+  const { awaiting, dispatched, refunded, bank } = feed;
 
   res.setHeader('Cache-Control', 'no-store');
   if (req.query.format === 'json') {
-    return res.status(200).json({ awaiting, dispatched, since: days, capabilities: ADMIN_CAPABILITIES, bank });
+    return res.status(200).json({ awaiting, dispatched, refunded, since: days, capabilities: ADMIN_CAPABILITIES, bank });
   }
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   // The legacy HTML admin page is for the shared key only — a session-cookie

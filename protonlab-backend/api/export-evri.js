@@ -111,7 +111,7 @@ export default async function handler(req, res) {
   let payments;
   try {
     payments = await stripe.paymentIntents
-      .list({ created: { gte: sinceTs }, limit: 100 })
+      .list({ created: { gte: sinceTs }, limit: 100, expand: ['data.latest_charge'] })
       .autoPagingToArray({ limit: 1000 });
   } catch (err) {
     console.error('Stripe list error:', err);
@@ -121,6 +121,9 @@ export default async function handler(req, res) {
   const rows = [];
   for (const p of payments) {
     if (p.status !== 'succeeded') continue;
+    // Fully refunded orders are never posted (2026-11-27).
+    const ch = p.latest_charge && typeof p.latest_charge === 'object' ? p.latest_charge : null;
+    if (ch && Number(ch.amount_refunded || 0) >= Number(p.amount_received || p.amount || 0) && Number(ch.amount_refunded || 0) > 0) continue;
     const meta = p.metadata || {};
     const club = meta.club || '';
     if (clubFilter && !club.toLowerCase().includes(clubFilter)) continue;

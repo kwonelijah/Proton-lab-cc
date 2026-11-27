@@ -17,7 +17,7 @@ test('next steps: overdue first (high), due today (mid), within 2 days (low); la
   ] }, NOW);
   const next = r.sections.find((s) => s.key === 'next').items;
   assert.deepEqual(next.map((x) => [x.id, x.severity]), [['a', 'high'], ['b', 'mid'], ['c', 'low']]);
-  assert.match(next[0].sub, /^Chase · overdue, 2 days ago$/);
+  assert.match(next[0].sub, /^Chase · overdue since \d{2}\/\d{2}\/\d{4}$/);
   assert.equal(r.counts.overdue, 1);
 });
 
@@ -30,7 +30,7 @@ test('windows closing within 3 days, from local windows and clubs.ts, with order
   }, NOW);
   const w = r.sections.find((s) => s.key === 'windows').items;
   assert.deepEqual(w.map((x) => x.title), ['UCL CC', 'Bath CC']);
-  assert.match(w[0].sub, /closes tomorrow .* · 1 order so far/);
+  assert.match(w[0].sub, /closes \d{2}\/\d{2}\/\d{4} · 1 order so far/);
   assert.equal(w[0].target.type, 'club');
 });
 
@@ -41,9 +41,12 @@ test('unpaid bank transfers: past pay-by (high) or older than 5 days (mid); paid
     { id: 'bt_3', payment: 'bank-transfer', paid: false, date: '2026-11-25T00:00:00Z', payBy: '2026-12-02T00:00:00Z' },
     { id: 'bt_4', payment: 'bank-transfer', paid: true, date: '2026-11-01T00:00:00Z' },
   ], dispatched: [] };
-  const u = T.todayItems({ feed }, NOW).sections.find((s) => s.key === 'unpaid').items;
-  assert.deepEqual(u.map((x) => [x.id, x.severity]), [['bt_1', 'high'], ['bt_2', 'mid']]);
-  assert.match(u[0].sub, /£90\.00 · PL-1 · pay-by date passed/);
+  const secs = T.todayItems({ feed }, NOW).sections;
+  const late = secs.find((s) => s.key === 'unpaid').items, waiting = secs.find((s) => s.key === 'awaiting').items;
+  assert.deepEqual(late.map((x) => [x.id, x.severity]), [['bt_1', 'high']], 'past pay-by → Overdue bank transfers');
+  assert.deepEqual(waiting.map((x) => [x.id, x.severity]), [['bt_2', 'mid']], 'older than 5 days, still in time → Awaiting payment');
+  assert.match(late[0].sub, /pay-by \d{2}\/\d{2}\/\d{4} passed/);
+  assert.equal(late[0].sub, "£90.00 · PL-1 · pay-by 22/11/2026 passed");
 });
 
 test('ready to dispatch: grouped retail first then clubs; unpaid transfers and dispatched manual orders excluded', () => {
@@ -75,4 +78,43 @@ test('summary line and all-clear; missing feed is tolerated', () => {
   const r = T.todayItems({ orders: [order({ id: 'a', nextDate: '2026-11-25' })], feed: null }, NOW);
   assert.equal(r.summary, '1 overdue');
   assert.equal(r.total, 1);
+});
+
+test('money owed: invoiced custom-kit deals with no paid date; paid / zero / deleted ignored', () => {
+  const orders = [
+    { id: 'a', club: 'Bath CC', paidVia: 'invoice', invoiceAmount: '1200.00', invoiceNo: '00035', invoiceSentDate: '2026-11-01' },
+    { id: 'b', club: 'Paid CC', paidVia: 'invoice', invoiceAmount: '500', invoicePaidDate: '2026-11-02' },
+    { id: 'c', club: 'Zero CC', paidVia: 'invoice', invoiceAmount: '0' },
+    { id: 'd', club: 'Stripe CC', paidVia: 'stripe', invoiceAmount: '300' },
+    { id: 'e', club: 'Gone CC', paidVia: 'invoice', invoiceAmount: '90', deleted: true },
+  ];
+  const owed = T.todayItems({ orders }, NOW).sections.find((s) => s.key === 'owed').items;
+  assert.deepEqual(owed.map((x) => x.target.id), ['a']);
+  assert.equal(owed[0].sub, '£1,200.00 · invoice 00035 · sent 01/11/2026');
+});
+
+test('refunds to receive back: full refunds not yet returned; dates dd/mm/yyyy', () => {
+  const feed = { awaiting: [], dispatched: [], refunded: [
+    { id: 'pi_r1', ref: 'Order #11111', name: 'Ann', refundedAmount: '45.00', refundedAt: '2026-11-20T10:00:00Z' },
+    { id: 'pi_r2', ref: 'Order #22222', name: 'Bob', refundedAmount: '30.00', returnedAt: '2026-11-21T10:00:00Z' },
+  ] };
+  const r = T.todayItems({ feed }, NOW);
+  const items = r.sections.find((s) => s.key === 'returns').items;
+  assert.deepEqual(items.map((x) => x.target), [{ type: 'refund', id: 'pi_r1' }]);
+  assert.equal(items[0].sub, 'Refunded £45.00 on 20/11/2026 · awaiting return');
+  assert.match(r.summary, /1 return due back/);
+});
+
+test('invoices to link: unmatched Mac uploads appear with the amount', () => {
+  const r = T.todayItems({ unmatchedInvoices: [{ no: '00036', total: 640, client: 'Hup CC' }] }, NOW);
+  const it = r.sections.find((s) => s.key === 'invoices').items[0];
+  assert.equal(it.title, 'Invoice 00036 · Hup CC');
+  assert.equal(it.sub, '£640.00 · choose the deal');
+  assert.deepEqual(it.target, { type: 'invoice', id: '00036' });
+});
+
+test('no relative date words anywhere', () => {
+  const orders = [{ id: 'x', club: 'A', stage: 'discuss', next: 'Call', nextDate: NOW.toISOString().slice(0, 10), updated: '2026-01-01' }];
+  const text = JSON.stringify(T.todayItems({ orders }, NOW));
+  assert.ok(!/\b(today|tomorrow|yesterday|days ago|in \d+ days)\b/.test(text), text);
 });

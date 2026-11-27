@@ -21,7 +21,7 @@ import Stripe from 'stripe';
 import { Resend } from 'resend';
 import { applyAndCommit } from '../lib/stock.js';
 import { decodeItems, hasItems } from '../lib/order-items.js';
-import { backupAll, measureStorage, readAll } from '../lib/dashboard-store.js';
+import { backupAll, measureStorage, readAll, recordHealth, usage as storeUsage, usageLevel, markAlerted } from '../lib/dashboard-store.js';
 import { notifyAll } from '../lib/push.js';
 import { readClubs } from '../lib/clubs.js';
 import { buildFeed } from './admin.js';
@@ -102,17 +102,42 @@ export async function gatherMorning(now = new Date()) {
   return { state, feed, clubs, today };
 }
 
-export function digestMessage(today) {
-  const lines = today.sections.flatMap((s) => s.items.slice(0, 2).map((i) => `${i.title} — ${i.sub}`)).slice(0, 3);
+// `status` = one line on the nightly jobs + Blob usage, e.g.
+// "Backup ✓ · stock sync ✓ · storage 34%" (2026-11-27).
+export function digestMessage(today, status) {
+  const lines = today.sections.flatMap((s) => s.items.slice(0, 2).map((i) => `${i.title} — ${i.sub}`)).slice(0, status ? 2 : 3);
+  if (status) lines.push(status);
   return { title: `Today: ${today.summary}`, body: lines.join('\n'), url: '/dashboard#view=today', tag: 'today' };
+}
+
+export function statusLine(health, level) {
+  const mark = (ok) => (ok === false ? '✗' : ok ? '✓' : '–');
+  const h = health || {};
+  return `Backup ${mark(h.backupOk)} · stock sync ${mark(h.stockSyncOk)}${level ? ` · storage ${level.pct}%` : ''}`;
+}
+
+// Usage reminders: one push at 70% and one at 90% each month.
+async function usageReminder(level, dryRun) {
+  if (!level || !level.level) return null;
+  const key = `usage-${level.level}:${new Date().toISOString().slice(0, 7)}`;
+  if (dryRun || !(await markAlerted(key))) return null;
+  return notifyAll({ title: `Storage allowance at ${level.pct}% this month`,
+    body: `Vercel Blob (Hobby): writes ${level.writes}% · reads ${level.reads}% · storage ${level.storage}%. Going over blocks storage for 30 days.`,
+    url: '/dashboard#view=today', tag: 'usage' });
 }
 
 async function morningJob(req, res, { dryRun }) {
   const now = new Date();
   const data = await gatherMorning(now);
   const { today } = data;
+  let level = null, health = null;
+  if (isStoreConfigured()) {
+    try { const u = await storeUsage(); level = usageLevel(u); health = u.health; } catch (err) { console.error('morning: usage', err?.message); }
+  }
+  const status = statusLine(health, level);
   let push = null;
-  if (today.total && !dryRun) push = await notifyAll(digestMessage(today));
+  if (today.total && !dryRun) push = await notifyAll(digestMessage(today, status));
+  const reminder = await usageReminder(level, dryRun).catch((err) => { console.error('usage reminder', err?.message); return null; });
   let weekly = null;
   if (now.getUTCDay() === 1 || req.query.weekly === '1') {
     try {
@@ -130,10 +155,19 @@ async function morningJob(req, res, { dryRun }) {
   return res.status(200).json({
     ok: true, job: 'morning', dryRun,
     today: { summary: today.summary, counts: today.counts, total: today.total },
-    digest: today.total ? digestMessage(today) : null,
+    digest: today.total ? digestMessage(today, status) : null,
+    status, usage: level, reminder,
     push,
     weekly: weekly ? { sent: !!weekly.sent, to: weekly.to, subject: weekly.subject, error: weekly.error || null } : null,
   });
+}
+
+// Record the nightly run on the dashboard state (Today banner + digest line)
+// and push straight away when something failed. Never throws.
+async function nightlyHealth(patch) {
+  try { await recordHealth(patch); } catch (err) { console.error('health record failed', err?.message); }
+  const failed = patch.backupOk === false ? ['Dashboard backup failed', patch.backupError] : patch.stockSyncOk === false ? ['Nightly stock sync failed', patch.stockSyncError] : null;
+  if (failed) await notifyAll({ title: failed[0], body: String(failed[1] || 'See the Vercel logs.').slice(0, 160), url: '/dashboard#view=today', tag: 'health' }).catch(() => null);
 }
 
 export default async function handler(req, res) {
@@ -160,6 +194,7 @@ export default async function handler(req, res) {
       if (new Date().getUTCDay() === 0) backup.storage = await measureStorage();   // weekly storage total for the usage meter
     }
     catch (err) { console.error('dashboard backup failed', err?.message); backup = { error: String(err?.message || err).slice(0, 200) }; }
+    await nightlyHealth({ backupAt: new Date().toISOString(), backupOk: !backup?.error, backupError: backup?.error || null });
   }
 
   const days = Math.min(/^\d+$/.test(req.query.days || '') ? Number(req.query.days) : DEFAULT_DAYS, MAX_DAYS);
@@ -197,6 +232,7 @@ export default async function handler(req, res) {
 
   if (!movements.length) {
     const clubStamped = dryRun ? [] : await stampClubSkipped(clubSkipped);
+    if (!dryRun && isStoreConfigured()) await nightlyHealth({ stockSyncAt: new Date().toISOString(), stockSyncOk: true, stockSyncError: null });
     return res.status(200).json({
       ok: true, dryRun, days, backup,
       scanned: payments.length, orders: 0,
@@ -223,8 +259,10 @@ export default async function handler(req, res) {
     result = await applyAndCommit(movements, message);
   } catch (err) {
     console.error('Stock sync commit failed:', err);
+    if (isStoreConfigured()) await nightlyHealth({ stockSyncAt: new Date().toISOString(), stockSyncOk: false, stockSyncError: String(err.message || err).slice(0, 200) });
     return res.status(502).json({ error: `Stock commit failed: ${err.message}` });
   }
+  if (isStoreConfigured()) await nightlyHealth({ stockSyncAt: new Date().toISOString(), stockSyncOk: true, stockSyncError: null });
 
   // Commit landed — stamp each PI (with one retry) so it is never re-counted.
   const sha7 = (result.commitSha || 'nocommit').slice(0, 7);
