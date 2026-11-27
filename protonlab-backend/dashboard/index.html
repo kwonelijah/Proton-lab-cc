@@ -806,6 +806,42 @@
   .pl-banner{margin:6px 0 4px;padding:12px 14px;border-radius:var(--r-md);background:var(--surface-muted);color:var(--text-strong);font:500 13.5px/1.45 var(--font-body);box-shadow:inset 3px 0 0 var(--text-strong)}
   .pl-banner.bad{box-shadow:inset 3px 0 0 var(--signal)}
   .pl-banner-more{all:unset;cursor:pointer;font-weight:700;text-decoration:underline;text-underline-offset:3px;margin-left:4px}
+  /* editors: section headings + captions; phone = full-screen sheet with a Cancel · title · Save bar */
+  .f-sect{grid-column:1/-1;margin:14px 0 -4px;font:700 15px var(--font-body);color:var(--text-strong);display:flex;flex-direction:column;gap:2px}
+  .modal-body > .f-sect:first-child{margin-top:0}
+  .f-sect .hint{font:500 12.5px var(--font-body);color:var(--text-muted)}
+  .field label .hint{display:block;margin-top:2px;font:500 12px/1.4 var(--font-body);color:var(--text-muted)}
+  .modal-head .x{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto}
+  .modal-head .x:hover{background:var(--surface-muted)}
+  .pl-mh{display:none}
+  body.pl-modal-open{overflow:hidden}
+  body.pl-modal-open .pl-tabs,body.pl-modal-open .pl-chip{display:none!important}
+  body.pl-phone .overlay{z-index:80;display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--surface-raised)}
+  body.pl-phone .overlay.hidden{display:none}
+  body.pl-phone .modal{min-height:100dvh;height:auto;box-shadow:none}
+  body.pl-phone .modal.has-mh > .pl-mh{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;position:sticky;top:0;z-index:3;
+    background:color-mix(in srgb,var(--surface-raised) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line-hairline);padding:8px 8px;padding-top:calc(8px + env(safe-area-inset-top))}
+  .pl-mh button{all:unset;cursor:pointer;min-height:44px;padding:0 10px;font:500 16px var(--font-body);color:var(--text-strong)}
+  .pl-mh .pl-mh-save{justify-self:end;font-weight:700}
+  .pl-mh .pl-mh-cancel{justify-self:start}
+  .pl-mh-title{font:700 16px var(--font-body);color:var(--text-strong);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw}
+  body.pl-phone .modal.has-mh > .modal-head{position:static;padding:16px 16px 4px;border-bottom:0}
+  body.pl-phone .modal.has-mh > .modal-head .x{display:none}
+  body.pl-phone .modal.has-mh > .modal-head h3{font-size:26px}
+  body.pl-phone .modal.has-mh .modal-foot{position:static;border-top:1px solid var(--line-hairline);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+  body.pl-phone .modal.has-mh-save .modal-foot .btn.primary,body.pl-phone .modal.has-mh .modal-foot .ghost{display:none}
+  body.pl-phone .modal-foot .del{margin-left:0}
+  /* stock steppers: quantity is a button (tap to type); 44pt on phone */
+  .st-qty{all:unset;box-sizing:border-box;cursor:text;font:500 12.5px var(--font-mono);min-width:24px;text-align:center;padding:2px 4px;border-radius:6px;font-variant-numeric:tabular-nums}
+  .st-qty:hover,.st-qty:focus-visible{background:var(--surface-muted)}
+  .st-qty-in{width:64px;font:500 14px var(--font-mono);padding:4px 6px;border:1px solid var(--line-control);border-radius:6px;background:var(--surface-raised);color:var(--text-strong)}
+  .st-btn{border-radius:8px}
+  body.pl-phone .st-cell{display:inline-grid;grid-template-columns:auto 44px minmax(44px,auto) 44px;align-items:center;gap:2px;padding:4px 6px;margin:4px 8px 4px 0}
+  body.pl-phone .st-size{font:600 14px var(--font-body);padding:0 6px 0 2px;min-width:34px}
+  body.pl-phone .st-btn{width:44px;height:44px;font-size:22px;border-radius:10px}
+  body.pl-phone .st-qty{min-height:44px;min-width:44px;font-size:16px}
+  body.pl-phone .st-qty-in{width:72px;font-size:16px;min-height:44px}
   .pl-today{background:var(--signal)}   /* "now" line, as in Calendar */
   @media (prefers-reduced-motion: reduce){ *,*::before,*::after{transition-duration:0s!important;animation-duration:0s!important} }
 
@@ -864,10 +900,11 @@
 <div class="overlay hidden" id="overlay">
   <div class="modal">
     <div class="modal-head">
-      <h3 id="modalTitle">New Order</h3>
+      <h3 id="modalTitle">New order</h3>
       <button class="x" id="closeModal">&times;</button>
     </div>
     <div class="modal-body">
+      <h4 class="f-sect">Customer</h4>
       <div class="field"><label>Club / Team</label><input id="f_club" placeholder="e.g. Hilltop CC"></div>
       <div class="field"><label>Contact name</label><input id="f_contact" placeholder="e.g. Sarah Jones"></div>
       <div class="field"><label>Email / phone</label><input id="f_email" placeholder="email or number"></div>
@@ -876,27 +913,32 @@
       <div class="field"><label>Stage</label><select id="f_stage"></select></div>
       <div class="field"><label>Order type</label>
         <select id="f_type"><option value="">—</option><option>Club Shop</option><option>Invoice order</option></select></div>
+      <h4 class="f-sect">Club shop</h4>
       <div class="field full"><label>Web shop club <span class="hint">— exact club name in the web shop. Moving this order to Production then emails all of that club's web-shop customers.</span></label>
         <input id="f_wsclub" list="wsClubNames" placeholder="e.g. Edinburgh Bike Fitting Club"></div>
       <div class="field full hidden" id="wsAccess"><label>Web shop access — <span id="wsAccessClub"></span></label>
         <div class="li-wrap" id="wsAccessBody"></div></div>
+      <h4 class="f-sect">Items</h4>
       <div class="field full"><label>Items ordered <span class="hint">— priced from the catalogue; qty & value below auto-fill (editable)</span></label>
         <div class="li-wrap" id="lineItems"></div></div>
       <div class="field"><label>Quantity (units) <span class="hint">auto</span></label><input id="f_qty" type="number" min="0" placeholder="0"></div>
       <div class="field"><label>Order value (£) <span class="hint" id="f_valueHint">revenue</span></label><input id="f_value" type="number" min="0" step="0.01" placeholder="0"></div>
-      <div class="field full" style="margin-top:2px"><label>Payment <span class="hint" id="f_paidHint">— how Proton was paid; Analytics counts bank transfers from here</span></label></div>
+      <h4 class="f-sect">Payment <span class="hint" id="f_paidHint">How Proton was paid; Analytics counts bank transfers from here</span></h4>
       <div class="field"><label>Paid via</label><select id="f_paidvia"><option value="">— not recorded</option><option value="stripe">Club shop (Stripe)</option><option value="invoice">Invoice · bank transfer</option></select></div>
       <div class="field pay-inv"><label>Invoice amount (£) <span class="hint">received by bank transfer</span></label><input id="f_invoiceamount" type="number" min="0" step="0.01" placeholder="0"></div>
       <div class="field pay-inv"><label>Invoice paid on <span class="hint">blank = still outstanding (not counted yet)</span></label><input id="f_invoicedate" type="date"></div>
+      <h4 class="f-sect">Costs</h4>
       <div class="field"><label>Production cost (£) <span class="hint">manufacturing (factory PI)</span></label><input id="f_cost" type="number" min="0" step="0.01" placeholder="0"></div>
       <div class="field"><label>Design fee (£) <span class="hint">separate cost line — the designer's fee for this kit</span></label><input id="f_designfee" type="number" min="0" step="0.01" placeholder="0"></div>
-      <div class="field full" style="margin-top:2px"><label>Postage <span class="hint">— separate cost line: Evri member parcels + factory freight + non-UK parcels</span></label></div>
+      <h4 class="f-sect">Postage <span class="hint">Evri member parcels, factory freight and non-UK parcels</span></h4>
       <div class="field"><label>Evri postage (£) <span class="hint" id="f_evriHint"></span></label><div style="display:flex;gap:6px;align-items:center"><input id="f_postevri" type="number" min="0" step="0.01" placeholder="0" style="flex:1 1 auto;min-width:0"><button type="button" class="btn small" id="f_evriReset" title="Back to the auto figure" style="display:none">↻</button></div></div>
       <div class="field"><label>Factory freight (£) <span class="hint">— inbound shipment from the factory</span></label><input id="f_freight" type="number" min="0" step="0.01" placeholder="0"></div>
       <div class="field"><label>Non-UK parcels (£) <span class="hint" id="f_intlHint"></span></label><input id="f_intlparcels" type="number" min="0" step="0.01" placeholder="0"></div>
+      <h4 class="f-sect">Documents</h4>
       <div class="field full"><label>Design link (Drive / Canva / etc.)</label><input id="f_design" placeholder="https://…"></div>
       <div class="field full"><label>Documents <span class="hint">— invoices, order forms, mockups. Click ↗ to open. Type a filename, a path, or a URL.</span></label>
         <div class="li-wrap" id="docList"></div></div>
+      <h4 class="f-sect">Delivery</h4>
       <div class="field"><label>Factory order no. <span class="hint">— asked when moving to Production</span></label><input id="f_factory" placeholder="factory / supplier order ref"></div>
       <div class="field"><label>Tracking number</label><input id="f_tracking" placeholder="courier tracking"></div>
       <div class="field full" style="margin-top:2px"><label style="cursor:pointer"><input type="checkbox" id="f_shipws">Ship via web shop <span class="hint">— the parcel joins RETAIL → Orders for the Evri CSV, tracking and a no-price dispatch note; the money stays here</span></label></div>
@@ -909,6 +951,7 @@
       <div class="field ship-ws"><label>Country</label><select id="f_shipcountry"></select></div>
       <div class="field ship-ws"><label>Delivery service</label><select id="f_shipservice"><option value="standard">Standard</option><option value="next-day">Next Day</option><option value="international">International</option></select></div>
       <div class="field full ship-ws"><div class="proton-spec" id="f_shipStatus" style="text-transform:none"></div></div>
+      <h4 class="f-sect">Next step &amp; notes</h4>
       <div class="field"><label>Next action date</label><input id="f_nextdate" type="date"></div>
       <div class="field full"><label>Next action</label><div class="f-next-row"><input id="f_next" placeholder="e.g. Send revised mockup"><button type="button" class="btn" id="f_nextDone" title="Log this step as done in the notes and clear it">Mark done</button></div></div>
       <div class="field full"><label>Notes</label><textarea id="f_notes" placeholder="Sizes, fabric, deadlines, payment terms…"></textarea></div>
@@ -927,7 +970,7 @@
 <div class="overlay hidden" id="wsOverlay">
   <div class="modal">
     <div class="modal-head">
-      <h3 id="wsModalTitle">Manual Web-Shop Order</h3>
+      <h3 id="wsModalTitle">Manual web-shop order</h3>
       <button class="x" id="wsCloseModal">&times;</button>
     </div>
     <div class="modal-body">
@@ -986,7 +1029,7 @@
 <div class="overlay hidden" id="wsEvriOverlay">
   <div class="modal" style="width:min(460px,94vw)">
     <div class="modal-head">
-      <h3>Evri Export</h3>
+      <h3>Evri export</h3>
       <button class="x" id="wsEvriClose">&times;</button>
     </div>
     <div class="modal-body" style="grid-template-columns:1fr">
@@ -1092,7 +1135,7 @@
 <div class="overlay hidden" id="stockDropOverlay">
   <div class="modal" style="width:min(660px,94vw)">
     <div class="modal-head">
-      <h3 id="stockDropTitle">Order Form → Stock</h3>
+      <h3 id="stockDropTitle">Order form → stock</h3>
       <button class="x" id="stockDropClose">&times;</button>
     </div>
     <div class="modal-body" id="stockDropBody"></div>
@@ -2080,7 +2123,7 @@ function fillStageSelect(){
 function openModal(id){
   editingId=id||null;
   const o = id? orders.find(x=>x.id===id):{stage:"contact",source:"They reached out"};
-  document.getElementById("modalTitle").textContent=id?"Edit Order":"New Order";
+  document.getElementById("modalTitle").textContent=id?"Edit order":"New order";
   document.getElementById("deleteBtn").style.display=id?"inline-flex":"none";
   set("f_club",o.club);set("f_contact",o.contact);set("f_email",o.email);
   set("f_source",o.source||"They reached out");set("f_stage",o.stage||"contact");
@@ -2873,7 +2916,7 @@ function ensureWsEditModal(){
   document.body.insertAdjacentHTML("beforeend", `
 <div class="overlay hidden" id="weOverlay">
   <div class="modal" style="width:min(820px,94vw)">
-    <div class="modal-head"><h3 id="weTitle">Edit Order</h3><button class="x" id="weX">&times;</button></div>
+    <div class="modal-head"><h3 id="weTitle">Edit order</h3><button class="x" id="weX">&times;</button></div>
     <div class="modal-body">
       <div class="field full" style="gap:4px"><span class="proton-spec" id="weSub" style="text-transform:none"></span></div>
       <div class="field full"><label>Items <span class="hint">— change the gender, size, colour or quantity; quantity 0 removes the line</span></label><div id="weItems"></div></div>
@@ -4267,9 +4310,9 @@ function paintStock(){
           const shown=Math.max(0,r.quantity+d);
           return `<span class="st-cell${(r.quantity+d)<=0?" st-zero":""}${d?" st-dirty":""}" data-key="${esc(key)}">
             <span class="st-size">${esc(r.size)}</span>
-            <button class="st-btn st-minus" title="−1">−</button>
-            <span class="st-qty">${d?`${r.quantity}→${shown}`:r.quantity}</span>
-            <button class="st-btn st-plus" title="+1">+</button></span>`;
+            <button type="button" class="st-btn st-minus" aria-label="${esc(r.size)}: one fewer">−</button>
+            <button type="button" class="st-qty" aria-label="${esc(r.size)}: ${shown} in stock — type a number" title="Tap to type a quantity">${d?`${r.quantity}→${shown}`:r.quantity}</button>
+            <button type="button" class="st-btn st-plus" aria-label="${esc(r.size)}: one more">+</button></span>`;
         }).join("");
         return `<tr><td><strong>${esc(HANDLE_NAME[g.handle]||g.handle)}</strong><br><span class="proton-spec" style="text-transform:none">${esc(g.handle)}</span></td>
           <td>${cells}</td><td style="text-align:right">${units}</td>
@@ -4320,6 +4363,24 @@ function paintStock(){
       const next=(stockDraft[key]||0)-1;
       if(row && row.quantity+next<0) return;   /* can't take stock below zero */
       stockDraft[key]=next; paintStock();};
+    /* Tap the number to type the new quantity (2026-11-27): becomes a draft
+       like +/−, so Apply still commits everything as one update. */
+    cell.querySelector(".st-qty").onclick=()=>{
+      const row=stockState.rows.find(r=>r.handle+"::"+r.size===key); if(!row) return;
+      const q=cell.querySelector(".st-qty");
+      const inp=document.createElement("input");
+      inp.type="number"; inp.inputMode="numeric"; inp.min="0"; inp.step="1"; inp.className="st-qty-in";
+      inp.value=String(Math.max(0,row.quantity+(stockDraft[key]||0)));
+      inp.setAttribute("aria-label", row.size+" quantity");
+      q.replaceWith(inp); inp.focus(); inp.select();
+      let done=false;
+      const commit=(keep)=>{ if(done) return; done=true;
+        const v=parseInt(inp.value,10);
+        if(keep && Number.isFinite(v) && v>=0){ const dlt=v-row.quantity; if(dlt) stockDraft[key]=dlt; else delete stockDraft[key]; }
+        paintStock(); };
+      inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(true); } else if(e.key==="Escape"){ e.preventDefault(); commit(false); } });
+      inp.addEventListener("blur",()=>commit(true));
+    };
   });
 }
 /* ---------- Past-orders backfill ----------
@@ -4827,7 +4888,7 @@ function ensurePlModal(){
   document.body.insertAdjacentHTML("beforeend", `
 <div class="overlay hidden" id="plOverlay">
   <div class="modal" style="width:min(560px,94vw)">
-    <div class="modal-head"><h3 id="plModalTitle">Edit Item</h3><button class="x" id="plX">&times;</button></div>
+    <div class="modal-head"><h3 id="plModalTitle">Edit item</h3><button class="x" id="plX">&times;</button></div>
     <div class="modal-body">
       <div class="field full"><label>Title</label><input id="pl_title" placeholder="e.g. Women's line sampling"></div>
       <div class="field"><label>Start</label><input id="pl_start" type="date"></div>
@@ -6626,14 +6687,11 @@ document.getElementById("f_evriReset").onclick=()=>{ const e=evriEstimate(editPa
 document.getElementById("stockDropClose").onclick=stockDropCancel;
 document.getElementById("stockDropCancelBtn").onclick=stockDropCancel;
 document.getElementById("stockDropConfirmBtn").onclick=stockDropConfirm;
-document.getElementById("stockDropOverlay").addEventListener("click",e=>{if(e.target.id==="stockDropOverlay")stockDropCancel();});
 stockBadge(); stockFlush();
 window.addEventListener("online",()=>stockFlush());
-document.getElementById("wsOverlay").addEventListener("click",e=>{if(e.target.id==="wsOverlay")wsCloseManual();});
 document.getElementById("wsEvriGo").onclick=wsEvriDownload;
 document.getElementById("wsEvriClose").onclick=()=>document.getElementById("wsEvriOverlay").classList.add("hidden");
 document.getElementById("wsEvriCancel").onclick=()=>document.getElementById("wsEvriOverlay").classList.add("hidden");
-document.getElementById("wsEvriOverlay").addEventListener("click",e=>{if(e.target.id==="wsEvriOverlay")e.target.classList.add("hidden");});
 document.getElementById("search").addEventListener("input",render);
 document.querySelectorAll("#nav .seg button").forEach(b=>b.onclick=()=>setView(b.dataset.view));
 document.getElementById("f_value").addEventListener("input", renderValueHint);
@@ -7250,6 +7308,81 @@ plApplyMode();
     if(v && VIEW_IDS.includes(v)){ setView(v); return; }
   }catch(e){}
   setView(plIsPhone()? "today" : "board");
+})();
+
+/* ---------- Editor windows (2026-11-27) ----------
+   One routine for every .overlay editor, so the open/close functions stay as
+   they are:
+   - proper dialogs: role=dialog + aria-modal + title, focus moves in on open,
+     Tab stays inside, focus returns to the opener on close; × labelled
+   - they never close by accident: no Escape, no backdrop click (Elijah)
+   - phone: full-screen sheet, tab bar hidden, a fixed Cancel · title · Save
+     bar at the top that presses the editor's own Cancel / Save buttons */
+(function(){
+  const openers = new WeakMap();
+  const isOpen = (ov)=> !ov.classList.contains("hidden") && ov.style.display!=="none" && ov.isConnected;
+  const openOverlays = ()=> [...document.querySelectorAll(".overlay")].filter(isOpen);
+  const FOCUSABLE = 'button:not([disabled]),[href],input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  function visibleIn(el){ return [...el.querySelectorAll(FOCUSABLE)].filter(x=>x.offsetParent!==null || x===document.activeElement); }
+  function enhance(ov){
+    const m = ov.querySelector(".modal"); if(!m) return;
+    m.setAttribute("role","dialog"); m.setAttribute("aria-modal","true");
+    const h = m.querySelector(".modal-head h3");
+    if(h){ if(!h.id) h.id = "dlgTitle_"+Math.random().toString(36).slice(2,8); m.setAttribute("aria-labelledby", h.id); }
+    m.querySelectorAll(".modal-head .x").forEach(x=>{ x.setAttribute("aria-label","Close"); x.type="button"; });
+    m.querySelectorAll(".modal .hint").forEach(x=>{ x.textContent = x.textContent.replace(/^\s*—\s*/,""); });
+    /* phone bar: Cancel · title · Save */
+    let bar = m.querySelector(":scope > .pl-mh");
+    if(plIsPhone()){
+      const foot = m.querySelector(".modal-foot");
+      const save = foot && foot.querySelector(".btn.primary");
+      const cancel = (foot && ([...foot.querySelectorAll("button")].find(b=>/^\s*(cancel|close|done)\s*$/i.test(b.textContent)) || foot.querySelector(".ghost"))) || m.querySelector(".modal-head .x");
+      if(!bar){ bar = document.createElement("div"); bar.className = "pl-mh"; m.prepend(bar); }
+      bar.innerHTML = `<button type="button" class="pl-mh-cancel">${cancel && cancel!==m.querySelector(".modal-head .x")? esc(cancel.textContent.trim()) : "Close"}</button>
+        <div class="pl-mh-title">${esc(h? h.textContent.trim() : "")}</div>
+        ${save? `<button type="button" class="pl-mh-save">${esc(save.textContent.trim())}</button>` : `<span></span>`}`;
+      bar.querySelector(".pl-mh-cancel").onclick = ()=> cancel && cancel.click();
+      const sb = bar.querySelector(".pl-mh-save"); if(sb) sb.onclick = ()=> save.click();
+      m.classList.toggle("has-mh-save", !!save); m.classList.add("has-mh");
+    }else if(bar){ bar.remove(); m.classList.remove("has-mh","has-mh-save"); }
+  }
+  function onChange(ov){
+    const open = isOpen(ov);
+    if(open && !ov._plOpen){
+      ov._plOpen = true;
+      openers.set(ov, document.activeElement);
+      enhance(ov);
+      ov.scrollTop = 0;
+      const m = ov.querySelector(".modal");
+      /* desktop: first field; phone: the dialog itself (no keyboard popping up) */
+      setTimeout(()=>{ if(!isOpen(ov)) return;
+        const first = !plIsPhone() && m && visibleIn(m.querySelector(".modal-body")||m).find(x=>/INPUT|SELECT|TEXTAREA/.test(x.tagName));
+        if(first) first.focus({preventScroll:true}); else if(m){ m.tabIndex=-1; m.focus({preventScroll:true}); } }, 30);
+    }else if(!open && ov._plOpen){
+      ov._plOpen = false;
+      const back = openers.get(ov); if(back && back.isConnected && typeof back.focus==="function") back.focus({preventScroll:true});
+    }
+    document.body.classList.toggle("pl-modal-open", openOverlays().length>0);
+  }
+  function watch(ov){
+    if(ov._plWatched) return; ov._plWatched = true;
+    new MutationObserver(()=>onChange(ov)).observe(ov, {attributes:true, attributeFilter:["class","style"]});
+    onChange(ov);
+  }
+  document.querySelectorAll(".overlay").forEach(watch);
+  new MutationObserver(muts=>{ for(const mu of muts) for(const n of mu.addedNodes){ if(n.nodeType!==1) continue;
+    if(n.classList.contains("overlay")) watch(n); n.querySelectorAll && n.querySelectorAll(".overlay").forEach(watch); } })
+    .observe(document.body, {childList:true, subtree:true});
+  /* Tab stays inside the top editor */
+  document.addEventListener("keydown", (e)=>{
+    if(e.key!=="Tab") return;
+    const ovs = openOverlays(); if(!ovs.length) return;
+    const m = ovs[ovs.length-1].querySelector(".modal"); if(!m) return;
+    const f = visibleIn(m); if(!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if(e.shiftKey && (i<=0)){ e.preventDefault(); f[f.length-1].focus(); }
+    else if(!e.shiftKey && (i===-1 || i===f.length-1)){ e.preventDefault(); f[0].focus(); }
+  });
 })();
 
 /* ---------- Mark the next step done (2026-11-26) ----------
