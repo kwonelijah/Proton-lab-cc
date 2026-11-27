@@ -12,3 +12,5 @@ Both authenticate with `DASHBOARD_MAC_KEY`: created by the installer, kept in th
 The installer copies the scripts to `~/Library/Application Support/ProtonLab/bin/`, so the jobs keep working if this checkout moves. Re-run it after changing them. macOS needs Full Disk Access for the `node` binary (the installer prints the path) because the jobs read the Desktop.
 
 By hand: `node scripts/mac/proton-backup.mjs` · `node scripts/mac/proton-invoice-watch.mjs --dry-run` · logs in `~/Library/Logs/`. Remove: `zsh scripts/mac/install.sh --uninstall`.
+
+Status: installed on Elijah's Mac and `DASHBOARD_MAC_KEY` set in Vercel (Production, sensitive) on 27/11/2026.
